@@ -82,7 +82,7 @@ URL of Repository: [https://github.com/INF1103Team7/INF1103-Ai-Powered-Scam-Mess
                                               ▼
                                  ┌─────────────────────────┐
                                  │       I/O Manager       │
-                                 │ (Validate Terminal Input)
+                                 │(Validate Terminal Input)|
                                  └────────────┬────────────┘
                                               │
                                               ▼
