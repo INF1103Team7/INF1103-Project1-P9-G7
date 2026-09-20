@@ -1,4 +1,4 @@
-Project Initial Details Submission 
+**Project Initial Details Submission**
 
  
 
@@ -12,21 +12,19 @@ What real-world problem does your application aim to solve?
 
 Background information: 
 
-With the rise of technology, scam emails like phishing attempts, fake job offers, and impersonation emails are becoming more legitimate and common. This may negatively impact schools as most schools use email as their primary communication channel; thus, students may get tricked into clicking on malicious links, revealing their personal information, or making illicit payments.  
-
-This issue is prevalent and reflected in the recent news of at least 20 students who received emails from impersonators requesting urgent payment of school fees1. As a result, the victims lost over $30k to the scammers. 
+Currently in schools losing your personal items is common and there isn’t a centralized platform to efficiently reunite lost belongings with their owners. Current solutions such as telegram chatgroups or physical bulletin boards help to broadcast lost items, but this can generate a lot of noise, spam and unorganized messages for the lost items owner further hindering the progress of finding their item.
 
  
 
 Our goal: 
 
-Given this, our goal is to create an application that helps students identify potential scam emails before they do anything. Our application analyses email and flags suspicious indicators, then subsequently provides a risk assessment and recommends the course of action the student should take. 
+Hence with that in mind our AI driven lost and found application is designed to allow lost item owners to provide a loose freeform text description and optional image if they have on their lost item where our AI will conduct feature extraction and real time matching to reported lost items within our database to quickly provide top matches on the lost item. Increasing the efficiency of reuniting the owner with their item. 
 
  
 
 Who are the intended users of the application? 
 
-The intended users are students who depend on email as their primary communication channel. Our application is designed to assist students in making more informed decisions when dealing with suspicious emails. 
+The intended users are students and staff of education institutions categorized into two main categories, the Claimants: Individuals who have misplaced their items, and the Finders: Campus staff or students who find unattended items. 
 
  
 
@@ -38,7 +36,7 @@ User Inputs
 
 What information or data will users provide to the system? 
 
-The users of the application will provide the system with input data such as the sender’s email address to verify if it is from a valid domain and the body content of the email that they have received to check for email content, attachments and links, to identify whether the email they received is a potential scam. 
+The users of the application will provide the system with input data such as type of report they are going to submit, either a Lost or Found report. Subsequently a brief description of the item they have lost/found and an optional image of the item if they have. Finally, the date of occurrence. 
 
  
 
@@ -50,13 +48,13 @@ Use of AI
 
 How will AI be utilized within the application? 
 
-AI will be used to analyze the input from the user to determine the intent of the email, classify potential scam types (if applicable), analyze the language used to identify potential social engineering techniques, analyze the links and attachments in the body content to provide a risk score, and recommend the next course of action the user should take. 
+AI will be used in two primary phases Multimodal Feature Extraction: to process the unstructured text description from the user as well as conduct feature extraction on the image that was supplied by the user (if applicable). Key features like type of item, primary and secondary color of the item, key features of the item, brand of the item, date and material of the item will be extracted. Semantic Matching: for incoming lost reports the AI will attempt to match them with existing entries within the database to generate a potential match with a similarity level and which features are matched. 
 
  
 
 What outputs, insights, or recommendations will the AI generate from the user inputs? 
 
-The AI will analyze the user inputs and generate an output in JSON format containing information such as risk score, intent, scam type, social engineering techniques (if applicable), suspicious links (if applicable) and recommended actions before passing it onto the business logic layer. 
+The AI will generate an extraction output with the key features in JSON format for found reports before storing into the database. For lost reports after extracting key features the AI will perform matching with existing data in the database in attempts to match the lost item generating a matching insights output in JSON format containing information of potential matches such as a similarity level, which features were matched and an image of the item if it was supplied. 
 
  
 
@@ -66,16 +64,62 @@ Business Rules
 
 What business rules, validations, or decision-making logic will be applied to the AI-generated outputs? 
 
-After receiving the AI output in JSON format this layer will validate it in the correct data format and contain all the information required from the AI layer such as risk score, intent, scam type, social engineering techniques, suspicious links and recommended actions. Afterwards, there will be a multi condition decision rule combining the different data in the AI output to come to a decision. For example, if a risk score above 90 and suspicious link(s) count is more than 0 then the recommendation from the AI will be overwritten to “Block and Report” and we will rank the priority as critical.  
+After receiving the AI output in JSON format this layer will validate it in the correct data format and contain all the information required from the AI layer such as similarity level and key features matched before passing the output into a multi condition rule to evaluated whether it is a false positive or is the similarity score below a defined threshold before passing the top few matches back to the user to confirm whether it was their lost item.  
 
  
 
 Repository Information 
 
-URL of Repository: https://github.com/INF1103Team7/INF1103-Ai-Powered-Scam-Message-Risk-Detector
+URL of Repository: [https://github.com/INF1103Team7/INF1103-Ai-Powered-Scam-Message-Risk-Detector](https://github.com/INF1103Team7/INF1103-Project1-P9-G7)
 
  
 
-References 
-
-1 Chia, L. (2026) ‘Students lose over $30k to scammers impersonating educational institutions’, The Straits Times, 19 March. Available at: https://www.straitstimes.com/singapore/at-least-31000-lost-to-scams-involving-impersonation-of-educational-institutions-in-under-3-weeks (Accessed: 16 September 2026). 
+**Data Flow Diagram**
+                  ┌─────────────────────────────────────────────────────────┐
+                  │                 USER SUBMITS A REPORT                   │
+                  └───────────────────────────┬─────────────────────────────┘
+                                              │
+                                              ▼
+                                 ┌─────────────────────────┐
+                                 │       I/O Manager       │
+                                 │ (Validate Terminal Input)
+                                 └────────────┬────────────┘
+                                              │
+                                              ▼
+                                 ┌─────────────────────────┐
+                                 │       AI Manager        │
+                                 │ (Multimodal Extraction) │
+                                 └────────────┬────────────┘
+                                              │
+                                              ▼
+                        ┌───────────────────────────────────────────┐
+                        │      IS IT A LOST OR FOUND REPORT?        │
+                        └──────────────┬────────────────────┬───────┘
+                                       │                    │
+                          ┌────────────┘                    └────────────┐
+                          ▼                                              ▼
+                 [ CASE A: LOST REPORT ]                      [ CASE B: FOUND REPORT ]
+                          │                                              │
+                          ▼                                              ▼
+             ┌─────────────────────────┐                    ┌─────────────────────────┐
+             │      Data Manager       │                    │      Data Manager       │
+             │ (Save Extracted Record) │                    │ (Retrieve Active Lost)  │
+             └─────────────────────────┘                    └────────────┬────────────┘
+                                                                         │
+                                                                         ▼
+                                                            ┌─────────────────────────┐
+                                                            │       AI Manager        │
+                                                            │   (Semantic Matcher)    │
+                                                            └────────────┬────────────┘
+                                                                         │
+                                                                         ▼
+                                                            ┌─────────────────────────┐
+                                                            │      Logic Manager      │
+                                                            │ (Multi-Condition Rules) │
+                                                            └────────────┬────────────┘
+                                                                         │
+                                                                         ▼
+                                                            ┌─────────────────────────┐
+                                                            │       I/O Manager       │
+                                                            │  (Display Top Matches)  │
+                                                            └─────────────────────────┘
