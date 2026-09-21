@@ -4,13 +4,23 @@
     "category": "student card",
     "description": "black, tall",
     "date": "2026-5-1",
-    "image_filename": "4d497364fdab4bc78c162b761a961c82.png"
+    "image_filename": "CASE-20260921-C180D4.png",
+    "case_id": "CASE-20260921-C180D4"
   },
   {
     "report_type": "lost",
     "category": "electronics",
     "description": "test",
     "date": "21-9-2026",
-    "image_filename": "5963c78a097d40ea9f9b8879d0393c98.png"
+    "image_filename": "CASE-20260921-31A860.png",
+    "case_id": "CASE-20260921-31A860"
+  },
+  {
+    "report_type": "found",
+    "category": "bag",
+    "description": "testing",
+    "date": "04-04-2026",
+    "image_filename": "CASE-20260921-ABFADA.png",
+    "case_id": "CASE-20260921-ABFADA"
   }
 ]
