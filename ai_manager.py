@@ -41,17 +41,15 @@ def extract_features(description_text, image_bytes=None):
     "{description_text}"
     
     Return strictly JSON:
-    {{
-      "item_category": "<category>",
+    {
       "primary_color": "<color>",
-      "Secondary_color": "<color>",
+      "secondary_color": "<color>",
       "material": "<material>",
-      "identifying_features": ["<feature 1>"],
+      "identifying_features": ["<feature 1>, <feature 2>, ..."],
       "brand": "<brand>",
-      "date_lost": "<date>",
       "location_lost": "<location>",
       "additional_notes": "<notes>"
-    }}
+    }
 
     if any of the fields are not present in the report, return None for that field. Do not include any additional text or explanations in the response. Only return the JSON object as specified above.
     """
@@ -83,7 +81,7 @@ def extract_features(description_text, image_bytes=None):
             return json.loads(response.text.strip())
 
         except APIError as e:
-            # Check for 503 server side error (High Demand / Unavailable)
+            # Check for 503 server side error (High Demand / Unavailable) With exponential backoff retry
             if e.code == 503 and attempt < retries - 1:
                 print(f"Model busy (503). Retrying in {delay}s... (Attempt {attempt + 1}/{retries})")
                 time.sleep(delay)
@@ -97,6 +95,14 @@ def extract_features(description_text, image_bytes=None):
     return {"error": "Failed after max retries due to 503 UNAVAILABLE"}
 
 
-desc = "Brown wallet near E2 at SIT"
+desc = {
+    "report_type": "lost",
+    "case_id": "CASE-20260921-C180D4",
+    "item_category": "wallet",
+    "description": "Brown wallet near E2 at SIT got a black mark on the inside of the wallets",
+    "date": "2026-5-1",
+    "image_filename": "CASE-20260921-C180D4.png"
+}
+
 features = extract_features(desc)
 print(features)
