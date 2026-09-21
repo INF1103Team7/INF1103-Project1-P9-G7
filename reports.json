@@ -5,5 +5,12 @@
     "description": "black, tall",
     "date": "2026-5-1",
     "image_filename": "4d497364fdab4bc78c162b761a961c82.png"
+  },
+  {
+    "report_type": "lost",
+    "category": "electronics",
+    "description": "test",
+    "date": "21-9-2026",
+    "image_filename": "5963c78a097d40ea9f9b8879d0393c98.png"
   }
 ]
