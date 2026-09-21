@@ -1,4 +1,3 @@
-import json
 import os
 import time
 import logging
@@ -17,7 +16,7 @@ def get_ai_client():
     """_summary_
         Sets up the Gemini AI API client using the GEMINI API Key from the .env file
     Returns:
-        Gemini API client if the GEMINI_API_KEY environment variable is set, otherwise returns None
+        Google genai.Client Object: Gemini API client if the GEMINI_API_KEY environment variable is set, otherwise returns None
     """
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
@@ -26,11 +25,11 @@ def get_ai_client():
     return genai.Client(api_key=api_key)
 
 
-def extract_features(description_text, image_bytes=None):
+def extract_features(description, image_bytes=None):
     """_summary_
         Passes user text and optional image bytes to Gemini API with retry handling for feature extraction
     Returns:
-        JSON: Extracted features as a JSON object or an error message.
+        Extracted features as a JSON object or an error message.
     """
     client = get_ai_client()
     if not client:
@@ -38,10 +37,10 @@ def extract_features(description_text, image_bytes=None):
 
     prompt = f"""
     Extract structured lost/found item traits from this report:
-    "{description_text}"
+    "{description}"
     
-    Return strictly JSON:
-    {
+    Return strictly JSON ensuring that it is double quoted and replace description with the following fields while keeping all other fields untouched from the original report:
+    {{
       "primary_color": "<color>",
       "secondary_color": "<color>",
       "material": "<material>",
@@ -49,7 +48,7 @@ def extract_features(description_text, image_bytes=None):
       "brand": "<brand>",
       "location_lost": "<location>",
       "additional_notes": "<notes>"
-    }
+    }}
 
     if any of the fields are not present in the report, return None for that field. Do not include any additional text or explanations in the response. Only return the JSON object as specified above.
     """
@@ -57,49 +56,61 @@ def extract_features(description_text, image_bytes=None):
     contents = []
     if image_bytes:
         contents.append(
-            types.Part.from_bytes(data=image_bytes, mime_type="image/jpeg")
+            types.Part.from_bytes(data = image_bytes, mime_type = "image/jpeg")
         )
     contents.append(prompt)
 
     # Configuration for the Gemini API request
     config = types.GenerateContentConfig(
-        response_mime_type="application/json",
-        temperature=0.1,
-        automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True)
+        response_mime_type = "application/json",
+        temperature = 0.1,
+        automatic_function_calling = types.AutomaticFunctionCallingConfig(disable=True),
+        # Set request timeout 30 seconds
+        http_options = types.HttpOptions(timeout = 30_000)
     )
 
     # Retry loop for API calls, handling 503 errors
-    delay = 5
+    delay = 2
     retries = 3
-    for attempt in range(retries):
+    for attempt in range(1, retries + 1):
         try:
             response = client.models.generate_content(
-                model="gemini-3.6-flash",
+                model="gemini-3.8-flash",
                 contents=contents,
                 config=config,
             )
-            return json.loads(response.text.strip())
 
+            return response.text.strip()
+
+        # Handle commonn API errors
         except APIError as e:
-            # Check for 503 server side error (High Demand / Unavailable) With exponential backoff retry
-            if e.code == 503 and attempt < retries - 1:
-                print(f"Model busy (503). Retrying in {delay}s... (Attempt {attempt + 1}/{retries})")
+            # Handle error 429 resource exhausted (Rate limit exceeded)
+            if e.code == 429:
+                return f"[!] Error 429: Rate limit exceeded. {e.message}" 
+
+            # Handle error 503 server side error (High Demand / Unavailable) With exponential backoff retry
+            elif e.code == 503:
+                if attempt < retries:
+                    print(f"Model busy (503). Retrying in {delay}s... (Attempt {attempt}/{retries})")
+                if attempt == retries:
+                    print(f"Model busy (503). Max Retry reached (Attempt {attempt}/{retries})")
+                    return f"[!] API Error {e.code}: {e.message}"
+                attempt += 1
                 time.sleep(delay)
                 delay *= 2
                 continue
-            return {"error": str(e)}
 
+        # Handle any other unexpected exceptions
         except Exception as e:
-            return {"error": str(e)}
+            return f"[!] Error: {e}"
+    return f"[!] Error: Feature extraction failed"
 
-    return {"error": "Failed after max retries due to 503 UNAVAILABLE"}
-
-
+# Testing 
 desc = {
     "report_type": "lost",
     "case_id": "CASE-20260921-C180D4",
     "item_category": "wallet",
-    "description": "Brown wallet near E2 at SIT got a black mark on the inside of the wallets",
+    "raw_description": "Brown wallet near E2 at SIT got a black mark on the inside of the wallets",
     "date": "2026-5-1",
     "image_filename": "CASE-20260921-C180D4.png"
 }
