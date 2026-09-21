@@ -1,19 +1,37 @@
 import json
 import os
+import time
+import logging
+from dotenv import load_dotenv
 from google import genai
 from google.genai import types
+from google.genai.errors import APIError
 
+# Surpress non critical logging messages from the Google GenAI library
+logging.getLogger("google_genai.models").setLevel(logging.ERROR)
+
+# Load environment variables from .env file
+load_dotenv()  
 
 def get_ai_client():
-    """Initializes and returns the Gemini client."""
+    """_summary_
+        Sets up the Gemini AI API client using the GEMINI API Key from the .env file
+    Returns:
+        Gemini API client if the GEMINI_API_KEY environment variable is set, otherwise returns None
+    """
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
+        print("Gemini API Key not found. Please set the GEMINI_API_KEY environment variable.")
         return None
     return genai.Client(api_key=api_key)
 
 
-def extract_features_procedural(description_text, image_bytes=None):
-    """Passes user text and optional image bytes to Gemini API."""
+def extract_features(description_text, image_bytes=None):
+    """_summary_
+        Passes user text and optional image bytes to Gemini API with retry handling for feature extraction
+    Returns:
+        JSON: Extracted features as a JSON object or an error message.
+    """
     client = get_ai_client()
     if not client:
         return {"error": "API Key Missing"}
@@ -26,9 +44,16 @@ def extract_features_procedural(description_text, image_bytes=None):
     {{
       "item_category": "<category>",
       "primary_color": "<color>",
+      "Secondary_color": "<color>",
       "material": "<material>",
-      "identifying_features": ["<feature 1>"]
+      "identifying_features": ["<feature 1>"],
+      "brand": "<brand>",
+      "date_lost": "<date>",
+      "location_lost": "<location>",
+      "additional_notes": "<notes>"
     }}
+
+    if any of the fields are not present in the report, return None for that field. Do not include any additional text or explanations in the response. Only return the JSON object as specified above.
     """
 
     contents = []
@@ -38,14 +63,40 @@ def extract_features_procedural(description_text, image_bytes=None):
         )
     contents.append(prompt)
 
-    try:
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=contents,
-            config=types.GenerateContentConfig(
-                response_mime_type="application/json", temperature=0.1
-            ),
-        )
-        return json.loads(response.text.strip())
-    except Exception as e:
-        return {"error": str(e)}
+    # Configuration for the Gemini API request
+    config = types.GenerateContentConfig(
+        response_mime_type="application/json",
+        temperature=0.1,
+        automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True)
+    )
+
+    # Retry loop for API calls, handling 503 errors
+    delay = 5
+    retries = 3
+    for attempt in range(retries):
+        try:
+            response = client.models.generate_content(
+                model="gemini-3.6-flash",
+                contents=contents,
+                config=config,
+            )
+            return json.loads(response.text.strip())
+
+        except APIError as e:
+            # Check for 503 server side error (High Demand / Unavailable)
+            if e.code == 503 and attempt < retries - 1:
+                print(f"Model busy (503). Retrying in {delay}s... (Attempt {attempt + 1}/{retries})")
+                time.sleep(delay)
+                delay *= 2
+                continue
+            return {"error": str(e)}
+
+        except Exception as e:
+            return {"error": str(e)}
+
+    return {"error": "Failed after max retries due to 503 UNAVAILABLE"}
+
+
+desc = "Brown wallet near E2 at SIT"
+features = extract_features(desc)
+print(features)
