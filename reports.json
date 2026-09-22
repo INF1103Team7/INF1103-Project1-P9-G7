@@ -22,5 +22,13 @@
     "date": "04-04-2026",
     "image_filename": "CASE-20260921-ABFADA.png",
     "case_id": "CASE-20260921-ABFADA"
+  },
+  {
+    "report_type": "lost",
+    "category": "bottle",
+    "description": "White bottle found at level 1 garden",
+    "date": "22-09-2026",
+    "case_id": "CASE-20260922-6F1106",
+    "image_filename": "CASE-20260922-6F1106.jpg"
   }
 ]
