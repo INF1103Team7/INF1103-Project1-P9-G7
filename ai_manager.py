@@ -9,9 +9,18 @@ from google.genai.errors import APIError
 # Surpress non critical logging messages from the Google GenAI library
 logging.getLogger("google_genai.models").setLevel(logging.ERROR)
 
+# Gemini AI models to use
+AI_MODELS = [
+    "gemini-3.8-flash",
+    "gemini-3.7-flash",
+    "gemini-3.6-flash",
+    "gemini-3.5-flash"
+]
+
 # Load environment variables from .env file
 load_dotenv()  
 
+# Functions
 def get_ai_client():
     """_summary_
         Sets up the Gemini AI API client using the GEMINI API Key from the .env file
@@ -38,6 +47,9 @@ def get_mime_type(filename: str) -> str:
         return "image/jpeg"
     elif extension == "png":
         return "image/png"
+    
+    # Universal fallback in case of any unexpected issues
+    return "application/octet-stream"
 
 def extract_features(description, image_path=None):
     """_summary_
@@ -102,42 +114,51 @@ def extract_features(description, image_path=None):
         http_options = types.HttpOptions(timeout = 60_000)
     )
 
-    # Retry loop for API calls
-    delay = 2
-    retries = 3
-    for attempt in range(1, retries + 1):
-        try:
-            response = client.models.generate_content(
-                model="gemini-3.6-flash",
-                contents=contents,
-                config=config,
-            )
+    # Retry loop for API calls in the case of 429 Resource exhausted errors
+    for model_index, active_model in enumerate(AI_MODELS):
+        print(f"[+] Active model in use {active_model}")
+        # Retry loop for API calls in the case of 503 service unavailable errors
+        delay = 2
+        retries = 3
+        for attempt in range(1, retries + 1):
+            try:
+                response = client.models.generate_content(
+                    model=active_model,
+                    contents=contents,
+                    config=config,
+                )
 
-            print("[+] Successful feature extraction")
-            return response.text.strip()
+                print("[+] Successful feature extraction")
+                return response.text.strip()
 
-        # Handle common API errors
-        except APIError as e:
-            # Handle error 429 resource exhausted (Rate limit exceeded)
-            if e.code == 429:
-                return f"[!] Error 429: Rate limit exceeded. {e.message}" 
+            # Handle common API errors
+            except APIError as e:
+                # Handle error 429 resource exhausted (Rate limit exceeded) and retry with backup models
+                if e.code == 429:
+                    print(f"[!] API Error 429: Rate limit hit on {active_model}")
+                    if model_index < len(AI_MODELS) - 1:
+                        next_model = AI_MODELS[model_index + 1]
+                        print(f"[+] Trying next model: {next_model}")
+                    else:
+                        return f"[!] API Error 429: All models rate limit exceeded. {e.message}"
+                    break 
 
-            # Handle error 503 server side error (High Demand / Unavailable) With exponential backoff retry
-            elif e.code == 503:
-                if attempt < retries:
-                    print(f"[!] Model busy (503). Retrying in {delay}s... (Attempt {attempt}/{retries})")
-                if attempt == retries:
-                    print(f"[!] Model busy (503). Max Retry reached (Attempt {attempt}/{retries})")
-                    return f"[!] API Error {e.code}: {e.message}"
-                attempt += 1
-                time.sleep(delay)
-                delay *= 2
-                continue
+                # Handle error 503 server side error (High Demand / Unavailable) With exponential backoff retry
+                elif e.code == 503:
+                    if attempt < retries:
+                        print(f"[!] API Error 503: Model busy. Retrying in {delay}s... (Attempt {attempt}/{retries})")
+                    if attempt == retries:
+                        print(f"[!] API Error 503: Model busy. Max Retry reached (Attempt {attempt}/{retries})")
+                        return f"[!] API Error {e.code}: {e.message}"
+                    attempt += 1
+                    time.sleep(delay)
+                    delay *= 2
+                    continue
 
-        # Handle any other unexpected exceptions
-        except Exception as e:
-            return f"[!] Exception occured: {e}"
-    return f"[!] Error: Feature extraction failed"
+            # Handle any other unexpected exceptions
+            except Exception as e:
+                return f"[!] Exception occured: {e}"
+        return f"[!] Error: Feature extraction failed"
 
 # Testing 
 desc = {
@@ -146,8 +167,7 @@ desc = {
     "description": "White bottle found at level 1 garden",
     "date": "22-09-2026",
     "case_id": "CASE-20260922-6F1106",
-    "image_filename": "CASE-20260922-6F110.jpg"
 }
 
-features = extract_features(desc, desc["image_filename"])
+features = extract_features(desc)
 print(features)
