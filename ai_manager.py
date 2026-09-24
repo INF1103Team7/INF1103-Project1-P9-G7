@@ -158,7 +158,7 @@ def extract_features(description, image_path=None):
             # Handle any other unexpected exceptions
             except Exception as e:
                 return f"[!] Exception occured: {e}"
-        return f"[!] Error: Feature extraction failed"
+    return f"[!] Error: Feature extraction failed"
 
 # Testing 
 desc = {
@@ -166,7 +166,7 @@ desc = {
     "category": "bottle",
     "description": "White bottle found at level 1 garden",
     "date": "22-09-2026",
-    "case_id": "CASE-20260922-6F1106",
+    "case_id": "CASE-20260922-6F1106.jpg",
 }
 
 features = extract_features(desc)
