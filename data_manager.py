@@ -51,3 +51,14 @@ def get_reports_by_type(report_type):
             matching_reports.append(report)
 
     return matching_reports
+
+def get_active_reports():
+    reports = load_reports()
+
+    active_reports = []
+
+    for report in reports:
+        if report.get("status") == "active":
+            active_reports.append(report)
+
+    return active_reports
