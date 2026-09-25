@@ -24,3 +24,10 @@ def save_reports(reports):
 
     except OSError:
         return False
+
+def add_report(report):
+    reports = load_reports()
+
+    reports.append(report)
+
+    return save_reports(reports)
