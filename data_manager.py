@@ -32,3 +32,22 @@ def add_report(report):
 
     return save_reports(reports)
 
+def get_report_by_id(report_id):
+    reports = load_reports()
+
+    for report in reports:
+        if report.get("report_id") == report_id:
+            return report
+
+    return None
+
+def get_reports_by_type(report_type):
+    reports = load_reports()
+
+    matching_reports = []
+
+    for report in reports:
+        if report.get("report_type") == report_type:
+            matching_reports.append(report)
+
+    return matching_reports
