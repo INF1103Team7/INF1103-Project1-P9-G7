@@ -3,6 +3,13 @@ import os
 
 DATA_FILE="data/reports.json"
 
+VALID_STATUSES = [
+    "active",
+    "claimed",
+    "returned",
+    "closed"
+]
+
 def load_reports():
     if not os.path.exists(DATA_FILE):
         return[]
@@ -62,3 +69,16 @@ def get_active_reports():
             active_reports.append(report)
 
     return active_reports
+
+def update_report_status(report_id, new_status):
+    if new_status not in VALID_STATUSES:
+        return False
+
+    reports = load_reports()
+
+    for report in reports:
+        if report.get("report_id") == report_id:
+            report["status"] = new_status
+            return save_reports(reports)
+
+    return False
