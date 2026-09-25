@@ -118,7 +118,7 @@ def extract_features(description, image_path=None):
     for model_index, active_model in enumerate(AI_MODELS):
         print(f"[+] Active model in use {active_model}")
         # Retry loop for API calls in the case of 503 service unavailable errors
-        delay = 2
+        delay = 5
         retries = 3
         for attempt in range(1, retries + 1):
             try:
@@ -159,6 +159,9 @@ def extract_features(description, image_path=None):
             except Exception as e:
                 return f"[!] Exception occured: {e}"
     return f"[!] Error: Feature extraction failed"
+
+def ai_matching():
+    return
 
 # Testing 
 desc = {
