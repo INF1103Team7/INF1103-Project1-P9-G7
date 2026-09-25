@@ -4,7 +4,7 @@ import os
 DATA_FILE="data/reports.json"
 
 def load_reports():
-    if not os.paths.exists(DATA_FILE):
+    if not os.path.exists(DATA_FILE):
         return[]
     try:
         with open(DATA_FILE,"r") as file:
@@ -31,3 +31,4 @@ def add_report(report):
     reports.append(report)
 
     return save_reports(reports)
+
