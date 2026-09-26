@@ -91,7 +91,8 @@ def extract_features(description, image_path=None):
       "additional_notes": "<notes>"
     }}
 
-    If any of the fields are not present in the report, return None for that field. Do not include any additional text or explanations in the response. Only return the JSON object as specified above.
+    If any of the fields are not present in the report, return None for that field. Do not include any additional text or explanations in the response. 
+    Only return the JSON object as specified above.
     """
     print("[+] Checking for image filepath...")
     contents = []
@@ -183,7 +184,8 @@ def ai_semantic_matching(input_lost_report, datalist: list):
     From this list of objects containing found reports "{datalist}", rank the top 3 most similar objects compared to this report:
     "{input_lost_report}"
     
-    Return a list conataining the top 3 most similar objects in order of similarity, with the most similar object first. Each object should be represented as a JSON object containing the original fields with these additional fields appended to the end of each object:
+    Return a list conataining the top 3 most similar objects in order of similarity, with the most similar object first. 
+    Each object should be represented as a JSON object containing the original fields with these additional fields stored as a nested object named similarity_analysis at the end of each object:
     {{
         "similarity_score": "<score between 0% and 100%>",
         "color_match": "<match / not match, which colour was matched, reasoning for color match>",
