@@ -98,7 +98,7 @@ URL of Repository: [https://github.com/INF1103Team7/INF1103-Ai-Powered-Scam-Mess
                                        │                    │
                           ┌────────────┘                    └────────────┐
                           ▼                                              ▼
-                 [ CASE A: LOST REPORT ]                      [ CASE B: FOUND REPORT ]
+                 [ CASE A: FOUND REPORT ]                      [ CASE B: LOST REPORT ]
                           │                                              │
                           ▼                                              ▼
              ┌─────────────────────────┐                    ┌─────────────────────────┐
