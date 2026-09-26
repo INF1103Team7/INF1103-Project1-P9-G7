@@ -1,90 +1,98 @@
-from typing import Any, Dict, Union
-REJECT_THRESHOLD = 0.7
+#found > io > ai > logic - pull from db via keys to send back ai; for loop to store in array > ai count score > logic > user
+'''
+category = desc["category"]
+store = []
+with open("reports.json", "r") as f:
+    content = f.read()
+for data in content:
+    if category:
+        store.append(data)
 
+'''
+import json
+from typing import Any, Dict, Union
+
+# Track failure counts
 system_failure_count = 0
 match_failure_count = 0
 total_failure_count = 0
 
+# Threshold for AI similarity score below which a match is considered a failure
+REJECT_THRESHOLD = 0.8
+
+# 1 Get all records by category from database.py that match the specified category from the lost report description.
+def get_items_by_category(category):
+    item_list = []
+    try:
+        with open("reports.json", "r") as f:
+            content = json.load(f)
+            for data in content:
+                category_to_get = data.get("category","").strip().lower()
+                if category == category_to_get:
+                    item_list.append(data)
+    except FileNotFoundError:
+        print("The file reports.json is not found!")
+    except json.JSONDecodeError:
+        print("Error: The file reports.json is corrupted!!")
+    return item_list
+
+# 2 Validate the AI result against business rules and record statuses.
 def validate_ai(ai_result):
-    # AI result must be a dictionary
     if not isinstance(ai_result, dict):
         return "system_failure"
-
     similarity_level = ai_result.get("similarity_level")
     key_features = ai_result.get("key_features")
-
-    # Required fields must exist
     if similarity_level is None or key_features is None:
         return "system_failure"
-
-    # Similarity level must be a number
     if not isinstance(similarity_level, (int, float)):
         return "system_failure"
-
-    # Similarity level must be between 0 and 1
     if not 0.0 <= float(similarity_level) <= 1.0:
         return "system_failure"
-
-    # Similarity score below threshold is not considered a match
     if similarity_level < REJECT_THRESHOLD:
         return "match_failure"
-
-    # There must be at least one matching feature
     if not key_features:
         return "match_failure"
 
     return "valid"
 
+# 3 Get top 5 matches
+def get_top_matches(ai_result_list, limit = 5):
+    valid_reports = []
+    for result in ai_result_list:
+        report_status = validate_ai(result)
+        if report_status != "valid":
+            update_failure_count(report_status)
+            continue
+        valid_reports.append(result)
+    top_matches = sorted(valid_reports, key=lambda x: x["similarity_level"], reverse=True)[:limit]
+    return top_matches
 
-def check_report_status(report):
-    if not isinstance(report, dict):
-        return False
+# 4 Return top 5 matches records to send to io_manager.py
+def fetch_full_report(top_matches):
+    if not top_matches:
+        return []
+    try:
+        with open("reports.json", "r") as f:
+            content = json.load(f)
+        get_report_by_id = {report["case_id"]: report for report in content if "case_id" in report}
+    except FileNotFoundError:
+        print("The file reports.json is not found!")
+        return []
+    except json.JSONDecodeError:
+        print("Error: The file reports.json is corrupted!!")
+        return []
+    full_report_list = []
+    for match in top_matches:
+        case_id = match.get("case_id")
+        if case_id in get_report_by_id:
+            full_report = get_report_by_id[case_id].copy()
+            full_report["similarity_level"] = match["similarity_level"]
+            full_report["key_features_matched"] = match["key_features"]
+            full_report_list.append(full_report)
+    return full_report_list
 
-    return report.get("status") != "resolved"
-
-def get_match(
-    lost_report: Dict[str, Any], 
-    found_report: Dict[str, Any],
-    ai_result: Dict[str, Any]
-) -> Union[str, Dict[str, Any], None]:
-    """
-    Evaluates an AI matching result against business rules and record statuses.
-    """
-    # 1. System Input Integrity Gates
-    if not isinstance(lost_report, dict) or not isinstance(found_report, dict):
-        update_failure_counts("system_failure")
-        return "system_failure"
-
-    # 2. Lifecycle Status Gate: Do not match closed, claimed, or returned items
-    if not is_report_active(lost_report) or not is_report_active(found_report):
-        return None
-
-    # 3. AI Result Business Verification Gate
-    validation_result = validate_ai(ai_result)
-    if validation_result != "valid":
-        update_failure_counts(validation_result)
-        return validation_result
-
-    # 4. Identification Requirements Gate
-    lost_case_id = lost_report.get("case_id")
-    found_case_id = found_report.get("case_id")
-
-    if not lost_case_id or not found_case_id:
-        update_failure_counts("system_failure")
-        return "system_failure"
-
-    # Return valid match confirmation payload
-    return {
-        "is_match": True,
-        "lost_case_id": lost_case_id,
-        "found_case_id": found_case_id,
-        "similarity_level": ai_result.get("similarity_level"),
-        "key_features": ai_result.get("key_features"),
-    }
-
-
-def update_failure_counts(result: str) -> None:
-    """Updates operational state performance logs based on failure classifications."""
+# Update failure counts based on the result of the match evaluation
+def update_failure_count(result):
     global system_failure_count
     global match_failure_count
     global total_failure_count
@@ -96,11 +104,33 @@ def update_failure_counts(result: str) -> None:
         match_failure_count += 1
         total_failure_count += 1
 
-
-def get_failure_counts() -> Dict[str, int]:
-    """Retrieves standard metrics data mapping for application monitoring."""
-    return {
+# Save failure counts to a JSON file
+def save_failure_count():
+    global system_failure_count
+    global match_failure_count
+    global total_failure_count
+    
+    save_counts = {
         "system_failure_count": system_failure_count,
         "match_failure_count": match_failure_count,
         "total_failure_count": total_failure_count,
     }
+    with open("failure_counts.json", "w") as f:
+        json.dump(save_counts, f, indent=4)
+        print("Failure counts saved to failure_counts.json")
+
+# Load failure counts from a JSON file
+def load_failure_count():
+    global system_failure_count
+    global match_failure_count
+    global total_failure_count
+    
+    try:
+        with open("failure_counts.json", "r") as f:
+            counts = json.load(f)
+            system_failure_count = counts.get("system_failure_count", 0)
+            match_failure_count = counts.get("match_failure_count", 0)
+            total_failure_count = counts.get("total_failure_count", 0)
+            print("Failure counts loaded from failure_counts.json")
+    except FileNotFoundError:
+        print("No existing failure counts found. Counters all start from 0.")
