@@ -4,8 +4,10 @@ from datetime import date, datetime
 from pathlib import Path
 from typing import Callable, Iterable, Mapping
 
-import image_storage
+import tkinter as tk
+from tkinter import filedialog
 
+import image_storage
 
 REPORT_TYPES = ("lost", "found")
 CATEGORIES = (
@@ -59,19 +61,51 @@ def _read_date(input_function: InputFunction) -> str:
 		return value
 
 
+# def _read_image_path(input_function: InputFunction) -> str:
+# 	while True:
+# 		value = _read_non_empty("Image path (JPG, JPEG, or PNG): ", input_function)
+# 		image_path = Path(value).expanduser()
+# 		if image_path.suffix.lower() not in IMAGE_EXTENSIONS:
+# 			print("Please submit an image with a .jpg, .jpeg, or .png extension.")
+# 			continue
+# 		if not image_path.is_file():
+# 			print("That image file could not be found. Please check the path.")
+# 			continue
+# 		return str(image_path)
+
 def _read_image_path(input_function: InputFunction) -> str:
-	while True:
-		value = _read_non_empty("Image path (JPG, JPEG, or PNG): ", input_function)
-		image_path = Path(value).expanduser()
+	while True: 
+		root = tk.Tk()
+		root.withdraw()
+
+		file_path = filedialog.askopenfilename(
+			title = "Select an image",
+			filetypes = [
+				("Image files", "*jpg" "*jpeg" ".png"),
+				("JPG files","*jpg"),
+				("JPEG files", "*jpeg"),
+				("PNG files", "*png"),
+			],
+		)
+
+		root.destroy()
+
+		if not file_path:
+			print("No image selected. Please select an image.")
+			continue
+
+		image_path = Path(file_path)
+
 		if image_path.suffix.lower() not in IMAGE_EXTENSIONS:
 			print("Please submit an image with a .jpg, .jpeg, or .png extension.")
 			continue
 		if not image_path.is_file():
-			print("That image file could not be found. Please check the path.")
+			print("The image file could not be found. Please try again.")
 			continue
+
 		return str(image_path)
 
-
+	
 def _print_choices(title: str, choices: tuple[str, ...]) -> None:
 	print(title)
 	for number, choice in enumerate(choices, start=1):
