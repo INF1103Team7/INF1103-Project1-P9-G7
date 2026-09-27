@@ -81,7 +81,7 @@ def _read_image_path(input_function: InputFunction) -> str:
 		file_path = filedialog.askopenfilename(
 			title = "Select an image",
 			filetypes = [
-				("Image files", "*jpg" "*jpeg" ".png"),
+				("Image files", "*jpg *jpeg *png"),
 				("JPG files","*jpg"),
 				("JPEG files", "*jpeg"),
 				("PNG files", "*png"),
