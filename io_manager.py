@@ -49,7 +49,7 @@ def _read_choice(
 
 def _read_date(input_function: InputFunction) -> str:
 	while True:
-		value = _read_non_empty("Date of loss/finding (DD-MM-YYYY): ", input_function)
+		value = _read_non_empty("\nDate of loss/finding (DD-MM-YYYY): ", input_function)
 		try:
 			occurrence_date = datetime.strptime(value, "%d-%m-%Y").date()
 		except ValueError:
@@ -60,18 +60,6 @@ def _read_date(input_function: InputFunction) -> str:
 			continue
 		return value
 
-
-# def _read_image_path(input_function: InputFunction) -> str:
-# 	while True:
-# 		value = _read_non_empty("Image path (JPG, JPEG, or PNG): ", input_function)
-# 		image_path = Path(value).expanduser()
-# 		if image_path.suffix.lower() not in IMAGE_EXTENSIONS:
-# 			print("Please submit an image with a .jpg, .jpeg, or .png extension.")
-# 			continue
-# 		if not image_path.is_file():
-# 			print("That image file could not be found. Please check the path.")
-# 			continue
-# 		return str(image_path)
 
 def _read_image_path(input_function: InputFunction) -> str:
 	while True: 
@@ -103,6 +91,8 @@ def _read_image_path(input_function: InputFunction) -> str:
 			print("The image file could not be found. Please try again.")
 			continue
 
+		print("The image is added successfully. \n")
+
 		return str(image_path)
 
 	
@@ -114,17 +104,26 @@ def _print_choices(title: str, choices: tuple[str, ...]) -> None:
 
 def collect_report(input_function: InputFunction = input) -> dict[str, str]:
 	"""Collect and validate one lost or found report from the terminal."""
-	_print_choices("Report type:", REPORT_TYPES)
+	_print_choices("\nReport type:", REPORT_TYPES)
 	report_type = _read_choice("Select report type: ", REPORT_TYPES, input_function)
 
-	_print_choices("Item category:", CATEGORIES)
+	_print_choices("\nItem category:", CATEGORIES)
 	category = _read_choice("Select item category: ", CATEGORIES, input_function)
+
+	description = _read_non_empty("\nItem description: ", input_function)
+	_print_choices("\nWould you like to upload an image?", ("yes","no"))
+	upload_image = _read_choice("Select an option: ", ("yes", "no"), input_function)
+
+	image_path = None
+
+	if upload_image == "yes":
+		image_path = _read_image_path(input_function)
 
 	return {
 		"report_type": report_type,
 		"category": category,
-		"description": _read_non_empty("Item description: ", input_function),
-		"image_path": _read_image_path(input_function),
+		"description": description,
+		"image_path": image_path,
 		"date": _read_date(input_function),
 	}
 
@@ -192,7 +191,7 @@ def run_cli(input_function: InputFunction = input) -> None:
 	while True:
 		print("\nLost-and-Found System")
 		print("1. Submit a report")
-		print("2. View /summary")
+		print("2. View summary")
 		print("3. Exit")
 		command = input_function("Select an option: ").strip().lower()
 
@@ -203,11 +202,12 @@ def run_cli(input_function: InputFunction = input) -> None:
 			except (OSError, ValueError) as error:
 				print(f"Could not save report: {error}")
 			else:
-				print("Report submitted successfully.")
+				print("\nReport submitted successfully!")
+				print("================================")
 		elif command in {"2", "/summary", "summary"}:
 			display_summary(reports)
 		elif command in {"3", "exit", "quit", "q"}:
-			print("Goodbye.")
+			print("\nGoodbye.")
 			return
 		else:
 			print("Please choose 1, 2, or 3.")
