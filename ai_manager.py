@@ -1,3 +1,5 @@
+# ai_manager file for AI API calling for feature extraction and semantic matching
+
 import os
 import time
 import logging
@@ -23,7 +25,7 @@ AI_CONFIG = types.GenerateContentConfig (
     temperature = 0.1,
     automatic_function_calling = types.AutomaticFunctionCallingConfig(disable=True),
     # Set request timeout 30 seconds
-    http_options = types.HttpOptions(timeout = 60_000)
+    http_options = types.HttpOptions(timeout = 90_000)
 )
 
 # Load environment variables from .env file
@@ -173,7 +175,7 @@ def ai_semantic_matching(input_lost_report, datalist: list):
         Returns:
             list of the top 3 most similar lost reports in order of similarity, with the most similar report first, or an error message.
     """
-    print("[+] Initialising AI client object for feature extraction...")
+    print("[+] Initialising AI client object for semantic matching...")
     client = get_ai_client()
     if not client:
         return f"[!] Error: Gemini API Key missing"
@@ -188,12 +190,40 @@ def ai_semantic_matching(input_lost_report, datalist: list):
     Each object should be represented as a JSON object containing the original fields with these additional fields stored as a nested object named similarity_analysis at the end of each object:
     {{
         "similarity_score": "<score between 0% and 100%>",
-        "color_match": "<match / not match, which colour was matched, reasoning for color match>",
+        "color_match": "<Nested object, specifications at the end of prompt>",
         "material_match": "<match / not match>",
         "feature_overlap_match": "<list (list of strings) of overlapping features>",
         "brand_match": "<match / not match>",
         "location_match": "<match / not match>",
         "similarity_reasoning": "<overall reasoning for similarity score based on the above fields>"
+    }}
+
+    Specifications to extract and evaluate the color alignment between the two items for the "color_match" field above according to these strict conditional schema rules:
+
+    1. IF NO COLORS MATCH:
+    Return a simple string value:
+    "color_match": "not match"
+
+    2. IF PRIMARY COLOR MATCHES:
+    Nested object with "is_match" and "primary" keys:
+    "color_match": {{
+        "is_match": "match",
+        "primary": "<matched_primary_color>"
+    }}
+
+    3. IF SECONDARY COLOR MATCHES:
+    Nested object with "is_match" and "secondary" keys:
+    "color_match": {{
+        "is_match": "match",
+        "secondary": "<matched_secondary_color>"
+    }}
+
+    4. IF BOTH PRIMARY AND SECONDARY COLORS MATCH:
+    Nested object with "is_match", "primary", and "secondary" keys:
+    "color_match": {{
+        "is_match": "match",
+        "primary": "<matched_primary_color>",
+        "secondary": "<matched_secondary_color>"
     }}
     """
 
