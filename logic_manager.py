@@ -1,14 +1,5 @@
 #found > io > ai > logic - pull from db via keys to send back ai; for loop to store in array > ai count score > logic > user
-'''
-category = desc["category"]
-store = []
-with open("reports.json", "r") as f:
-    content = f.read()
-for data in content:
-    if category:
-        store.append(data)
 
-'''
 import json
 from typing import Any, Dict, Union
 
@@ -18,78 +9,76 @@ match_failure_count = 0
 total_failure_count = 0
 
 # Threshold for AI similarity score below which a match is considered a failure
-REJECT_THRESHOLD = 0.8
+REJECT_THRESHOLD = 80
 
 # 1 Get all records by category from database.py that match the specified category from the lost report description.
-def get_items_by_category(category):
-    item_list = []
+def get_reports_by_category(category):
+    report_list = []
     try:
         with open("reports.json", "r") as f:
-            content = json.load(f)
-            for data in content:
-                category_to_get = data.get("category","").strip().lower()
+            reports = json.load(f)
+            for report in reports:
+                category_to_get = report.get("category")
                 if category == category_to_get:
-                    item_list.append(data)
+                    report_list.append(report)
     except FileNotFoundError:
         print("The file reports.json is not found!")
     except json.JSONDecodeError:
         print("Error: The file reports.json is corrupted!!")
-    return item_list
+    return report_list
 
 # 2 Validate the AI result against business rules and record statuses.
-def validate_ai(ai_result):
+def parse_score_to_float(score):
+    if not isinstance(score, str):
+        return "system_failure"
+    if not score.endswith("%"):
+        return "system_failure"
+    
+    try:
+        ai_score = float(score[:-1])
+        if not 0 <= ai_score <= 100:
+            return "system_failure"
+    except ValueError:
+        return "system_failure"
+    return ai_score
+def validate_analysis(ai_result):
     if not isinstance(ai_result, dict):
         return "system_failure"
-    similarity_level = ai_result.get("similarity_level")
-    key_features = ai_result.get("key_features")
-    if similarity_level is None or key_features is None:
+    similarity_score = ai_result.get("similarity_score")
+    score_float = parse_score_to_float(similarity_score)
+    if score_float == "system_failure":
         return "system_failure"
-    if not isinstance(similarity_level, (int, float)):
-        return "system_failure"
-    if not 0.0 <= float(similarity_level) <= 1.0:
-        return "system_failure"
-    if similarity_level < REJECT_THRESHOLD:
+    elif score_float < REJECT_THRESHOLD:
         return "match_failure"
-    if not key_features:
-        return "match_failure"
-
+    
     return "valid"
 
 # 3 Get top 5 matches
-def get_top_matches(ai_result_list, limit = 5):
-    valid_reports = []
-    for result in ai_result_list:
-        report_status = validate_ai(result)
-        if report_status != "valid":
-            update_failure_count(report_status)
-            continue
-        valid_reports.append(result)
-    top_matches = sorted(valid_reports, key=lambda x: x["similarity_level"], reverse=True)[:limit]
-    return top_matches
+def get_top_matches(ai_result_list, limit=5):
+    valid_reports_list = []
 
-# 4 Return top 5 matches records to send to io_manager.py
-def fetch_full_report(top_matches):
-    if not top_matches:
-        return []
-    try:
-        with open("reports.json", "r") as f:
-            content = json.load(f)
-        get_report_by_id = {report["case_id"]: report for report in content if "case_id" in report}
-    except FileNotFoundError:
-        print("The file reports.json is not found!")
-        return []
-    except json.JSONDecodeError:
-        print("Error: The file reports.json is corrupted!!")
-        return []
-    full_report_list = []
-    for match in top_matches:
-        case_id = match.get("case_id")
-        if case_id in get_report_by_id:
-            full_report = get_report_by_id[case_id].copy()
-            full_report["similarity_level"] = match["similarity_level"]
-            full_report["key_features_matched"] = match["key_features"]
-            full_report_list.append(full_report)
-    return full_report_list
+    for report in ai_result_list:
+        result = validate_analysis(report)
+
+        if result == "valid":
+            valid_reports_list.append(report)
+
+        elif result == "system_failure":
+            update_failure_count("system_failure")
+
+        elif result == "match_failure":
+            update_failure_count("match_failure")
+
+    valid_reports_list.sort(
+        key=lambda x: float(
+            x["similarity_analysis"]["similarity_score"].replace("%", "")
+        ),
+        reverse=True
+    )
+
+    top_reports = valid_reports_list[:limit]
+
+    return top_reports
 
 # Update failure counts based on the result of the match evaluation
 def update_failure_count(result):
