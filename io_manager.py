@@ -21,6 +21,9 @@ CATEGORIES = (
 )
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png"}
 
+BACK = "BACK"
+MAIN = "MAIN"
+
 InputFunction = Callable[[str], str]
 OutputFunction = Callable[[str], None]
 
@@ -28,6 +31,13 @@ OutputFunction = Callable[[str], None]
 def _read_non_empty(prompt: str, input_function: InputFunction) -> str:
 	while True:
 		value = input_function(prompt).strip()
+
+		if value.lower() == "b":
+			return BACK
+
+		if value.lower() == "m":
+			return MAIN
+		
 		if value:
 			return value
 		print("Please enter a value.")
@@ -40,8 +50,16 @@ def _read_choice(
 ) -> str:
 	while True:
 		value = input_function(prompt).strip().lower()
+
+		if value == "b":
+			return BACK
+		
+		if value == "m":
+			return MAIN
+		
 		if value.isdigit() and 1 <= int(value) <= len(choices):
 			return choices[int(value) - 1]
+		
 		if value in choices:
 			return value
 		print(f"Please choose one of: {', '.join(choices)}.")
@@ -50,6 +68,10 @@ def _read_choice(
 def _read_date(input_function: InputFunction) -> str:
 	while True:
 		value = _read_non_empty("\nDate of loss/finding (DD-MM-YYYY): ", input_function)
+
+		if value == BACK or value == MAIN:
+			return value
+		
 		try:
 			occurrence_date = datetime.strptime(value, "%d-%m-%Y").date()
 		except ValueError:
@@ -79,14 +101,15 @@ def _read_image_path(input_function: InputFunction) -> str:
 		root.destroy()
 
 		if not file_path:
-			print("No image selected. Please select an image.")
-			continue
+			print("Image selection is cancelled.")
+			return None
 
 		image_path = Path(file_path)
 
 		if image_path.suffix.lower() not in IMAGE_EXTENSIONS:
 			print("Please submit an image with a .jpg, .jpeg, or .png extension.")
 			continue
+
 		if not image_path.is_file():
 			print("The image file could not be found. Please try again.")
 			continue
@@ -101,31 +124,142 @@ def _print_choices(title: str, choices: tuple[str, ...]) -> None:
 	for number, choice in enumerate(choices, start=1):
 		print(f"{number}. {choice.title()}")
 
+def _print_nav(include_back: bool = True) -> None: 
+	if include_back:
+		print("B. Go back to the previous step.")
+
+	print("M. Go back to the Main Menu")
+
 
 def collect_report(input_function: InputFunction = input) -> dict[str, str]:
 	"""Collect and validate one lost or found report from the terminal."""
-	_print_choices("\nReport type:", REPORT_TYPES)
-	report_type = _read_choice("Select report type: ", REPORT_TYPES, input_function)
+	# _print_choices("\nReport type:", REPORT_TYPES)
+	# report_type = _read_choice("Select report type: ", REPORT_TYPES, input_function)
 
-	_print_choices("\nItem category:", CATEGORIES)
-	category = _read_choice("Select item category: ", CATEGORIES, input_function)
+	# _print_choices("\nItem category:", CATEGORIES)
+	# category = _read_choice("Select item category: ", CATEGORIES, input_function)
 
-	description = _read_non_empty("\nItem description: ", input_function)
-	_print_choices("\nWould you like to upload an image?", ("yes","no"))
-	upload_image = _read_choice("Select an option: ", ("yes", "no"), input_function)
+	# description = _read_non_empty("\nItem description: ", input_function)
 
+	# _print_choices("\nWould you like to upload an image?", ("yes","no"))
+	# upload_image = _read_choice("Select an option: ", ("yes", "no"), input_function)
+
+	# image_path = None
+
+	# if upload_image == "yes":
+	# 	image_path = _read_image_path(input_function)
+
+	# return {
+	# 	"report_type": report_type,
+	# 	"category": category,
+	# 	"description": description,
+	# 	"image_path": image_path,
+	# 	"date": _read_date(input_function),
+	# }
+
+	stage = 1
+
+	report_type = None
+	category = None
+	description = None
 	image_path = None
+	date = None
 
-	if upload_image == "yes":
-		image_path = _read_image_path(input_function)
+	while True:
 
-	return {
-		"report_type": report_type,
-		"category": category,
-		"description": description,
-		"image_path": image_path,
-		"date": _read_date(input_function),
-	}
+		#Stage 1 - Report Type
+		if stage == 1:
+
+			_print_choices("\nReport type:", REPORT_TYPES)
+			_print_nav(include_back=False)
+
+			report_type = _read_choice("Select report type: ", REPORT_TYPES, input_function)
+
+			if report_type == MAIN:
+				return None
+
+			stage = 2
+
+		#Stage 2 - Category
+		elif stage == 2:
+
+			_print_choices("\nItem category:", CATEGORIES)
+			_print_nav()
+
+			category = _read_choice("Select item category: ", CATEGORIES, input_function)
+
+			if category == MAIN:
+				return None
+
+			if category == BACK:
+				stage = 1
+				continue 
+
+			stage = 3
+
+		#Stage 3 - Description 
+		elif stage == 3:
+
+			print("\nEnter item description. ")
+			_print_nav()
+
+			description = _read_non_empty("\nItem description: ", input_function)
+
+			if description == MAIN:
+				return None 
+
+			if description == BACK:
+				stage = 2
+				continue
+
+			stage = 4
+
+		#Stage 4 - Image Upload
+		elif stage == 4:
+
+			_print_choices("\nWould you like to upload an image?", ("yes","no"))
+			_print_nav()
+
+			upload_image = _read_choice("Select an option: ", ("yes", "no"), input_function)
+
+			if upload_image == MAIN:
+				return None
+
+			if upload_image == BACK:
+				stage = 3
+				continue
+
+			image_path = None 
+			if upload_image == "yes":
+				image_path = _read_image_path(input_function)
+
+				if image_path is None:
+					continue
+
+			stage = 5
+
+		#Stage 5 - Date
+		elif stage == 5:
+
+			print("\nEnter the date of loss/finding.")
+			_print_nav()
+
+			date = _read_date(input_function)
+
+			if date == MAIN:
+				return None 
+
+			if date == BACK:
+				stage == 4
+				continue
+
+			return {
+				"report_type": report_type,
+				"category": category,
+				"description": description,
+				"image_path": image_path,
+				"date": date,
+				}
 
 
 def format_record(record: Mapping[str, object]) -> str:
@@ -197,6 +331,11 @@ def run_cli(input_function: InputFunction = input) -> None:
 
 		if command in {"1", "report", "submit"}:
 			report = collect_report(input_function)
+
+			if report is None: 
+				print("\nReport submission cancelled.")
+				continue 
+			
 			try:
 				reports.append(image_storage.save_report(report))
 			except (OSError, ValueError) as error:
