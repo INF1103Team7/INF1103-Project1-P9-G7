@@ -69,8 +69,11 @@ def _read_date(input_function: InputFunction) -> str:
 	while True:
 		value = _read_non_empty("\nDate of loss/finding (DD-MM-YYYY): ", input_function)
 
-		if value == BACK or value == MAIN:
-			return value
+		if value == BACK:
+			return  BACK
+
+		if value == MAIN:
+			return MAIN
 		
 		try:
 			occurrence_date = datetime.strptime(value, "%d-%m-%Y").date()
@@ -80,6 +83,7 @@ def _read_date(input_function: InputFunction) -> str:
 		if occurrence_date > date.today():
 			print("The date cannot be in the future.")
 			continue
+
 		return value
 
 
@@ -133,29 +137,6 @@ def _print_nav(include_back: bool = True) -> None:
 
 def collect_report(input_function: InputFunction = input) -> dict[str, str]:
 	"""Collect and validate one lost or found report from the terminal."""
-	# _print_choices("\nReport type:", REPORT_TYPES)
-	# report_type = _read_choice("Select report type: ", REPORT_TYPES, input_function)
-
-	# _print_choices("\nItem category:", CATEGORIES)
-	# category = _read_choice("Select item category: ", CATEGORIES, input_function)
-
-	# description = _read_non_empty("\nItem description: ", input_function)
-
-	# _print_choices("\nWould you like to upload an image?", ("yes","no"))
-	# upload_image = _read_choice("Select an option: ", ("yes", "no"), input_function)
-
-	# image_path = None
-
-	# if upload_image == "yes":
-	# 	image_path = _read_image_path(input_function)
-
-	# return {
-	# 	"report_type": report_type,
-	# 	"category": category,
-	# 	"description": description,
-	# 	"image_path": image_path,
-	# 	"date": _read_date(input_function),
-	# }
 
 	stage = 1
 
@@ -250,7 +231,7 @@ def collect_report(input_function: InputFunction = input) -> dict[str, str]:
 				return None 
 
 			if date == BACK:
-				stage == 4
+				stage = 4
 				continue
 
 			return {
