@@ -242,7 +242,7 @@ def ai_semantic_matching(input_lost_report, datalist: list):
                     config=AI_CONFIG,
                 )
 
-                print("[+] Successful Semantic AI matching extraction")
+                print("[+] Successful Semantic AI matching")
                 return response.text.strip()
 
             # Handle common API errors
