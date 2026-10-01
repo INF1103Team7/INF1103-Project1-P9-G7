@@ -29,10 +29,8 @@ def load_reports():
         return []
     
 def save_reports(reports):
-    os.makedirs("data", exist_ok=True)
-
     try:
-        with open(DATA_FILE, "w") as file:
+        with DATA_FILE.open("w", encoding="utf-8") as file:
             json.dump(reports, file, indent=4)
 
         return True

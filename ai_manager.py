@@ -35,7 +35,7 @@ AI_CONFIG = types.GenerateContentConfig (
 load_dotenv()  
 
 # Functions
-def get_ai_client():
+def _get_ai_client():
     """_summary_
         Sets up the Gemini AI API client using the GEMINI API Key from the .env file
     Returns:
@@ -47,7 +47,7 @@ def get_ai_client():
         return None
     return genai.Client(api_key=api_key)
 
-def get_mime_type(filename: str) -> str:
+def _get_mime_type(filename: str) -> str:
     """_summary_
         Helper function to get mimetype based on the image filename extension
     Args:
@@ -75,7 +75,7 @@ def extract_features(description, image_path=None):
             Extracted features as a JSON object or an error message.
     """
     print("[+] Initialising AI client object for feature extraction...")
-    client = get_ai_client()
+    client = _get_ai_client()
     if not client:
         return f"[!] Error: Gemini API Key missing"
     print("[+] AI client object initialised successfully!")
@@ -108,7 +108,7 @@ def extract_features(description, image_path=None):
                 image_bytes = f.read()
 
             contents.append(
-                types.Part.from_bytes(data = image_bytes, mime_type = get_mime_type(image_path))
+                types.Part.from_bytes(data = image_bytes, mime_type = _get_mime_type(image_path))
             )
 
             print("[+] Image successfully added to prompt!")
@@ -179,7 +179,7 @@ def ai_semantic_matching(input_lost_report, datalist: list):
             list of the top 3 most similar lost reports in order of similarity, with the most similar report first, or an error message.
     """
     print("[+] Initialising AI client object for semantic matching...")
-    client = get_ai_client()
+    client = _get_ai_client()
     if not client:
         return f"[!] Error: Gemini API Key missing"
     print("[+] AI client object initialised successfully!")
