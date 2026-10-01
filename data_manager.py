@@ -1,7 +1,11 @@
 import json
 import os
 
-DATA_FILE="data/reports.json"
+from pathlib import Path
+import image_storage
+
+PROJECT_DIRECTORY = Path(__file__).resolve().parent
+DATA_FILE = PROJECT_DIRECTORY / "reports.json"
 
 VALID_STATUSES = [
     "active",
@@ -34,6 +38,12 @@ def save_reports(reports):
 
 def add_report(report):
     reports = load_reports()
+
+    report_id = report.get("report_id")
+
+    for existing_report in reports:
+        if existing_report.get("report_id") == report_id:
+            return False
 
     reports.append(report)
 
