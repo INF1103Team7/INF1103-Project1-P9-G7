@@ -15,11 +15,15 @@ VALID_STATUSES = [
 ]
 
 def load_reports():
-    if not os.path.exists(DATA_FILE):
+    if not DATA_FILE.is_file():
         return[]
     try:
-        with open(DATA_FILE,"r") as file:
+        with DATA_FILE.open("r",encoding='utf-8') as file:
             reports= json.load(file)
+        
+        if not isinstance(reports,list):
+            return []
+        
         return reports
     except (json.JSONDecodeError,OSError):
         return []
