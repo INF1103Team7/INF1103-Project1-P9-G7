@@ -41,10 +41,13 @@ def save_reports(reports):
 def add_report(report):
     reports = load_reports()
 
-    report_id = report.get("report_id")
-
+    stored_report=dict(report)
+    
+    case_id= stored_report.get("case_id")
+    stored_report["case_id"]= case_id
+    
     for existing_report in reports:
-        if existing_report.get("report_id") == report_id:
+        if existing_report.get("case_id") == case_id:
             return False
 
     reports.append(report)
