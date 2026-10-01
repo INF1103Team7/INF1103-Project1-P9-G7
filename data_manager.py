@@ -49,7 +49,9 @@ def add_report(report):
     for existing_report in reports:
         if existing_report.get("case_id") == case_id:
             return False
-
+    
+    if "status" not in stored_report:
+        stored_report["status"]="active"
     reports.append(report)
 
     return save_reports(reports)
