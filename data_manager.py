@@ -2,7 +2,7 @@ import json
 import os
 
 from pathlib import Path
-from datetime import date
+from datetime import date, datetime, timedelta
 import image_storage
 
 PROJECT_DIRECTORY = Path(__file__).resolve().parent
@@ -107,7 +107,7 @@ def update_report_status(case_id,new_status):
     
     reports= load_reports
     
-    for report in reports:
+    for report in reports: 
         if report.get("case_id") == case_id:
             report["status"]= new_status
             
@@ -115,3 +115,33 @@ def update_report_status(case_id,new_status):
                 report["closed_date"]=date.today().isoformat()
             return save_reports(reports)
     return False
+
+def delete_expired_reports(retention_days=30):
+    reports = load_reports()
+    remaining_reports = []
+    deleted_count = 0
+
+    expiry_date = date.today() - timedelta(days=retention_days)
+
+    for report in reports:
+        if report.get("status") == "closed" and report.get("closed_date"):
+            try:
+                closed_date = datetime.strptime(
+                    report["closed_date"],
+                    "%Y-%m-%d"
+                ).date()
+
+                if closed_date <= expiry_date:
+                    deleted_count += 1
+                    continue
+
+            except ValueError:
+                pass
+
+        remaining_reports.append(report)
+
+    if deleted_count > 0:
+        save_reports(remaining_reports)
+
+    return deleted_count
+    
