@@ -1,5 +1,4 @@
 import json
-import os
 
 from pathlib import Path
 from datetime import date, datetime, timedelta
@@ -53,21 +52,29 @@ def save_reports(reports):
         return False
 
 #add a new report and prevent dplicate case IDs
+# Add a new report and prevent duplicate case IDs
 def add_report(report):
 
     reports = load_reports()
-    stored_report=dict(report)
-     # Generate a unique case ID if one does not exist
-    case_id= stored_report.get("case_id")
-    stored_report["case_id"]= case_id
+    stored_report = dict(report)
+
+    # Generate a unique case ID if one does not exist
+    case_id = stored_report.get("case_id")
+
+    if not case_id:
+        case_id = image_storage.create_case_id()
+        stored_report["case_id"] = case_id
+
     # Prevent duplicate reports
     for existing_report in reports:
         if existing_report.get("case_id") == case_id:
             return False
+
     # New reports are active by default
     if "status" not in stored_report:
-        stored_report["status"]="active"
-    reports.append(report)
+        stored_report["status"] = "active"
+
+    reports.append(stored_report)
 
     return save_reports(reports)
 
@@ -106,31 +113,20 @@ def get_active_reports():
     return active_reports
 
 # Update a report's status and record when it is closed
-def update_report_status(report_id, new_status):
+# Update a report's status and record when it is closed
+def update_report_status(case_id, new_status):
+
     if new_status not in VALID_STATUSES:
         return False
 
     reports = load_reports()
-
     for report in reports:
-        if report.get("report_id") == report_id:
-            report["status"] = new_status
-            return save_reports(reports)
-
-    return False
-
-def update_report_status(case_id,new_status):
-    if new_status not in VALID_STATUSES:
-        return False
-    
-    reports= load_reports
-    
-    for report in reports: 
         if report.get("case_id") == case_id:
-            report["status"]= new_status
-             # Store the closure date for automatic deletion later
+            report["status"] = new_status
+
+            # Store the closure date for automatic deletion later
             if new_status == "closed":
-                report["closed_date"]=date.today().isoformat()
+                report["closed_date"] = date.today().isoformat()
             return save_reports(reports)
     return False
 # Delete reports that have been closed longer than the retention period (30 days)
