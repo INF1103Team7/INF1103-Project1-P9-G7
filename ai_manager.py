@@ -1,5 +1,6 @@
 # ai_manager file for AI API calling for feature extraction and semantic matching
 
+# Imports
 import os
 import time
 import logging
@@ -12,6 +13,7 @@ from google.genai.errors import APIError
 # Surpress non critical logging messages from the Google GenAI library
 logging.getLogger("google_genai.models").setLevel(logging.ERROR)
 
+# Constants
 # Gemini AI models to use
 AI_MODELS = [
     "gemini-3.8-flash",
@@ -19,6 +21,7 @@ AI_MODELS = [
     "gemini-3.6-flash",
     "gemini-3.5-flash"
 ]
+
 # Configuration for the Gemini API request
 AI_CONFIG = types.GenerateContentConfig (
     response_mime_type = "application/json",
@@ -397,7 +400,8 @@ test_found_database = [
   }
 ]
 
-# features = extract_features(found_report, found_report["image_filename"])
-# print(features)
-match_list = ai_semantic_matching(lost_report_ai_extracted, test_found_database)
-print(match_list)
+# if __name__ == "__main__":
+#     features = extract_features(found_report, found_report["image_filename"])
+#     print(features)
+#     match_list = ai_semantic_matching(lost_report_ai_extracted, test_found_database)
+#     print(match_list)

@@ -1,5 +1,6 @@
-"""Terminal input and output for the lost-and-found application."""
+# io_manager file for application CLI interface
 
+# Imports
 from datetime import date, datetime
 from pathlib import Path
 from typing import Callable, Iterable, Mapping
@@ -9,6 +10,7 @@ from tkinter import filedialog
 
 import image_storage
 
+# Constants
 REPORT_TYPES = ("lost", "found")
 CATEGORIES = (
 	"student card",
@@ -20,14 +22,13 @@ CATEGORIES = (
 	"others",
 )
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png"}
-
 BACK = "BACK"
 MAIN = "MAIN"
 
 InputFunction = Callable[[str], str]
 OutputFunction = Callable[[str], None]
 
-
+# Functions
 def _read_non_empty(prompt: str, input_function: InputFunction) -> str:
 	while True:
 		value = input_function(prompt).strip()
@@ -41,7 +42,6 @@ def _read_non_empty(prompt: str, input_function: InputFunction) -> str:
 		if value:
 			return value
 		print("Please enter a value.")
-
 
 def _read_choice(
 	prompt: str,
@@ -64,7 +64,6 @@ def _read_choice(
 			return value
 		print(f"Please choose one of: {', '.join(choices)}.")
 
-
 def _read_date(input_function: InputFunction) -> str:
 	while True:
 		value = _read_non_empty("\nDate of loss/finding (DD-MM-YYYY): ", input_function)
@@ -85,7 +84,6 @@ def _read_date(input_function: InputFunction) -> str:
 			continue
 
 		return value
-
 
 def _read_image_path(input_function: InputFunction) -> str:
 	while True: 
@@ -122,7 +120,6 @@ def _read_image_path(input_function: InputFunction) -> str:
 
 		return str(image_path)
 
-	
 def _print_choices(title: str, choices: tuple[str, ...]) -> None:
 	print(title)
 	for number, choice in enumerate(choices, start=1):
@@ -133,7 +130,6 @@ def _print_nav(include_back: bool = True) -> None:
 		print("B. Go back to the previous step.")
 
 	print("M. Go back to the Main Menu")
-
 
 def collect_report(input_function: InputFunction = input) -> dict[str, str]:
 	"""Collect and validate one lost or found report from the terminal."""
@@ -242,7 +238,6 @@ def collect_report(input_function: InputFunction = input) -> dict[str, str]:
 				"date": date,
 				}
 
-
 def format_record(record: Mapping[str, object]) -> str:
 	"""Return one report in a consistent human-readable format."""
 	report_type = str(record.get("report_type", record.get("type", "unknown"))).title()
@@ -265,7 +260,6 @@ def format_record(record: Mapping[str, object]) -> str:
 		f"  Image: {image_path}"
 	)
 
-
 def format_records(records: Iterable[Mapping[str, object]]) -> str:
 	"""Return a numbered list of reports, or a useful empty-state message."""
 	record_list = list(records)
@@ -276,13 +270,11 @@ def format_records(records: Iterable[Mapping[str, object]]) -> str:
 		for number, record in enumerate(record_list, start=1)
 	)
 
-
 def display_summary(records: Iterable[Mapping[str, object]]) -> None:
 	"""Print the summary view for the supplied reports."""
 	print("\nLost-and-Found Summary")
 	print("======================")
 	print(format_records(records))
-
 
 def collect_summary_view(
 	records: Iterable[Mapping[str, object]],
@@ -294,7 +286,6 @@ def collect_summary_view(
 		display_summary(records)
 		return True
 	return False
-
 
 def run_cli(input_function: InputFunction = input) -> None:
 	"""Run the terminal workflow for creating and viewing reports."""
@@ -332,7 +323,6 @@ def run_cli(input_function: InputFunction = input) -> None:
 		else:
 			print("Please choose 1, 2, or 3.")
 
-
 __all__ = [
 	"CATEGORIES",
 	"REPORT_TYPES",
@@ -343,7 +333,6 @@ __all__ = [
 	"format_records",
 	"run_cli",
 ]
-
 
 if __name__ == "__main__":
 	run_cli()
