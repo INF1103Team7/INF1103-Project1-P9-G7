@@ -13,7 +13,7 @@ def main():
 
 		# AI layer to process report types
 		elif type(user_report) == dict and user_report.get("report_type") == "found":
-			print("\nFound report received. Sending to AI layer for processing...")
+			print("\n[+] Found report received. Sending to AI layer for processing...")
 			# AI powered feature extraction
 			user_input_extracted = ai_manager.extract_features(user_report)
 			# print(user_input_extracted)
@@ -25,6 +25,7 @@ def main():
 			print("[+] Storing found report into database")
 
 		elif type(user_report) == dict and user_report.get("report_type") == "lost":
+			print("\n[+] Lost report received. Sending to AI layer for processing...")
 			# AI powered feature extraction
 			user_input_extracted = ai_manager.extract_features(user_report)
 			# print(user_input_extracted)
@@ -34,6 +35,7 @@ def main():
 
 			# # AI powered semantic matching
 			# # Pull found records from same category as the lost report from database
+			print("[+] Pulling found reports from database for AI semantic matching...")
 			# # report_category_list = "Pull from database"
 			# matching_lost_reports = ai_manager.ai_semantic_matching(user_input_extracted) 
 			# print(matching_lost_reports)
