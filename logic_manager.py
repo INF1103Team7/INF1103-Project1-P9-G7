@@ -1,5 +1,7 @@
 import json
+from datetime import datetime
 
+# Global Business Constants
 REJECT_THRESHOLD = 50.0
 HIGH_THRESHOLD = 80.0
 
@@ -7,37 +9,15 @@ MIN_FEATURES_STRONG_MATCH = 2
 MIN_FEATURES_EXCELLENT_MATCH = 3
 
 
-def get_reports_by_category(category):
-    try:
-        with open("reports.json", "r") as f:
-            reports = json.load(f)
-
-        return [report for report in reports if report.get("category") == category]
-
-    except FileNotFoundError:
-        print("The file reports.json is not found!")
-    except json.JSONDecodeError:
-        print("Error: The file reports.json is corrupted!")
-
-    return []
-
-
 def parse_score_to_float(score):
-    if not isinstance(score, str):
+    if not isinstance(score, str) or not score.endswith("%"):
         return None
-
-    if not score.endswith("%"):
-        return None
-
     try:
         value = float(score[:-1])
-
         if 0 <= value <= 100:
             return value
-
     except ValueError:
         pass
-
     return None
 
 
@@ -46,7 +26,6 @@ def validate_analysis(ai_result):
         return "system_failure", None
 
     analysis = ai_result.get("similarity_analysis")
-
     if not isinstance(analysis, dict):
         return "system_failure", None
 
@@ -59,26 +38,37 @@ def validate_analysis(ai_result):
     return "valid", score
 
 
-def get_analysis_data(ai_result):
+def get_analysis_data(ai_result, lost_report_date=None):
     analysis = ai_result["similarity_analysis"]
 
     color_data = analysis.get("color_match", "not match")
-
     if isinstance(color_data, dict):
         color_match = color_data.get("is_match", "not match")
     else:
         color_match = color_data
 
     material_match = analysis.get("material_match", "not match")
-
     brand_match = analysis.get("brand_match", "not match")
-
     location_match = analysis.get("location_match", "not match")
-
     feature_overlaps = analysis.get("feature_overlap_match", [])
 
     if not isinstance(feature_overlaps, list):
         feature_overlaps = []
+
+    # Calculate temporal chronological validity
+    time_match = "unknown"
+    if lost_report_date and "date" in ai_result:
+        try:
+            fmt = "%d-%m-%Y"
+            lost_dt = datetime.strptime(lost_report_date, fmt)
+            found_dt = datetime.strptime(ai_result["date"], fmt)
+            
+            if found_dt < lost_dt:
+                time_match = "impossible_timeline"
+            else:
+                time_match = "valid"
+        except ValueError:
+            time_match = "unknown"
 
     return {
         "color_match": color_match,
@@ -87,6 +77,7 @@ def get_analysis_data(ai_result):
         "brand_match": brand_match,
         "location_match": location_match,
         "feature_overlaps": feature_overlaps,
+        "time_match": time_match
     }
 
 
@@ -113,12 +104,12 @@ def classify_traits(data):
         mismatched.append("features")
 
     return matched, mismatched
-def evaluate_analysis(ai_result):
 
+
+def evaluate_analysis(ai_result, lost_report_date=None):
     # Validate the AI output and extract the original similarity score
     validation, similarity_score = validate_analysis(ai_result)
 
-    # Stop processing if the AI output is invalid
     if validation == "system_failure":
         return {
             "status": "system_failure",
@@ -129,9 +120,9 @@ def evaluate_analysis(ai_result):
             "evaluation_summary": "Invalid AI output."
         }
 
-    # Extract the individual matching attributes from the AI analysis
-    data = get_analysis_data(ai_result)
-
+    data = get_analysis_data(ai_result, lost_report_date)
+    
+    time_match = data["time_match"]
     color_match = data["color_match"]
     color_data = data["color_data"]
     material_match = data["material_match"]
@@ -139,378 +130,170 @@ def evaluate_analysis(ai_result):
     location_match = data["location_match"]
     feature_overlaps = data["feature_overlaps"]
 
-    # Separate the attributes into matched and mismatched categories
     matched_rules_list, mismatched_rules_list = classify_traits(data)
-
-    # Store the business rules that are triggered for this report
     triggered_rules_list = []
-
-    # Start the composite score using the AI similarity score
     final_score = similarity_score
-
-    # Count the number of matching identifying features
     feature_count = len(feature_overlaps)
 
+    # ----------------------------
+    # CRITICAL PHYSICAL BOUNDARY CHECKS
+    # ----------------------------
+    if time_match == "impossible_timeline":
+        triggered_rules_list.append("TEMPORAL_PARADOX_VETO")
+        return {
+            "status": "match_failure",
+            "final_composite_score": 0.0,
+            "matched_rules_list": matched_rules_list,
+            "mismatched_rules_list": mismatched_rules_list,
+            "triggered_rules_list": triggered_rules_list,
+            "evaluation_summary": "The found date cannot occur before the lost date."
+        }
 
     # ----------------------------
-    # Negative Business Rules
+    # Negative Business Rules (Penalties)
     # ----------------------------
-
-    # Penalise reports where both colour and material do not match
-    if color_match == "not match" and material_match == "not match":
-        triggered_rules_list.append(
-            "COLOR_AND_MATERIAL_MISMATCH"
-        )
-        final_score -= 10.0
-
-    # Reject reports with no colour, material, or feature similarity
-    if (
-        color_match == "not match"
-        and material_match == "not match"
-        and feature_count == 0
-    ):
-        triggered_rules_list.append(
-            "CORE_VISUAL_MISMATCH_VETO"
-        )
+    if color_match == "not match" and material_match == "not match" and feature_count == 0:
+        triggered_rules_list.append("CORE_VISUAL_MISMATCH_VETO")
         final_score = min(final_score, 25.0)
+    elif color_match == "not match" and material_match == "not match":
+        triggered_rules_list.append("COLOR_AND_MATERIAL_MISMATCH")
+        final_score -= 10.0
 
-    # Penalise reports found in a different location
     if location_match == "not match":
-        triggered_rules_list.append(
-            "LOCATION_MISMATCH"
-        )
+        triggered_rules_list.append("LOCATION_MISMATCH")
         final_score -= 5.0
 
-    # Penalise reports that only match in colour without matching features
-    if (
-        color_match == "match"
-        and material_match == "not match"
-        and feature_count == 0
-    ):
-        triggered_rules_list.append(
-            "COLOR_ONLY_MATCH"
-        )
-        final_score -= 5.0
+    if color_match == "match" and material_match == "not match" and feature_count == 0:
+        if brand_match == "not match":
+            triggered_rules_list.append("WEAK_COLOR_MATCH")
+            final_score -= 10.0
+        else:
+            triggered_rules_list.append("COLOR_ONLY_MATCH")
+            final_score -= 5.0
 
-    # Apply a stronger penalty when colour is the only matching attribute
-    if (
-        color_match == "match"
-        and brand_match == "not match"
-        and material_match == "not match"
-        and feature_count == 0
-    ):
-        triggered_rules_list.append(
-            "WEAK_COLOR_MATCH"
-        )
+    if brand_match == "not match" and material_match == "not match" and feature_count == 0:
+        triggered_rules_list.append("NO_SUPPORTING_ATTRIBUTES")
         final_score -= 10.0
 
-    # Penalise reports with no supporting material, brand, or feature matches
-    if (
-        brand_match == "not match"
-        and material_match == "not match"
-        and feature_count == 0
-    ):
-        triggered_rules_list.append(
-            "NO_SUPPORTING_ATTRIBUTES"
-        )
-        final_score -= 10.0
-
-
     # ----------------------------
-    # Positive Business Rules
+    # Positive Business Rules (Bonuses)
     # ----------------------------
-
-    # Store only the strongest positive rule that applies
     positive_rule = None
     positive_bonus = 0.0
 
-    # Strongest rule:
-    # colour, material, brand, 3+ features, and location all match
-    if (
-        color_match == "match"
-        and material_match == "match"
-        and brand_match == "match"
-        and feature_count >= 3
-        and location_match == "match"
-    ):
+    if color_match == "match" and material_match == "match" and brand_match == "match" and feature_count >= MIN_FEATURES_EXCELLENT_MATCH and location_match == "match":
         positive_rule = "ALL_MAJOR_ATTRIBUTES_AND_LOCATION_MATCH"
         positive_bonus = 10.0
-
-    # Strong four-factor match without requiring location
-    elif (
-        color_match == "match"
-        and material_match == "match"
-        and brand_match == "match"
-        and feature_count >= 3
-    ):
+    elif color_match == "match" and material_match == "match" and brand_match == "match" and feature_count >= MIN_FEATURES_EXCELLENT_MATCH:
         positive_rule = "FOUR_FACTOR_MATCH"
         positive_bonus = 10.0
-
-    # Brand, colour, and multiple identifying features match
-    elif (
-        brand_match == "match"
-        and color_match == "match"
-        and feature_count >= 2
-    ):
+    elif brand_match == "match" and color_match == "match" and feature_count >= MIN_FEATURES_STRONG_MATCH:
         positive_rule = "BRAND_COLOR_FEATURE_MATCH"
         positive_bonus = 10.0
-
-    # Colour, material, and multiple identifying features match
-    elif (
-        color_match == "match"
-        and material_match == "match"
-        and feature_count >= 2
-    ):
+    elif color_match == "match" and material_match == "match" and feature_count >= MIN_FEATURES_STRONG_MATCH:
         positive_rule = "COLOR_MATERIAL_FEATURE_MATCH"
         positive_bonus = 10.0
-
-    # Colour, material, and brand all match
-    elif (
-        color_match == "match"
-        and material_match == "match"
-        and brand_match == "match"
-    ):
+    elif color_match == "match" and material_match == "match" and brand_match == "match":
         positive_rule = "COLOR_MATERIAL_BRAND_MATCH"
         positive_bonus = 10.0
-
-    # Brand and multiple identifying features match
-    elif (
-        brand_match == "match"
-        and feature_count >= 2
-    ):
+    elif brand_match == "match" and feature_count >= MIN_FEATURES_STRONG_MATCH:
         positive_rule = "BRAND_AND_FEATURE_MATCH"
         positive_bonus = 8.0
-
-    # Brand and colour match
-    elif (
-        brand_match == "match"
-        and color_match == "match"
-    ):
+    elif brand_match == "match" and color_match == "match":
         positive_rule = "BRAND_AND_COLOR_MATCH"
         positive_bonus = 7.0
-
-    # Brand and material match
-    elif (
-        brand_match == "match"
-        and material_match == "match"
-    ):
+    elif brand_match == "match" and material_match == "match":
         positive_rule = "BRAND_AND_MATERIAL_MATCH"
         positive_bonus = 7.0
-
-    # Colour and multiple identifying features match
-    elif (
-        color_match == "match"
-        and feature_count >= 2
-    ):
+    elif color_match == "match" and feature_count >= MIN_FEATURES_STRONG_MATCH:
         positive_rule = "COLOR_AND_MULTIPLE_FEATURES_MATCH"
         positive_bonus = 5.0
-
-    # Material and multiple identifying features match
-    elif (
-        material_match == "match"
-        and feature_count >= 2
-    ):
+    elif material_match == "match" and feature_count >= MIN_FEATURES_STRONG_MATCH:
         positive_rule = "MATERIAL_AND_MULTIPLE_FEATURES_MATCH"
         positive_bonus = 5.0
-
-    # Colour and material both match
-    elif (
-        color_match == "match"
-        and material_match == "match"
-    ):
+    elif color_match == "match" and material_match == "match":
         positive_rule = "COLOR_AND_MATERIAL_MATCH"
         positive_bonus = 5.0
-
-    # Location and multiple identifying features match
-    elif (
-        location_match == "match"
-        and feature_count >= 2
-    ):
+    elif location_match == "match" and feature_count >= MIN_FEATURES_STRONG_MATCH:
         positive_rule = "LOCATION_AND_FEATURE_MATCH"
         positive_bonus = 5.0
 
-
-    # Apply the bonus from the strongest applicable positive rule
     if positive_rule:
         triggered_rules_list.append(positive_rule)
         final_score += positive_bonus
 
-
     # ----------------------------
     # Additional Colour Rule
     # ----------------------------
-
-    # Give a small bonus when both primary and secondary colours match
-    if (
-        isinstance(color_data, dict)
-        and "secondary" in color_data
-        and color_match == "match"
-    ):
-        triggered_rules_list.append(
-            "PRIMARY_SECONDARY_COLOR_MATCH"
-        )
+    if isinstance(color_data, dict) and "secondary" in color_data and color_match == "match":
+        triggered_rules_list.append("PRIMARY_SECONDARY_COLOR_MATCH")
         final_score += 3.0
 
-
-    # Keep the final score within the 0% to 100% range
     final_score = max(0.0, min(final_score, 100.0))
-
 
     # ----------------------------
     # Determine Final Status
     # ----------------------------
-
-    # A hard visual mismatch always results in match failure
     if "CORE_VISUAL_MISMATCH_VETO" in triggered_rules_list:
         status = "match_failure"
-        evaluation_summary = (
-            "The reports have insufficient visual similarity "
-            "to support a reliable match."
-        )
-
-    # High score combined with a strong multi-attribute rule
-    # is considered a recommended match
-    elif (
-        final_score >= HIGH_THRESHOLD
-        and positive_rule in (
-            "ALL_MAJOR_ATTRIBUTES_AND_LOCATION_MATCH",
-            "FOUR_FACTOR_MATCH",
-            "BRAND_COLOR_FEATURE_MATCH",
-            "COLOR_MATERIAL_FEATURE_MATCH",
-            "COLOR_MATERIAL_BRAND_MATCH"
-        )
+        evaluation_summary = "The reports have insufficient visual similarity to support a reliable match."
+    elif final_score >= HIGH_THRESHOLD and positive_rule in (
+        "ALL_MAJOR_ATTRIBUTES_AND_LOCATION_MATCH",
+        "FOUR_FACTOR_MATCH",
+        "BRAND_COLOR_FEATURE_MATCH",
+        "COLOR_MATERIAL_FEATURE_MATCH",
+        "COLOR_MATERIAL_BRAND_MATCH"
     ):
         status = "RECOMMENDED_MATCH"
-        evaluation_summary = (
-            "Multiple independent attributes strongly support "
-            "a potential match."
-        )
-
-    # High score without one of the strongest rules
-    # is considered a potential match
+        evaluation_summary = "Multiple independent attributes strongly support a potential match."
     elif final_score >= HIGH_THRESHOLD:
         status = "POTENTIAL_MATCH"
-        evaluation_summary = (
-            "The similarity score is high and supporting attributes "
-            "were identified."
-        )
-
-    # Scores above the rejection threshold are possible matches
-    # but should still be manually verified
+        evaluation_summary = "The reports show a high degree of similarity, but not all key attributes align."
     elif final_score >= REJECT_THRESHOLD:
         status = "POTENTIAL_MATCH"
-        evaluation_summary = (
-            "Some matching attributes were identified. "
-            "Manual verification is recommended."
-        )
-
-    # Scores below the rejection threshold are rejected
+        evaluation_summary = "The reports show a moderate degree of similarity, but some key attributes do not align."
     else:
-        status = "match_failure"
-        evaluation_summary = (
-            "The combined business rules did not provide "
-            "enough evidence for a match."
-        )
+        status = "LOW_CONFIDENCE_MATCH"
+        evaluation_summary = "The similarity metrics are too low to suggest a viable match."
 
-
-    # Return the complete evaluation result for this candidate report
     return {
         "status": status,
-        "final_composite_score": round(final_score, 2),
+        "final_composite_score": final_score,
         "matched_rules_list": matched_rules_list,
         "mismatched_rules_list": mismatched_rules_list,
         "triggered_rules_list": triggered_rules_list,
         "evaluation_summary": evaluation_summary
     }
-def get_best_match(ai_result_list):
+
+
+def get_best_match(ai_result_list, lost_report_date=None):
     best_report = None
     best_evaluation = None
-
     for ai_result in ai_result_list:
-        evaluation = evaluate_analysis(ai_result)
-
-        if evaluation["status"] in (
-            "system_failure",
-            "match_failure"
-        ):
+        evaluation = evaluate_analysis(ai_result, lost_report_date)
+        if evaluation["status"] in ("system_failure", "match_failure"):
             continue
-
         if best_evaluation is None:
             best_report = ai_result
             best_evaluation = evaluation
             continue
-
-        if (
-            evaluation["final_composite_score"]
-            > best_evaluation["final_composite_score"]
-        ):
+        if evaluation["final_composite_score"] > best_evaluation["final_composite_score"]:
             best_report = ai_result
             best_evaluation = evaluation
-
     if best_report is None:
         return None
-
     return {
         "report": best_report,
         "evaluation": best_evaluation
     }
 
+#==========================================
+# LOCAL VERIFICATION TEST BLOCK
+#==========================================
+# Make sure this block is at the very end of logic_manager.py
 if __name__ == "__main__":
-
-    print("\n========== LOGIC MANAGER TEST ==========\n")
-
-    try:
-        with open("test.json", "r") as f:
-            ai_result_list = json.load(f)
-
-        print(f"[+] Loaded {len(ai_result_list)} test cases.")
-
-    except FileNotFoundError:
-        print("[!] test.json was not found.")
-        exit()
-
-    except json.JSONDecodeError:
-        print("[!] test.json contains invalid JSON.")
-        exit()
-
-    best_match = get_best_match(ai_result_list)
-
-    if best_match is None:
-        print("\n[!] No suitable match found.")
-
-    else:
-        report = best_match["report"]
-        evaluation = best_match["evaluation"]
-
-        print("\n========== BEST MATCH ==========")
-        print(f"Case ID: {report.get('case_id')}")
-        print(f"Category: {report.get('category')}")
-        print(f"Report Type: {report.get('report_type')}")
-        print(
-            f"AI Score: "
-            f"{report.get('similarity_analysis', {}).get('similarity_score')}"
-        )
-        print(
-            f"Final Score: "
-            f"{evaluation.get('final_composite_score')}%"
-        )
-        print(f"Status: {evaluation.get('status')}")
-        print(
-            f"Triggered Rules: "
-            f"{evaluation.get('triggered_rules_list')}"
-        )
-        print(f"Summary: {evaluation.get('evaluation_summary')}")
-
-        with open("logic_output.json", "w") as f:
-            json.dump(
-                best_match,
-                f,
-                indent=4
-            )
-
-        print("\n[+] Best match saved to logic_output.json")
-''' test.json
-[
+    # 1. Provide a dummy dataset to test with
+    mock_ai_results = [
     {
         "report_type": "found",
         "category": "bottle",
@@ -900,4 +683,11 @@ if __name__ == "__main__":
         }
     }
 ]
-'''
+
+    # 2. Run the logic
+    user_lost_date = "15-09-2026"
+    best_match_result = get_best_match(mock_ai_results, lost_report_date=user_lost_date)
+    
+    # 3. Print the output explicitly to the terminal
+    print("\n--- BEST MATCH REPORT FOUND ---")
+    print(json.dumps(best_match_result, indent=4))
