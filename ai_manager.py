@@ -77,7 +77,8 @@ def extract_features(description, image_path=None):
     print("[+] Initialising AI client object for feature extraction...")
     client = _get_ai_client()
     if not client:
-        return f"[!] Error: Gemini API Key missing"
+        print(f"[!] Error: Gemini API Key missing")
+        return None
     print("[+] AI client object initialised successfully!")
     print("[+] Building AI Prompt...")
 
@@ -149,7 +150,8 @@ def extract_features(description, image_path=None):
                         next_model = AI_MODELS[model_index + 1]
                         print(f"[+] Trying next model: {next_model}")
                     else:
-                        return f"[!] API Error 429: All models rate limit exceeded. {e.message}"
+                        print(f"[!] API Error 429: All models rate limit exceeded. {e.message}")
+                        return None
                     break 
 
                 # Handle error 503 server side error (High Demand / Unavailable) With exponential backoff retry
@@ -158,7 +160,8 @@ def extract_features(description, image_path=None):
                         print(f"[!] API Error 503: Model busy. Retrying in {delay}s... (Attempt {attempt}/{retries})")
                     if attempt == retries:
                         print(f"[!] API Error 503: Model busy. Max Retry reached (Attempt {attempt}/{retries})")
-                        return f"[!] API Error {e.code}: {e.message}"
+                        print(f"[!] API Error {e.code}: {e.message}")
+                        return None
                     attempt += 1
                     time.sleep(delay)
                     delay *= 2
@@ -166,8 +169,10 @@ def extract_features(description, image_path=None):
 
             # Handle any other unexpected exceptions
             except Exception as e:
-                return f"[!] Exception occured: {e}"
-    return f"[!] Error: Feature extraction failed"
+                print(f"[!] Exception occured: {e}")
+                return None
+    print(f"[!] Error: Feature extraction failed")
+    return None
 
 def ai_semantic_matching(input_lost_report, datalist: list):
     """_summary_
@@ -181,7 +186,8 @@ def ai_semantic_matching(input_lost_report, datalist: list):
     print("[+] Initialising AI client object for semantic matching...")
     client = _get_ai_client()
     if not client:
-        return f"[!] Error: Gemini API Key missing"
+        print(f"[!] Error: Gemini API Key missing")
+        return None
     print("[+] AI client object initialised successfully!")
     print("[+] Building Semantic AI Matching Prompt...")
 
@@ -257,7 +263,8 @@ def ai_semantic_matching(input_lost_report, datalist: list):
                         next_model = AI_MODELS[model_index + 1]
                         print(f"[+] Trying next model: {next_model}")
                     else:
-                        return f"[!] API Error 429: All models rate limit exceeded. {e.message}"
+                        print(f"[!] API Error 429: All models rate limit exceeded. {e.message}")
+                        return None
                     break 
 
                 # Handle error 503 server side error (High Demand / Unavailable) With exponential backoff retry
@@ -266,7 +273,8 @@ def ai_semantic_matching(input_lost_report, datalist: list):
                         print(f"[!] API Error 503: Model busy. Retrying in {delay}s... (Attempt {attempt}/{retries})")
                     if attempt == retries:
                         print(f"[!] API Error 503: Model busy. Max Retry reached (Attempt {attempt}/{retries})")
-                        return f"[!] API Error {e.code}: {e.message}"
+                        print(f"[!] API Error {e.code}: {e.message}")
+                        return None
                     attempt += 1
                     time.sleep(delay)
                     delay *= 2
@@ -274,8 +282,10 @@ def ai_semantic_matching(input_lost_report, datalist: list):
 
             # Handle any other unexpected exceptions
             except Exception as e:
-                return f"[!] Exception occured: {e}"
-    return f"[!] Error: Semantic AI matching failed"
+                print(f"[!] Exception occured: {e}")
+                return None
+    print(f"[!] Error: Semantic AI matching failed")
+    return None
 
 # Testing 
 found_report = {
