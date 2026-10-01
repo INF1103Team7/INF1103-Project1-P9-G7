@@ -2,6 +2,7 @@ import json
 import os
 
 from pathlib import Path
+from datetime import date
 import image_storage
 
 PROJECT_DIRECTORY = Path(__file__).resolve().parent
@@ -98,4 +99,19 @@ def update_report_status(report_id, new_status):
             report["status"] = new_status
             return save_reports(reports)
 
+    return False
+
+def update_report_status(case_id,new_status):
+    if new_status not in VALID_STATUSES:
+        return False
+    
+    reports= load_reports
+    
+    for report in reports:
+        if report.get("case_id") == case_id:
+            report["status"]= new_status
+            
+            if new_status == "closed":
+                report["closed_date"]=date.today().isoformat()
+            return save_reports(reports)
     return False
