@@ -287,6 +287,9 @@ def ai_semantic_matching(input_lost_report, datalist: list):
     print(f"[!] Error: Semantic AI matching failed")
     return None
 
+# Import control
+__all__ = ["extract_features", "ai_semantic_matching"]
+
 # Testing 
 found_report = {
     "report_type": "found",
