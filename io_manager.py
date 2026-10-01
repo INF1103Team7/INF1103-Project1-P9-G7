@@ -357,7 +357,9 @@ def run_cli(input_function: InputFunction = input):
 	# 	reports = []
 	# 	print(f"Could not load saved reports: {error}")
 	while True:
-		print("\nWelcome to the AI powered lost and found system!")
+		print("\n" + "=" * 50)
+		print("Welcome to the AI powered lost and found system!")
+		print("=" * 50)
 		print("1. Submit a lost/found report")
 		print("2. View summary of all reports")
 		print("3. Exit")
@@ -390,6 +392,7 @@ def run_cli(input_function: InputFunction = input):
 		else:
 			print("Please choose 1, 2, or 3.")
 
+# Import control
 __all__ = [
 	"CATEGORIES",
 	"REPORT_TYPES",
