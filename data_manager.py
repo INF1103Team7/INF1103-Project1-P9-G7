@@ -56,11 +56,11 @@ def add_report(report):
 
     return save_reports(reports)
 
-def get_report_by_id(report_id):
+def get_report_by_id(case_id):
     reports = load_reports()
 
     for report in reports:
-        if report.get("report_id") == report_id:
+        if report.get("case_id") == case_id:
             return report
 
     return None
