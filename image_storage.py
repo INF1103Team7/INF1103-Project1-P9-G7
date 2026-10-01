@@ -83,18 +83,20 @@ def save_report(
 ) -> dict[str, object]:
     """Copy a report image and append the report with its stored filename."""
     source_path = report.get("image_path")
-    if not isinstance(source_path, str):
+    if source_path  is not None and not isinstance(source_path, str):
         raise ValueError("The report must include an image_path.")
 
     stored_report = dict(report)
     case_id = str(stored_report.get("case_id") or create_case_id())
     stored_report["case_id"] = case_id
-    stored_report["image_filename"] = store_image(
-        source_path,
-        case_id,
-        image_directory,
-    )
-    del stored_report["image_path"]
+    if isinstance(source_path, str):
+        stored_report["image_filename"] = store_image(
+            source_path,
+            case_id,
+            image_directory,
+        )
+
+    stored_report.pop("image_path", None)
 
     reports = load_reports(reports_file)
     reports.append(stored_report)
