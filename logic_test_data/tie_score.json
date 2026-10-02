@@ -1,0 +1,99 @@
+[
+    {
+        "report_type": "found",
+        "category": "bottle",
+        "date": "25-09-2026",
+        "case_id": "CASE-20260925-T11111.jpg",
+        "image_filename": "CASE-20260925-T11111.jpg",
+        "primary_color": "white",
+        "secondary_color": "black",
+        "material": "stainless steel",
+        "identifying_features": [
+            "black flex cap with handle",
+            "Hydro Flask logo"
+        ],
+        "brand": "Hydro Flask",
+        "location_lost": "level 1 garden",
+        "additional_notes": "First report in tie test.",
+        "similarity_analysis": {
+            "similarity_score": "85%",
+            "color_match": {
+                "is_match": "match",
+                "primary": "white",
+                "secondary": "black"
+            },
+            "material_match": "match",
+            "feature_overlap_match": [
+                "black flex cap with handle",
+                "Hydro Flask logo"
+            ],
+            "brand_match": "match",
+            "location_match": "match",
+            "similarity_reasoning": "Strong match across color, material, brand, features and location."
+        }
+    },
+    {
+        "report_type": "found",
+        "category": "bottle",
+        "date": "25-09-2026",
+        "case_id": "CASE-20260925-T22222.jpg",
+        "image_filename": "CASE-20260925-T22222.jpg",
+        "primary_color": "white",
+        "secondary_color": "black",
+        "material": "stainless steel",
+        "identifying_features": [
+            "black flex cap with handle",
+            "Hydro Flask logo"
+        ],
+        "brand": "Hydro Flask",
+        "location_lost": "level 1 garden",
+        "additional_notes": "Second report in tie test.",
+        "similarity_analysis": {
+            "similarity_score": "85%",
+            "color_match": {
+                "is_match": "match",
+                "primary": "white",
+                "secondary": "black"
+            },
+            "material_match": "match",
+            "feature_overlap_match": [
+                "black flex cap with handle",
+                "Hydro Flask logo"
+            ],
+            "brand_match": "match",
+            "location_match": "match",
+            "similarity_reasoning": "Strong match across color, material, brand, features and location."
+        }
+    },
+    {
+        "report_type": "found",
+        "category": "bottle",
+        "date": "25-09-2026",
+        "case_id": "CASE-20260925-T33333.jpg",
+        "image_filename": "CASE-20260925-T33333.jpg",
+        "primary_color": "blue",
+        "secondary_color": "black",
+        "material": "stainless steel",
+        "identifying_features": [
+            "black cap"
+        ],
+        "brand": "Hydro Flask",
+        "location_lost": "level 1 garden",
+        "additional_notes": "Lower score for comparison.",
+        "similarity_analysis": {
+            "similarity_score": "70%",
+            "color_match": {
+                "is_match": "not match",
+                "primary": "blue",
+                "secondary": "black"
+            },
+            "material_match": "match",
+            "feature_overlap_match": [
+                "black cap"
+            ],
+            "brand_match": "match",
+            "location_match": "match",
+            "similarity_reasoning": "Brand, material and location match, but color and features are weaker."
+        }
+    }
+]

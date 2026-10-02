@@ -1,0 +1,94 @@
+[
+    {
+        "report_type": "found",
+        "category": "bottle",
+        "date": "27-09-2026",
+        "case_id": "CASE-20260927-G77777.jpg",
+        "image_filename": "CASE-20260927-G77777.jpg",
+        "primary_color": "white",
+        "secondary_color": "black",
+        "material": "plastic",
+        "identifying_features": [
+            "flex cap",
+            "logo"
+        ],
+        "brand": "Hydro Flask",
+        "location_lost": "level 2 garden",
+        "additional_notes": "Test multi-rule combination.",
+        "similarity_analysis": {
+            "similarity_score": "76%",
+            "color_match": {
+                "is_match": "match",
+                "primary": "white",
+                "secondary": "black"
+            },
+            "material_match": "not match",
+            "feature_overlap_match": [
+                "flex cap",
+                "logo"
+            ],
+            "brand_match": "match",
+            "location_match": "not match",
+            "similarity_reasoning": "Color, brand and features match, but material and location differ."
+        }
+    },
+    {
+        "report_type": "found",
+        "category": "bottle",
+        "date": "27-09-2026",
+        "case_id": "CASE-20260927-H88888.jpg",
+        "image_filename": "CASE-20260927-H88888.jpg",
+        "primary_color": "white",
+        "secondary_color": "black",
+        "material": "stainless steel",
+        "identifying_features": [
+            "flex cap",
+            "logo"
+        ],
+        "brand": "Hydro Flask",
+        "location_lost": "level 3 garden",
+        "additional_notes": "Test multi-rule combination.",
+        "similarity_analysis": {
+            "similarity_score": "82%",
+            "color_match": {
+                "is_match": "match",
+                "primary": "white",
+                "secondary": "black"
+            },
+            "material_match": "match",
+            "feature_overlap_match": [
+                "flex cap",
+                "logo"
+            ],
+            "brand_match": "match",
+            "location_match": "not match",
+            "similarity_reasoning": "Major item attributes match, but location differs."
+        }
+    },
+    {
+        "report_type": "found",
+        "category": "bottle",
+        "date": "27-09-2026",
+        "case_id": "CASE-20260927-I99999.jpg",
+        "image_filename": "CASE-20260927-I99999.jpg",
+        "primary_color": "white",
+        "secondary_color": "null",
+        "material": "plastic",
+        "identifying_features": [],
+        "brand": "null",
+        "location_lost": "level 1 garden",
+        "additional_notes": "Test multi-rule combination.",
+        "similarity_analysis": {
+            "similarity_score": "55%",
+            "color_match": {
+                "is_match": "match",
+                "primary": "white"
+            },
+            "material_match": "not match",
+            "feature_overlap_match": [],
+            "brand_match": "not match",
+            "location_match": "match",
+            "similarity_reasoning": "Only color and location provide support."
+        }
+    }
+]

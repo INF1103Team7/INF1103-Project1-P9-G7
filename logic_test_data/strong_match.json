@@ -1,0 +1,109 @@
+[
+    {
+        "report_type": "found",
+        "category": "bottle",
+        "date": "25-09-2026",
+        "case_id": "CASE-20260925-A11111.jpg",
+        "image_filename": "CASE-20260925-A11111.jpg",
+        "primary_color": "white",
+        "secondary_color": "black",
+        "material": "stainless steel",
+        "identifying_features": [
+            "black cap",
+            "Hydro Flask logo",
+            "printed brand name",
+            "stainless steel rim"
+        ],
+        "brand": "Hydro Flask",
+        "location_lost": "level 1 garden",
+        "additional_notes": "Found near garden bench",
+        "similarity_analysis": {
+            "similarity_score": "92%",
+            "color_match": {
+                "is_match": "match",
+                "primary": "white",
+                "secondary": "black"
+            },
+            "material_match": "match",
+            "feature_overlap_match": [
+                "black cap",
+                "Hydro Flask logo",
+                "printed brand name",
+                "stainless steel rim"
+            ],
+            "brand_match": "match",
+            "location_match": "match",
+            "similarity_reasoning": "Strong agreement across color, material, brand, location, and multiple identifying features."
+        }
+    },
+    {
+        "report_type": "found",
+        "category": "bottle",
+        "date": "25-09-2026",
+        "case_id": "CASE-20260925-B22222.jpg",
+        "image_filename": "CASE-20260925-B22222.jpg",
+        "primary_color": "white",
+        "secondary_color": "blue",
+        "material": "stainless steel",
+        "identifying_features": [
+            "flex cap",
+            "Hydro Flask logo",
+            "stainless steel rim"
+        ],
+        "brand": "Hydro Flask",
+        "location_lost": "level 1 garden",
+        "additional_notes": "Found beside a table",
+        "similarity_analysis": {
+            "similarity_score": "86%",
+            "color_match": {
+                "is_match": "match",
+                "primary": "white",
+                "secondary": "blue"
+            },
+            "material_match": "match",
+            "feature_overlap_match": [
+                "flex cap",
+                "Hydro Flask logo",
+                "stainless steel rim"
+            ],
+            "brand_match": "match",
+            "location_match": "match",
+            "similarity_reasoning": "Strong agreement across color, material, brand, location, and multiple identifying features."
+        }
+    },
+    {
+        "report_type": "found",
+        "category": "bottle",
+        "date": "25-09-2026",
+        "case_id": "CASE-20260925-C33333.jpg",
+        "image_filename": "CASE-20260925-C33333.jpg",
+        "primary_color": "silver",
+        "secondary_color": "black",
+        "material": "metal",
+        "identifying_features": [
+            "handle",
+            "logo",
+            "scratch"
+        ],
+        "brand": "Thermos",
+        "location_lost": "level 2 library",
+        "additional_notes": "Found on a library table",
+        "similarity_analysis": {
+            "similarity_score": "81%",
+            "color_match": {
+                "is_match": "match",
+                "primary": "silver",
+                "secondary": "black"
+            },
+            "material_match": "match",
+            "feature_overlap_match": [
+                "handle",
+                "logo",
+                "scratch"
+            ],
+            "brand_match": "match",
+            "location_match": "not match",
+            "similarity_reasoning": "Most major item attributes agree, including color, material, brand, and multiple identifying features, but the location differs."
+        }
+    }
+]

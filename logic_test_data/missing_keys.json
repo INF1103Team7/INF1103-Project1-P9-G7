@@ -1,0 +1,88 @@
+[
+    {
+        "report_type": "found",
+        "category": "bottle",
+        "date": "26-09-2026",
+        "case_id": "CASE-20260926-M11111.jpg",
+        "image_filename": "CASE-20260926-M11111.jpg",
+        "primary_color": "white",
+        "secondary_color": "black",
+        "material": "stainless steel",
+        "identifying_features": [
+            "black flex cap",
+            "Hydro Flask logo"
+        ],
+        "brand": "Hydro Flask",
+        "location_lost": "level 1 garden",
+        "additional_notes": "Missing similarity score key.",
+        "similarity_analysis": {
+            "color_match": {
+                "is_match": "match",
+                "primary": "white",
+                "secondary": "black"
+            },
+            "material_match": "match",
+            "feature_overlap_match": [
+                "black flex cap",
+                "Hydro Flask logo"
+            ],
+            "brand_match": "match",
+            "location_match": "match",
+            "similarity_reasoning": "Similarity score key is intentionally missing."
+        }
+    },
+    {
+        "report_type": "found",
+        "category": "bottle",
+        "date": "26-09-2026",
+        "case_id": "CASE-20260926-M22222.jpg",
+        "image_filename": "CASE-20260926-M22222.jpg",
+        "primary_color": "white",
+        "secondary_color": "black",
+        "material": "stainless steel",
+        "identifying_features": [
+            "black flex cap"
+        ],
+        "brand": "Hydro Flask",
+        "location_lost": "level 1 garden",
+        "additional_notes": "Missing material match key.",
+        "similarity_analysis": {
+            "similarity_score": "82%",
+            "color_match": {
+                "is_match": "match",
+                "primary": "white"
+            },
+            "feature_overlap_match": [
+                "black flex cap"
+            ],
+            "brand_match": "match",
+            "location_match": "match",
+            "similarity_reasoning": "Material match key is intentionally missing."
+        }
+    },
+    {
+        "report_type": "found",
+        "category": "bottle",
+        "date": "26-09-2026",
+        "case_id": "CASE-20260926-M33333.jpg",
+        "image_filename": "CASE-20260926-M33333.jpg",
+        "primary_color": "black",
+        "secondary_color": "red",
+        "material": "plastic",
+        "identifying_features": [
+            "sports nozzle"
+        ],
+        "brand": "Nike",
+        "location_lost": "level 2 garden",
+        "additional_notes": "Several similarity analysis keys are intentionally misspelled.",
+        "similarity_analysis": {
+            "similarity_score": "75%",
+            "colour_match": "not match",
+            "material_mach": "not match",
+            "feature_oawfverlap_match": [],
+            "brand_macth": "not match",
+            "location_mach": "not match",
+            "similarity_reasoning": "Several required keys have been intentionally misspelled."
+        }
+    }
+]

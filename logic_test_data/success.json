@@ -1,0 +1,95 @@
+[
+    {
+        "report_type": "found",
+        "category": "bottle",
+        "date": "22-09-2026",
+        "case_id": "CASE-20260922-6F1106.jpg",
+        "image_filename": "CASE-20260922-6F1106.jpg",
+        "primary_color": "white",
+        "secondary_color": "black",
+        "material": "stainless steel",
+        "identifying_features": [
+            "black flex cap with handle",
+            "Hydro Flask logo on upper body",
+            "Hydro Flask brand name printed at the bottom",
+            "stainless steel rim"
+        ],
+        "brand": "Hydro Flask",
+        "location_lost": "level 1 garden",
+        "additional_notes": "Found at level 1 garden bench",
+        "similarity_analysis": {
+            "similarity_score": "100%",
+            "color_match": {
+                "is_match": "match",
+                "primary": "white",
+                "secondary": "black"
+            },
+            "material_match": "match",
+            "feature_overlap_match": [
+                "black flex cap with handle",
+                "Hydro Flask logo on upper body",
+                "Hydro Flask brand name printed at the bottom",
+                "stainless steel rim"
+            ],
+            "brand_match": "match",
+            "location_match": "match",
+            "similarity_reasoning": "Identical match across all key attributes including category, date, brand, material, primary and secondary colors, location, and all identifying features."
+        }
+    },
+    {
+        "report_type": "found",
+        "category": "bottle",
+        "date": "18-09-2026",
+        "case_id": "CASE-20260918-1A2B3C.jpg",
+        "image_filename": "CASE-20260918-1A2B3C.jpg",
+        "primary_color": "white",
+        "secondary_color": "null",
+        "material": "plastic",
+        "identifying_features": [
+            "plain clear shaker bottle",
+            "blue measurement markings on side"
+        ],
+        "brand": "null",
+        "location_lost": "level 1 garden",
+        "additional_notes": "Found on 18th September, handed to security desk",
+        "similarity_analysis": {
+            "similarity_score": "45%",
+            "color_match": {
+                "is_match": "match",
+                "primary": "white"
+            },
+            "material_match": "not match",
+            "feature_overlap_match": [],
+            "brand_match": "not match",
+            "location_match": "match",
+            "similarity_reasoning": "Matches the category, primary color (white), and location (level 1 garden), but differs in material, brand, secondary color, and identifying features."
+        }
+    },
+    {
+        "report_type": "found",
+        "category": "bottle",
+        "date": "22-09-2026",
+        "case_id": "CASE-20260922-8A91B2.jpg",
+        "image_filename": "CASE-20260922-8A91B2.jpg",
+        "primary_color": "black",
+        "secondary_color": "red",
+        "material": "plastic",
+        "identifying_features": [
+            "sports push nozzle",
+            "scratch on the lower base",
+            "gym branding sticker"
+        ],
+        "brand": "nike",
+        "location_lost": "level 1 garden",
+        "additional_notes": "Left behind on a round outdoor table",
+        "similarity_analysis": {
+            "similarity_score": "35%",
+            "color_match": "not match",
+            "material_match": "not match",
+            "feature_overlap_match": [],
+            "brand_match": "not match",
+            "location_match": "match",
+            "similarity_reasoning": "Shares the same category, date, and location, but differs in colors, material, brand, and identifying features."
+        }
+    }
+]

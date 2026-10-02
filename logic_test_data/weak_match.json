@@ -1,0 +1,77 @@
+[
+    {
+        "report_type": "found",
+        "category": "bottle",
+        "date": "26-09-2026",
+        "case_id": "CASE-20260926-D44444.jpg",
+        "image_filename": "CASE-20260926-D44444.jpg",
+        "primary_color": "black",
+        "secondary_color": "red",
+        "material": "plastic",
+        "identifying_features": [
+            "sports nozzle"
+        ],
+        "brand": "Nike",
+        "location_lost": "level 3 gym",
+        "additional_notes": "Found near gym entrance",
+        "similarity_analysis": {
+            "similarity_score": "35%",
+            "color_match": "not match",
+            "material_match": "not match",
+            "feature_overlap_match": [],
+            "brand_match": "not match",
+            "location_match": "not match",
+            "similarity_reasoning": "The bottle differs in color, material, brand, features, and location."
+        }
+    },
+    {
+        "report_type": "found",
+        "category": "bottle",
+        "date": "26-09-2026",
+        "case_id": "CASE-20260926-E55555.jpg",
+        "image_filename": "CASE-20260926-E55555.jpg",
+        "primary_color": "blue",
+        "secondary_color": "null",
+        "material": "plastic",
+        "identifying_features": [
+            "measurement markings"
+        ],
+        "brand": "null",
+        "location_lost": "level 2 hall",
+        "additional_notes": "Found on a table in the hall",
+        "similarity_analysis": {
+            "similarity_score": "42%",
+            "color_match": "not match",
+            "material_match": "not match",
+            "feature_overlap_match": [],
+            "brand_match": "not match",
+            "location_match": "not match",
+            "similarity_reasoning": "The report has little supporting evidence and differs in the main physical attributes."
+        }
+    },
+    {
+        "report_type": "found",
+        "category": "bottle",
+        "date": "26-09-2026",
+        "case_id": "CASE-20260926-F66666.jpg",
+        "image_filename": "CASE-20260926-F66666.jpg",
+        "primary_color": "red",
+        "secondary_color": "black",
+        "material": "plastic",
+        "identifying_features": [
+            "push nozzle"
+        ],
+        "brand": "Adidas",
+        "location_lost": "level 4 foyer",
+        "additional_notes": "Found beside a chair",
+        "similarity_analysis": {
+            "similarity_score": "49%",
+            "color_match": "not match",
+            "material_match": "not match",
+            "feature_overlap_match": [],
+            "brand_match": "not match",
+            "location_match": "not match",
+            "similarity_reasoning": "The report has no meaningful matching physical attributes and the location also differs."
+        }
+    }
+]
