@@ -312,394 +312,99 @@ some json;
 if __name__ == "__main__":
     # 1. Provide a dummy dataset to test with
     mock_ai_results = [
-    {
-        "report_type": "found",
-        "category": "bottle",
-        "date": "22-09-2026",
-        "case_id": "CASE-20260922-6F1106.jpg",
-        "image_filename": "CASE-20260922-6F1106.jpg",
-        "primary_color": "white",
-        "secondary_color": "black",
-        "material": "stainless steel",
-        "identifying_features": [
-            "black flex cap with handle",
-            "Hydro Flask logo on upper body",
-            "Hydro Flask brand name printed at the bottom",
-            "stainless steel rim"
-        ],
-        "brand": "Hydro Flask",
-        "location_lost": "level 1 garden",
-        "additional_notes": "Found at level 1 garden bench",
-        "similarity_analysis": {
-            "similarity_score": "100%",
-            "color_match": {
-                "is_match": "not match",
-                "primary": "white",
-                "secondary": "black"
-            },
-            "material_match": "not match",
-            "feature_overlap_match": [
-            ],
-            "brand_match": "not match",
-            "location_match": "match",
-            "similarity_reasoning": "Identical match across all key attributes."
-        }
-    },
-
-    {
-        "report_type": "found",
-        "category": "bottle",
-        "date": "18-09-2026",
-        "case_id": "CASE-20260918-1A2B3C.jpg",
-        "image_filename": "CASE-20260918-1A2B3C.jpg",
-        "primary_color": "white",
-        "secondary_color": "null",
-        "material": "plastic",
-        "identifying_features": [
-            "plain clear shaker bottle",
-            "blue measurement markings on side"
-        ],
-        "brand": "null",
-        "location_lost": "level 1 garden",
-        "additional_notes": "Found on 18th September, handed to security desk",
-        "similarity_analysis": {
-            "similarity_score": "95%",
-            "color_match": {
-                "is_match": "match",
-                "primary": "white"
-            },
-            "material_match": "not match",
-            "feature_overlap_match": [],
-            "brand_match": "not match",
-            "location_match": "match",
-            "similarity_reasoning": "Matches color and location but differs in material, brand and features."
-        }
-    },
-
-    {
-        "report_type": "found",
-        "category": "bottle",
-        "date": "22-09-2026",
-        "case_id": "CASE-20260922-8A91B2.jpg",
-        "image_filename": "CASE-20260922-8A91B2.jpg",
-        "primary_color": "black",
-        "secondary_color": "red",
-        "material": "plastic",
-        "identifying_features": [
-            "sports push nozzle",
-            "scratch on the lower base",
-            "gym branding sticker"
-        ],
-        "brand": "nike",
-        "location_lost": "level 1 garden",
-        "additional_notes": "Left behind on a round outdoor table",
-        "similarity_analysis": {
-            "similarity_score": "95%",
-            "color_match": "not match",
-            "material_match": "not match",
-            "feature_overlap_match": [],
-            "brand_match": "not match",
-            "location_match": "match",
-            "similarity_reasoning": "Shares the same category and location but differs in visual attributes."
-        }
-    },
-
-    {
-        "report_type": "found",
-        "category": "bottle",
-        "date": "20-09-2026",
-        "case_id": "CASE-20260920-111111.jpg",
-        "image_filename": "CASE-20260920-111111.jpg",
-        "primary_color": "black",
-        "secondary_color": "blue",
-        "material": "plastic",
-        "identifying_features": [
-            "sports cap",
-            "large logo"
-        ],
-        "brand": "Adidas",
-        "location_lost": "level 2",
-        "additional_notes": "Found near staircase",
-        "similarity_analysis": {
-            "similarity_score": "80%",
-            "color_match": {
-                "is_match": "match",
-                "primary": "black"
-            },
-            "material_match": "not match",
-            "feature_overlap_match": [
-                "sports cap",
-                "large logo"
-            ],
-            "brand_match": "not match",
-            "location_match": "not match",
-            "similarity_reasoning": "Color and features match."
-        }
-    },
-
-    {
-        "report_type": "found",
-        "category": "bottle",
-        "date": "20-09-2026",
-        "case_id": "CASE-20260920-222222.jpg",
-        "image_filename": "CASE-20260920-222222.jpg",
-        "primary_color": "silver",
-        "secondary_color": "black",
-        "material": "stainless steel",
-        "identifying_features": [
-            "metal cap",
-            "large logo"
-        ],
-        "brand": "Hydro Flask",
-        "location_lost": "level 2",
-        "additional_notes": "Found beside classroom",
-        "similarity_analysis": {
-            "similarity_score": "70%",
-            "color_match": "not match",
-            "material_match": "match",
-            "feature_overlap_match": [
-                "metal cap",
-                "large logo"
-            ],
-            "brand_match": "match",
-            "location_match": "not match",
-            "similarity_reasoning": "Material, brand and features match."
-        }
-    },
-
-    {
-        "report_type": "found",
-        "category": "bottle",
-        "date": "20-09-2026",
-        "case_id": "CASE-20260920-333333.jpg",
-        "image_filename": "CASE-20260920-333333.jpg",
-        "primary_color": "white",
-        "secondary_color": "black",
-        "material": "stainless steel",
-        "identifying_features": [
-            "black cap",
-            "logo",
-            "front marking"
-        ],
-        "brand": "Hydro Flask",
-        "location_lost": "level 1",
-        "additional_notes": "Found near library",
-        "similarity_analysis": {
-            "similarity_score": "75%",
-            "color_match": {
-                "is_match": "match",
-                "primary": "white",
-                "secondary": "black"
-            },
-            "material_match": "match",
-            "feature_overlap_match": [
-                "black cap",
-                "logo",
-                "front marking"
-            ],
-            "brand_match": "match",
-            "location_match": "not match",
-            "similarity_reasoning": "Color, material, brand and features all match."
-        }
-    },
-
-    {
-        "report_type": "found",
-        "category": "bottle",
-        "date": "20-09-2026",
-        "case_id": "CASE-20260920-444444.jpg",
-        "image_filename": "CASE-20260920-444444.jpg",
-        "primary_color": "white",
-        "secondary_color": "black",
-        "material": "stainless steel",
-        "identifying_features": [
-            "black cap",
-            "logo",
-            "front marking"
-        ],
-        "brand": "Hydro Flask",
-        "location_lost": "level 1 garden",
-        "additional_notes": "Found at garden bench",
-        "similarity_analysis": {
-            "similarity_score": "85%",
-            "color_match": {
-                "is_match": "match",
-                "primary": "white",
-                "secondary": "black"
-            },
-            "material_match": "match",
-            "feature_overlap_match": [
-                "black cap",
-                "logo",
-                "front marking"
-            ],
-            "brand_match": "match",
-            "location_match": "match",
-            "similarity_reasoning": "Strong match across all major attributes."
-        }
-    },
-
-    {
-        "report_type": "found",
-        "category": "bottle",
-        "date": "20-09-2026",
-        "case_id": "CASE-20260920-555555.jpg",
-        "image_filename": "CASE-20260920-555555.jpg",
-        "primary_color": "white",
-        "secondary_color": "black",
-        "material": "stainless steel",
-        "identifying_features": [
-            "black cap",
-            "logo",
-            "front marking",
-            "silver rim"
-        ],
-        "brand": "Hydro Flask",
-        "location_lost": "level 1 garden",
-        "additional_notes": "Found near garden",
-        "similarity_analysis": {
-            "similarity_score": "80%",
-            "color_match": {
-                "is_match": "match",
-                "primary": "white",
-                "secondary": "black"
-            },
-            "material_match": "match",
-            "feature_overlap_match": [
-                "black cap",
-                "logo",
-                "front marking",
-                "silver rim"
-            ],
-            "brand_match": "match",
-            "location_match": "match",
-            "similarity_reasoning": "Very strong match across all attributes."
-        }
-    },
-
-    {
-        "report_type": "found",
-        "category": "bottle",
-        "date": "20-09-2026",
-        "case_id": "CASE-20260920-666666.jpg",
-        "image_filename": "CASE-20260920-666666.jpg",
-        "primary_color": "red",
-        "secondary_color": "black",
-        "material": "plastic",
-        "identifying_features": [],
-        "brand": "null",
-        "location_lost": "level 3",
-        "additional_notes": "Found in hallway",
-        "similarity_analysis": {
-            "similarity_score": "75%",
-            "color_match": "not match",
-            "material_match": "not match",
-            "feature_overlap_match": [],
-            "brand_match": "not match",
-            "location_match": "not match",
-            "similarity_reasoning": "No major attributes match."
-        }
-    },
-
-    {
-        "report_type": "found",
-        "category": "bottle",
-        "date": "20-09-2026",
-        "case_id": "CASE-20260920-777777.jpg",
-        "image_filename": "CASE-20260920-777777.jpg",
-        "primary_color": "white",
-        "secondary_color": "blue",
-        "material": "plastic",
-        "identifying_features": [
-            "cap",
-            "logo"
-        ],
-        "brand": "Nike",
-        "location_lost": "level 1",
-        "additional_notes": "Found near entrance",
-        "similarity_analysis": {
-            "similarity_score": "50%",
-            "color_match": "match",
-            "material_match": "not match",
-            "feature_overlap_match": [
-                "cap",
-                "logo"
-            ],
-            "brand_match": "not match",
-            "location_match": "match",
-            "similarity_reasoning": "Only color and some features match."
-        }
-    },
-
-    {
-        "report_type": "found",
-        "category": "bottle",
-        "date": "20-09-2026",
-        "case_id": "CASE-20260920-888888.jpg",
-        "image_filename": "CASE-20260920-888888.jpg",
-        "primary_color": "white",
-        "secondary_color": "black",
-        "material": "stainless steel",
-        "identifying_features": [
-            "black cap",
-            "logo"
-        ],
-        "brand": "Hydro Flask",
-        "location_lost": "level 1",
-        "additional_notes": "Found at level 1",
-        "similarity_analysis": {
-            "similarity_score": "90%",
-            "color_match": {
-                "is_match": "not match",
-                "primary": "white",
-                "secondary": "black"
-            },
-            "material_match": "match",
-            "feature_overlap_match": [
-                "black cap",
-                "logo"
-            ],
-            "brand_match": "match",
-            "location_match": "match",
-            "similarity_reasoning": "Strong match across brand, color, material, location and features."
-        }
-    },
-
-    {
-        "report_type": "found",
-        "category": "bottle",
-        "date": "20-09-2026",
-        "case_id": "CASE-20260920-999999.jpg",
-        "image_filename": "CASE-20260920-999999.jpg",
-        "primary_color": "white",
-        "secondary_color": "black",
-        "material": "stainless steel",
-        "identifying_features": [
-            "black cap",
-            "logo",
-            "silver rim"
-        ],
-        "brand": "Hydro Flask",
-        "location_lost": "level 1 garden",
-        "additional_notes": "Found on garden table",
-        "similarity_analysis": {
-            "similarity_score": "88%",
-            "color_match": {
-                "is_match": "match",
-                "primary": "white",
-                "secondary": "black"
-            },
-            "material_match": "match",
-            "feature_overlap_match": [
-                "black cap",
-                "logo",
-                "silver rim"
-            ],
-            "brand_match": "match",
-            "location_match": "match",
-            "similarity_reasoning": "Strong multi-attribute match."
-        }
+  {
+    "report_type": "found",
+    "category": "bottle",
+    "date": "22-09-2026",
+    "case_id": "CASE-20260922-6F1106.jpg",
+    "image_filename": "CASE-20260922-6F1106.jpg",
+    "primary_color": "white",
+    "secondary_color": "black",
+    "material": "stainless steel",
+    "identifying_features": [
+      "black flex cap with handle",
+      "Hydro Flask logo on upper body",
+      "Hydro Flask brand name printed at the bottom",
+      "stainless steel rim"
+    ],
+    "brand": "Hydro Flask",
+    "location_lost": "level 1 garden",
+    "additional_notes": "Found at level 1 garden bench",
+    "similarity_analysis": {
+      "similarity_score": "100",
+      "color_match": {
+        "is_match": "match",
+        "primary": "white",
+        "secondary": "black"
+      },
+      "material_match": "match",
+      "feature_overlap_match": [
+        "black flex cap with handle",
+        "Hydro Flask logo on upper body",
+        "Hydro Flask brand name printed at the bottom",
+        "stainless steel rim"
+      ],
+      "brand_match": "match",
+      "location_match": "match",
+      "similarity_reasoning": "The item matches identically across category, date, primary color, secondary color, material, brand, location, and all identifying features."
     }
+  },
+  {
+    "report_type": "found",
+    "category": "bottle",
+    "date": "18-09-2026",
+    "case_id": "CASE-20260918-1A2B3C.jpg",
+    "image_filename": "CASE-20260918-1A2B3C.jpg",
+    "primary_color": "white",
+    "secondary_color": "null",
+    "material": "plastic",
+    "identifying_features": [
+      "plain clear shaker bottle",
+      "blue measurement markings on side"
+    ],
+    "brand": "null",
+    "location_lost": "level 1 garden",
+    "additional_notes": "Found on 18th September, handed to security desk",
+    "similarity_analysis": {
+      "similarity_score": "50%",
+      "color_match": {
+        "is_match": "match",
+        "primary": "white"
+      },
+      "material_match": "not match",
+      "feature_overlap_match": [],
+      "brand_match": "not match",
+      "location_match": "match",
+      "similarity_reasoning": "Matches the category, location, and primary color, but differs in material, date found, brand, and identifying features."
+    }
+  },
+  {
+    "report_type": "found",
+    "category": "bottle",
+    "date": "22-09-2026",
+    "case_id": "CASE-20260922-8A91B2.jpg",
+    "image_filename": "CASE-20260922-8A91B2.jpg",
+    "primary_color": "black",
+    "secondary_color": "red",
+    "material": "plastic",
+    "identifying_features": [
+      "sports push nozzle",
+      "scratch on the lower base",
+      "gym branding sticker"
+    ],
+    "brand": "nike",
+    "location_lost": "level 1 garden",
+    "additional_notes": "Left behind on a round outdoor table",
+    "similarity_analysis": {
+      "similarity_score": "40%",
+      "color_match": "not match",
+      "material_match": "not match",
+      "feature_overlap_match": [],
+      "brand_match": "not match",
+      "location_match": "match",
+      "similarity_reasoning": "Matches the category, date, and location, but differs in colors, material, brand, and identifying features."
+    }
+  }
 ]
 
     # 2. Run the logic

@@ -1,5 +1,6 @@
-"""Terminal input and output for the lost-and-found application."""
+# io_manager file for application CLI interface
 
+# Imports
 from datetime import date, datetime
 from pathlib import Path
 from typing import Callable, Iterable, Mapping
@@ -9,6 +10,7 @@ from tkinter import filedialog
 
 import image_storage
 
+# Constants
 REPORT_TYPES = ("lost", "found")
 CATEGORIES = (
 	"student card",
@@ -20,15 +22,24 @@ CATEGORIES = (
 	"others",
 )
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png"}
-
 BACK = "BACK"
 MAIN = "MAIN"
 
 InputFunction = Callable[[str], str]
 OutputFunction = Callable[[str], None]
 
-
+# Functions
 def _read_non_empty(prompt: str, input_function: InputFunction) -> str:
+	"""_summary_
+		Function to read input from the user and ensure that it is not empty. 
+		The function will keep prompting the user until a non-empty value is provided or the user chooses to go back or return to the main menu.
+	Args:
+		prompt (str): Prompt to display to the user
+		input_function (InputFunction): A callable function to read user input. Defaults to the built-in input function.
+
+	Returns:
+		str: The non-empty input value provided by the user, or BACK/MAIN if the user chooses to go back or return to the main menu.
+	"""
 	while True:
 		value = input_function(prompt).strip()
 
@@ -42,12 +53,21 @@ def _read_non_empty(prompt: str, input_function: InputFunction) -> str:
 			return value
 		print("Please enter a value.")
 
-
 def _read_choice(
 	prompt: str,
 	choices: tuple[str, ...],
 	input_function: InputFunction,
 ) -> str:
+	"""_summary_
+		Function to read a choice from the user based on a list of available options.
+	Args:
+		prompt (str): Prompt to display to the user
+		choices (tuple[str, ...]): Tuple of available choices for the user to select from
+		input_function (InputFunction): A callable function to read user input. Defaults to the built-in input function.
+
+	Returns:
+		str: The selected choice from the available options, or BACK/MAIN if the user chooses to go back or return to the main menu.
+	"""
 	while True:
 		value = input_function(prompt).strip().lower()
 
@@ -64,8 +84,15 @@ def _read_choice(
 			return value
 		print(f"Please choose one of: {', '.join(choices)}.")
 
-
 def _read_date(input_function: InputFunction) -> str:
+	"""_summary_
+		Function to read input from the user and return a date string in DD-MM-YYYY format after validating the input.
+	Args:
+		input_function (InputFunction): A callable function to read user input. Defaults to the built-in input function.
+
+	Returns:
+		str: date in DD-MM-YYYY format
+	"""
 	while True:
 		value = _read_non_empty("\nDate of loss/finding (DD-MM-YYYY): ", input_function)
 
@@ -86,8 +113,15 @@ def _read_date(input_function: InputFunction) -> str:
 
 		return value
 
-
 def _read_image_path(input_function: InputFunction) -> str:
+	"""_summary_
+		Function to read the image path from the user using a file dialog. Validates the file extension and existence of the file.
+	Args:
+		input_function (InputFunction): A callable function to read user input. Defaults to the built-in input function.
+
+	Returns:
+		str: The path to the selected image file, or None if the selection is cancelled.
+	"""
 	while True: 
 		root = tk.Tk()
 		root.withdraw()
@@ -122,21 +156,38 @@ def _read_image_path(input_function: InputFunction) -> str:
 
 		return str(image_path)
 
-	
 def _print_choices(title: str, choices: tuple[str, ...]) -> None:
+	"""_summary_
+		Function to print menu choices for the user to select from.
+	Args:
+		title (str): Title of the menu
+		choices (tuple[str, ...]): Tuple containing the choices to display
+	"""
 	print(title)
 	for number, choice in enumerate(choices, start=1):
 		print(f"{number}. {choice.title()}")
 
-def _print_nav(include_back: bool = True) -> None: 
+def _print_nav(include_back: bool = True) -> None:
+	"""_summary_
+		Function to print navigation options for the user to go back or return to the main menu.
+	Args:
+		include_back (bool, optional): Whether to display back option or not. Defaults to True.
+	"""
 	if include_back:
 		print("B. Go back to the previous step.")
 
 	print("M. Go back to the Main Menu")
 
-
 def collect_report(input_function: InputFunction = input) -> dict[str, str]:
-	"""Collect and validate one lost or found report from the terminal."""
+	"""_summary_
+		Function to collect a lost/found report from the user through a series of prompts. 
+		The function guides the user through multiple stages to gather necessary information for the report.
+	Args:
+		input_function (InputFunction, optional): A callable function to read user input. Defaults to the built-in input function.
+
+	Returns:
+		dict[str, str]: Dictionary of string values or None
+	"""
 
 	stage = 1
 
@@ -240,8 +291,7 @@ def collect_report(input_function: InputFunction = input) -> dict[str, str]:
 				"description": description,
 				"image_path": image_path,
 				"date": date,
-				}
-
+			}
 
 def format_record(record: Mapping[str, object]) -> str:
 	"""Return one report in a consistent human-readable format."""
@@ -265,7 +315,6 @@ def format_record(record: Mapping[str, object]) -> str:
 		f"  Image: {image_path}"
 	)
 
-
 def format_records(records: Iterable[Mapping[str, object]]) -> str:
 	"""Return a numbered list of reports, or a useful empty-state message."""
 	record_list = list(records)
@@ -276,13 +325,11 @@ def format_records(records: Iterable[Mapping[str, object]]) -> str:
 		for number, record in enumerate(record_list, start=1)
 	)
 
-
 def display_summary(records: Iterable[Mapping[str, object]]) -> None:
 	"""Print the summary view for the supplied reports."""
 	print("\nLost-and-Found Summary")
 	print("======================")
 	print(format_records(records))
-
 
 def collect_summary_view(
 	records: Iterable[Mapping[str, object]],
@@ -295,18 +342,26 @@ def collect_summary_view(
 		return True
 	return False
 
+def run_cli(input_function: InputFunction = input):
+	"""_summary_
+		Runs the command-line interface for the AI powered lost and found system.
+	Args:
+		input_function (InputFunction, optional): A callable function to read user input. Defaults to the built-in input function.
 
-def run_cli(input_function: InputFunction = input) -> None:
-	"""Run the terminal workflow for creating and viewing reports."""
-	try:
-		reports = image_storage.load_reports()
-	except (OSError, ValueError) as error:
-		reports = []
-		print(f"Could not load saved reports: {error}")
+	Returns:
+		dict / str: Dictionary of information about the report submitted by user / string "quit" if user chooses to exit the program
+	"""
+	# try:
+	# 	reports = image_storage.load_reports()
+	# except (OSError, ValueError) as error:
+	# 	reports = []
+	# 	print(f"Could not load saved reports: {error}")
 	while True:
-		print("\nLost-and-Found System")
-		print("1. Submit a report")
-		print("2. View summary")
+		print("\n" + "=" * 50)
+		print("Welcome to the AI powered lost and found system!")
+		print("=" * 50)
+		print("1. Submit a lost/found report")
+		print("2. View summary of all reports")
 		print("3. Exit")
 		command = input_function("Select an option: ").strip().lower()
 
@@ -317,22 +372,27 @@ def run_cli(input_function: InputFunction = input) -> None:
 				print("\nReport submission cancelled.")
 				continue 
 			
-			try:
-				reports.append(image_storage.save_report(report))
-			except (OSError, ValueError) as error:
-				print(f"Could not save report: {error}")
+			# try:
+			# 	reports.append(image_storage.save_report(report))
+			# except (OSError, ValueError) as error:
+			# 	print(f"Could not save report: {error}")
 			else:
-				print("\nReport submitted successfully!")
-				print("================================")
+				print("\n" + "=" * 32)
+				print("Report submitted successfully!")
+				print("=" * 32)
+
+				return report
 		elif command in {"2", "/summary", "summary"}:
-			display_summary(reports)
+			# display_summary(reports)
+			# Need to call database manager to get all reports and display summary
+			return 'display report summary'
 		elif command in {"3", "exit", "quit", "q"}:
-			print("\nGoodbye.")
-			return
+			print("\nExiting the AI powered lost and found system. Goodbye!")
+			return "quit"
 		else:
 			print("Please choose 1, 2, or 3.")
 
-
+# Import control
 __all__ = [
 	"CATEGORIES",
 	"REPORT_TYPES",
@@ -343,7 +403,6 @@ __all__ = [
 	"format_records",
 	"run_cli",
 ]
-
 
 if __name__ == "__main__":
 	run_cli()

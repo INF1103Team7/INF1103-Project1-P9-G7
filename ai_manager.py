@@ -1,5 +1,6 @@
 # ai_manager file for AI API calling for feature extraction and semantic matching
 
+# Imports
 import os
 import time
 import logging
@@ -12,6 +13,7 @@ from google.genai.errors import APIError
 # Surpress non critical logging messages from the Google GenAI library
 logging.getLogger("google_genai.models").setLevel(logging.ERROR)
 
+# Constants
 # Gemini AI models to use
 AI_MODELS = [
     "gemini-3.8-flash",
@@ -19,6 +21,7 @@ AI_MODELS = [
     "gemini-3.6-flash",
     "gemini-3.5-flash"
 ]
+
 # Configuration for the Gemini API request
 AI_CONFIG = types.GenerateContentConfig (
     response_mime_type = "application/json",
@@ -32,7 +35,7 @@ AI_CONFIG = types.GenerateContentConfig (
 load_dotenv()  
 
 # Functions
-def get_ai_client():
+def _get_ai_client():
     """_summary_
         Sets up the Gemini AI API client using the GEMINI API Key from the .env file
     Returns:
@@ -44,7 +47,7 @@ def get_ai_client():
         return None
     return genai.Client(api_key=api_key)
 
-def get_mime_type(filename: str) -> str:
+def _get_mime_type(filename: str) -> str:
     """_summary_
         Helper function to get mimetype based on the image filename extension
     Args:
@@ -72,9 +75,10 @@ def extract_features(description, image_path=None):
             Extracted features as a JSON object or an error message.
     """
     print("[+] Initialising AI client object for feature extraction...")
-    client = get_ai_client()
+    client = _get_ai_client()
     if not client:
-        return f"[!] Error: Gemini API Key missing"
+        print(f"[!] Error: Gemini API Key missing")
+        return None
     print("[+] AI client object initialised successfully!")
     print("[+] Building AI Prompt...")
 
@@ -105,7 +109,7 @@ def extract_features(description, image_path=None):
                 image_bytes = f.read()
 
             contents.append(
-                types.Part.from_bytes(data = image_bytes, mime_type = get_mime_type(image_path))
+                types.Part.from_bytes(data = image_bytes, mime_type = _get_mime_type(image_path))
             )
 
             print("[+] Image successfully added to prompt!")
@@ -146,7 +150,8 @@ def extract_features(description, image_path=None):
                         next_model = AI_MODELS[model_index + 1]
                         print(f"[+] Trying next model: {next_model}")
                     else:
-                        return f"[!] API Error 429: All models rate limit exceeded. {e.message}"
+                        print(f"[!] API Error 429: All models rate limit exceeded. {e.message}")
+                        return None
                     break 
 
                 # Handle error 503 server side error (High Demand / Unavailable) With exponential backoff retry
@@ -155,7 +160,8 @@ def extract_features(description, image_path=None):
                         print(f"[!] API Error 503: Model busy. Retrying in {delay}s... (Attempt {attempt}/{retries})")
                     if attempt == retries:
                         print(f"[!] API Error 503: Model busy. Max Retry reached (Attempt {attempt}/{retries})")
-                        return f"[!] API Error {e.code}: {e.message}"
+                        print(f"[!] API Error {e.code}: {e.message}")
+                        return None
                     attempt += 1
                     time.sleep(delay)
                     delay *= 2
@@ -163,8 +169,10 @@ def extract_features(description, image_path=None):
 
             # Handle any other unexpected exceptions
             except Exception as e:
-                return f"[!] Exception occured: {e}"
-    return f"[!] Error: Feature extraction failed"
+                print(f"[!] Exception occured: {e}")
+                return None
+    print(f"[!] Error: Feature extraction failed")
+    return None
 
 def ai_semantic_matching(input_lost_report, datalist: list):
     """_summary_
@@ -176,9 +184,10 @@ def ai_semantic_matching(input_lost_report, datalist: list):
             list of the top 3 most similar lost reports in order of similarity, with the most similar report first, or an error message.
     """
     print("[+] Initialising AI client object for semantic matching...")
-    client = get_ai_client()
+    client = _get_ai_client()
     if not client:
-        return f"[!] Error: Gemini API Key missing"
+        print(f"[!] Error: Gemini API Key missing")
+        return None
     print("[+] AI client object initialised successfully!")
     print("[+] Building Semantic AI Matching Prompt...")
 
@@ -242,7 +251,7 @@ def ai_semantic_matching(input_lost_report, datalist: list):
                     config=AI_CONFIG,
                 )
 
-                print("[+] Successful Semantic AI matching extraction")
+                print("[+] Successful Semantic AI matching")
                 return response.text.strip()
 
             # Handle common API errors
@@ -254,7 +263,8 @@ def ai_semantic_matching(input_lost_report, datalist: list):
                         next_model = AI_MODELS[model_index + 1]
                         print(f"[+] Trying next model: {next_model}")
                     else:
-                        return f"[!] API Error 429: All models rate limit exceeded. {e.message}"
+                        print(f"[!] API Error 429: All models rate limit exceeded. {e.message}")
+                        return None
                     break 
 
                 # Handle error 503 server side error (High Demand / Unavailable) With exponential backoff retry
@@ -263,7 +273,8 @@ def ai_semantic_matching(input_lost_report, datalist: list):
                         print(f"[!] API Error 503: Model busy. Retrying in {delay}s... (Attempt {attempt}/{retries})")
                     if attempt == retries:
                         print(f"[!] API Error 503: Model busy. Max Retry reached (Attempt {attempt}/{retries})")
-                        return f"[!] API Error {e.code}: {e.message}"
+                        print(f"[!] API Error {e.code}: {e.message}")
+                        return None
                     attempt += 1
                     time.sleep(delay)
                     delay *= 2
@@ -271,8 +282,13 @@ def ai_semantic_matching(input_lost_report, datalist: list):
 
             # Handle any other unexpected exceptions
             except Exception as e:
-                return f"[!] Exception occured: {e}"
-    return f"[!] Error: Semantic AI matching failed"
+                print(f"[!] Exception occured: {e}")
+                return None
+    print(f"[!] Error: Semantic AI matching failed")
+    return None
+
+# Import control
+__all__ = ["extract_features", "ai_semantic_matching"]
 
 # Testing 
 found_report = {
@@ -397,7 +413,8 @@ test_found_database = [
   }
 ]
 
-# features = extract_features(found_report, found_report["image_filename"])
-# print(features)
-match_list = ai_semantic_matching(lost_report_ai_extracted, test_found_database)
-print(match_list)
+# if __name__ == "__main__":
+#     features = extract_features(found_report, found_report["image_filename"])
+#     print(features)
+#     match_list = ai_semantic_matching(lost_report_ai_extracted, test_found_database)
+#     print(match_list)
