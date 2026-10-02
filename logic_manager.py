@@ -290,6 +290,24 @@ def get_best_match(ai_result_list, lost_report_date=None):
 #==========================================
 # LOCAL VERIFICATION TEST BLOCK
 #==========================================
+
+'''
+todo:
+1. add comments
+2. error handling
+3. teamald
+
+some json;
+> happy
+> error hit
+
+1. missing keys
+2. missing %
+
+
+'''
+
+
 # Make sure this block is at the very end of logic_manager.py
 if __name__ == "__main__":
     # 1. Provide a dummy dataset to test with
