@@ -4,11 +4,9 @@
 from datetime import date, datetime
 from pathlib import Path
 from typing import Callable, Iterable, Mapping
-
 import tkinter as tk
 from tkinter import filedialog
-
-import image_storage
+import data_manager
 
 # Constants
 REPORT_TYPES = ("lost", "found")
@@ -352,9 +350,9 @@ def run_cli(input_function: InputFunction = input):
 		dict / str: Dictionary of information about the report submitted by user / string "quit" if user chooses to exit the program
 	"""
 	try:
-		reports = image_storage.load_reports()
+		report_list = data_manager.load_reports()
 	except (OSError, ValueError) as error:
-		reports = []
+		report_list = []
 		print(f"Could not load saved reports: {error}")
 	while True:
 		print("\n" + "=" * 50)
@@ -371,19 +369,14 @@ def run_cli(input_function: InputFunction = input):
 			if report is None: 
 				print("\nReport submission cancelled.")
 				continue 
-			
-			try:
-				reports.append(image_storage.save_report(report))
-			except (OSError, ValueError) as error:
-				print(f"Could not save report: {error}")
-			else:
-				print("\n" + "=" * 32)
-				print("Report submitted successfully!")
-				print("=" * 32)
 
-				return report
+			print("\n" + "=" * 32)
+			print("Report submitted successfully!")
+			print("=" * 32)
+
+			return report
 		elif command in {"2", "/summary", "summary"}:
-			display_summary(reports)
+			display_summary(report_list)
 
 		elif command in {"3", "exit", "quit", "q"}:
 			print("\nExiting the AI powered lost and found system. Goodbye!")
