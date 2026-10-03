@@ -351,11 +351,11 @@ def run_cli(input_function: InputFunction = input):
 	Returns:
 		dict / str: Dictionary of information about the report submitted by user / string "quit" if user chooses to exit the program
 	"""
-	# try:
-	# 	reports = image_storage.load_reports()
-	# except (OSError, ValueError) as error:
-	# 	reports = []
-	# 	print(f"Could not load saved reports: {error}")
+	try:
+		reports = image_storage.load_reports()
+	except (OSError, ValueError) as error:
+		reports = []
+		print(f"Could not load saved reports: {error}")
 	while True:
 		print("\n" + "=" * 50)
 		print("Welcome to the AI powered lost and found system!")
@@ -372,10 +372,10 @@ def run_cli(input_function: InputFunction = input):
 				print("\nReport submission cancelled.")
 				continue 
 			
-			# try:
-			# 	reports.append(image_storage.save_report(report))
-			# except (OSError, ValueError) as error:
-			# 	print(f"Could not save report: {error}")
+			try:
+				reports.append(image_storage.save_report(report))
+			except (OSError, ValueError) as error:
+				print(f"Could not save report: {error}")
 			else:
 				print("\n" + "=" * 32)
 				print("Report submitted successfully!")
@@ -383,9 +383,8 @@ def run_cli(input_function: InputFunction = input):
 
 				return report
 		elif command in {"2", "/summary", "summary"}:
-			# display_summary(reports)
-			# Need to call database manager to get all reports and display summary
-			return 'display report summary'
+			display_summary(reports)
+
 		elif command in {"3", "exit", "quit", "q"}:
 			print("\nExiting the AI powered lost and found system. Goodbye!")
 			return "quit"
