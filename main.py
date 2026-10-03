@@ -22,7 +22,13 @@ def main():
 				continue
 
 			# Store report into database
-			print("[+] Storing found report into database")
+			print("[+] Storing found report into database...")
+			try:
+				data_manager.save_reports(dict(user_input_extracted))
+			except Exception as e:
+				print(f"[!] Error saving report: {e}")
+				continue
+			print("[+] Found report stored successfully into database.")
 
 		elif type(user_report) == dict and user_report.get("report_type") == "lost":
 			print("\n[+] Lost report received. Sending to AI layer for processing...")
@@ -39,7 +45,7 @@ def main():
 			# # report_category_list = "Pull from database"
 			# matching_lost_reports = ai_manager.ai_semantic_matching(user_input_extracted) 
 			# print(matching_lost_reports)
-		
+
 	return
 
 if __name__=="__main__":
