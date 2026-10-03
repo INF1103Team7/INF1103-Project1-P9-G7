@@ -300,6 +300,14 @@ found_report = {
     "image_filename": "CASE-20260922-6F1106.jpg"
 }
 
+found_report_no_image = {
+    "report_type": "found",
+    "category": "student card",
+    "description": "SIT matriculation card found at level E2-06-06",
+    "date": "01-10-2026",
+    "case_id": "CASE-20260930-F82D63"
+}
+
 lost_report_ai_extracted = {
   "report_type": "lost",
   "category": "bottle",
@@ -415,6 +423,9 @@ test_found_database = [
 
 # if __name__ == "__main__":
 #     features = extract_features(found_report, found_report["image_filename"])
+#     features_no_image = extract_features(found_report_no_image)
 #     print(features)
+#     print(features_no_image)
 #     match_list = ai_semantic_matching(lost_report_ai_extracted, test_found_database)
 #     print(match_list)
+ 
