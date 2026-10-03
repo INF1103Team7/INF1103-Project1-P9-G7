@@ -8,7 +8,7 @@ import image_storage
 PROJECT_DIRECTORY = Path(__file__).resolve().parent
 
 #set the location of the JSON file used to store reports
-DATA_FILE = PROJECT_DIRECTORY / "reports.json"
+DATA_FILE = PROJECT_DIRECTORY / "reports_test.json"
 
 #valid statues that a report can have
 VALID_STATUSES = [
@@ -18,27 +18,27 @@ VALID_STATUSES = [
     "closed"
 ]
 
-#loads all existing reports from reports.json
+# loads all existing reports from reports.json
 def load_reports():
-    #if the reports file does not exist, returns an empty list
+    # if the reports file does not exist, returns an empty list
     if not DATA_FILE.is_file():
         return[]
     try:
-        #open the JSON file for reading
+        # open the JSON file for reading
         with DATA_FILE.open("r",encoding='utf-8') as file:
-            #convert json data into python list
-            reports= json.load(file)
+            # convert json data into python list
+            reports = json.load(file)
         
-        #ensures the JSON file contains a list of reports
+        # ensures the JSON file contains a list of reports
         if not isinstance(reports,list):
             return []
-        #returns all reports that were loaded
+        # returns all reports that were loaded
         return reports
-    #prevents the program from crashing if the file is corrupt
+    # prevents the program from crashing if the file is corrupt
     except (json.JSONDecodeError,OSError):
         return []
 
-#saves the current lists of reports into to reports.json
+# saves the current lists of reports into to reports.json
 def save_reports(reports):
     try:
         #opens reports.json in write mode
@@ -51,7 +51,6 @@ def save_reports(reports):
     except OSError:
         return False
 
-#add a new report and prevent dplicate case IDs
 # Add a new report and prevent duplicate case IDs
 def add_report(report):
 
@@ -113,7 +112,6 @@ def get_active_reports():
     return active_reports
 
 # Update a report's status and record when it is closed
-# Update a report's status and record when it is closed
 def update_report_status(case_id, new_status):
 
     if new_status not in VALID_STATUSES:
@@ -129,6 +127,7 @@ def update_report_status(case_id, new_status):
                 report["closed_date"] = date.today().isoformat()
             return save_reports(reports)
     return False
+
 # Delete reports that have been closed longer than the retention period (30 days)
 def delete_expired_reports(retention_days=30):
     reports = load_reports()
