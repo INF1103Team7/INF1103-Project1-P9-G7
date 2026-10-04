@@ -11,7 +11,7 @@ from datetime import date, datetime, timedelta
 PROJECT_DIRECTORY = Path(__file__).resolve().parent
 
 # set the location of the JSON file used to store reports
-DATA_FILE = PROJECT_DIRECTORY / "reports.json"
+DATA_FILE = PROJECT_DIRECTORY / "found_reports.json"
 
 # set the location of the image storage directory
 IMAGE_DIRECTORY = PROJECT_DIRECTORY / "images"
@@ -27,6 +27,7 @@ VALID_STATUSES = [
     "closed"
 ]
 
+# Migrate old image names to new format with case IDs (if any)
 def _migrate_old_image_names(
     reports: list[dict[str, object]],
     image_directory: Path,
@@ -51,6 +52,7 @@ def _migrate_old_image_names(
             changed = True
     return changed
 
+# Create a unique case ID for each report
 def create_case_id() -> str:
 	"""Create a readable unique identifier for a report."""
 	return f"CASE-{date.today():%Y%m%d}-{uuid4().hex[:6].upper()}"
@@ -69,19 +71,7 @@ def load_reports(reports_file: Path = DATA_FILE) -> list[dict[str, object]]:
             json.dump(reports, file, indent=2)
     return reports
 
-# saves the current lists of reports into to reports.json
-# def save_reports(reports):
-#     try:
-#         # opens reports.json in write mode
-#         with DATA_FILE.open("w", encoding="utf-8") as file:
-#             # save the report list as formatted JSON
-#             json.dump(reports, file, indent=4)
-#         # return true when the reports are saved successfully
-#         return True
-#     # return false if the file cannot be written
-#     except OSError:
-#         return False
-
+# Save reports to found_reports.json
 def save_reports(
     report: Mapping[str, object],
     reports_file: Path = DATA_FILE,
@@ -114,6 +104,7 @@ def save_reports(
         json.dump(reports, file, indent=2)
     return stored_report
 
+# Store an image in the images directory
 def store_image(
     source_path: str | Path,
     case_id: str,
@@ -130,32 +121,6 @@ def store_image(
     stored_filename = f"{case_id}{source.suffix.lower()}"
     shutil.copy2(source, image_directory / stored_filename)
     return stored_filename
-
-# Add a new report and prevent duplicate case IDs
-# def add_report(report):
-
-#     reports = load_reports()
-#     stored_report = dict(report)
-
-#     # Generate a unique case ID if one does not exist
-#     case_id = stored_report.get("case_id")
-
-#     if not case_id:
-#         case_id = create_case_id()
-#         stored_report["case_id"] = case_id
-
-#     # Prevent duplicate reports
-#     for existing_report in reports:
-#         if existing_report.get("case_id") == case_id:
-#             return False
-
-#     # New reports are active by default
-#     if "status" not in stored_report:
-#         stored_report["status"] = "active"
-
-#     reports.append(stored_report)
-
-#     return save_reports(reports)
 
 # Find a specific report using its case ID
 def get_report_by_id(case_id):
