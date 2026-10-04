@@ -2,4 +2,4 @@
 __pycache__/
 *.py[cod]
 images/
-reports.json
+found_reports.json
