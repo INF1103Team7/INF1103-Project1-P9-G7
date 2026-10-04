@@ -297,7 +297,7 @@ def format_record(record: Mapping[str, object]) -> str:
 	case_id = str(record.get("case_id", "unknown"))
 	status = str(record.get('status', 'Unknown'))
 	category = str(record.get("category", "unknown")).title()
-	description = str(record.get("description", "No description"))
+	identifying_features = record.get("identifying_features", "No identifying features")
 	image_path = str(
 		record.get(
 			"image_filename",
@@ -310,7 +310,7 @@ def format_record(record: Mapping[str, object]) -> str:
 		f"  Case ID: {case_id}\n"
 		f"  Status: {status}\n"
 		f"  Category: {category}\n"
-		f"  Description: {description}\n"
+		f"  Identifying Features: {', '.join(identifying_features) if isinstance(identifying_features, list) else identifying_features}\n"
 		f"  Date: {occurrence_date}\n"
 		f"  Image: {image_path}"
 	)
