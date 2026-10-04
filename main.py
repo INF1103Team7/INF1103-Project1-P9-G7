@@ -2,6 +2,7 @@ import io_manager
 import ai_manager
 import data_manager
 import logic_manager
+import json
 
 def main():
 	while True:
@@ -24,7 +25,7 @@ def main():
 			# Store report into database
 			print("[+] Storing found report into database...")
 			try:
-				data_manager.save_reports(dict(user_input_extracted))
+				data_manager.save_reports(json.loads(user_input_extracted))
 			except Exception as e:
 				print(f"[!] Error saving report: {e}")
 				continue
