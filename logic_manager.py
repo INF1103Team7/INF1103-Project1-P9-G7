@@ -53,6 +53,7 @@ def parse_score_to_float(score):
         pass
 
     return None
+
 def validate_analysis(ai_result):
     '''
     Validate the minimum structure required from the AI output.
@@ -179,6 +180,7 @@ def get_analysis_data(ai_result, lost_report_date=None):
         "feature_overlaps": feature_overlaps,
         "time_match": time_match
     }
+
 def classify_traits(data):
     ''' Classify each item's attribute as either matched or mismatched.
 
@@ -422,6 +424,7 @@ def evaluate_analysis(ai_result, lost_report_date=None):
         "triggered_rules_list": triggered_rules_list,
         "evaluation_summary": evaluation_summary
     }
+
 def get_best_match(ai_result_list, lost_report_date=None):
     # Store the best matching report and its evaluation.
     # Start with None because no report has been evaluated yet.
