@@ -167,14 +167,14 @@ def get_report_by_id(case_id):
 
     return None
 
-# Filter reports by lost or found type
-def get_reports_by_type(report_type):
+# Filter reports by category
+def get_reports_by_category(report_category):
     reports = load_reports()
 
     matching_reports = []
 
     for report in reports:
-        if report.get("report_type") == report_type:
+        if report.get("category") == report_category:
             matching_reports.append(report)
 
     return matching_reports
@@ -248,7 +248,7 @@ __all__ = [
     "save_reports",
     "store_image",
     "get_report_by_id",
-    "get_reports_by_type",
+    "get_reports_by_category",
     "get_active_reports",
     "update_report_status",
     "delete_expired_reports"
