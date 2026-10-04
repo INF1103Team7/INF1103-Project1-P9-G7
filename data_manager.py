@@ -101,8 +101,11 @@ def save_reports(
             case_id,
             image_directory,
         )
-
     stored_report.pop("image_path", None)
+
+    # New reports are active by default
+    if "status" not in stored_report:
+        stored_report["status"] = "active"
 
     reports = load_reports(reports_file)
     reports.append(stored_report)
@@ -129,30 +132,30 @@ def store_image(
     return stored_filename
 
 # Add a new report and prevent duplicate case IDs
-def add_report(report):
+# def add_report(report):
 
-    reports = load_reports()
-    stored_report = dict(report)
+#     reports = load_reports()
+#     stored_report = dict(report)
 
-    # Generate a unique case ID if one does not exist
-    case_id = stored_report.get("case_id")
+#     # Generate a unique case ID if one does not exist
+#     case_id = stored_report.get("case_id")
 
-    if not case_id:
-        case_id = create_case_id()
-        stored_report["case_id"] = case_id
+#     if not case_id:
+#         case_id = create_case_id()
+#         stored_report["case_id"] = case_id
 
-    # Prevent duplicate reports
-    for existing_report in reports:
-        if existing_report.get("case_id") == case_id:
-            return False
+#     # Prevent duplicate reports
+#     for existing_report in reports:
+#         if existing_report.get("case_id") == case_id:
+#             return False
 
-    # New reports are active by default
-    if "status" not in stored_report:
-        stored_report["status"] = "active"
+#     # New reports are active by default
+#     if "status" not in stored_report:
+#         stored_report["status"] = "active"
 
-    reports.append(stored_report)
+#     reports.append(stored_report)
 
-    return save_reports(reports)
+#     return save_reports(reports)
 
 # Find a specific report using its case ID
 def get_report_by_id(case_id):
@@ -211,7 +214,7 @@ def delete_expired_reports(retention_days=30):
     remaining_reports = []
     deleted_count = 0
     
-# Calculate the expiry date based on the retention period
+    # Calculate the expiry date based on the retention period
     expiry_date = date.today() - timedelta(days=retention_days)
 
     for report in reports:
@@ -244,7 +247,6 @@ __all__ = [
     "load_reports",
     "save_reports",
     "store_image",
-    "add_report",
     "get_report_by_id",
     "get_reports_by_type",
     "get_active_reports",
