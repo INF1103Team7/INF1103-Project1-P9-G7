@@ -295,6 +295,7 @@ def format_record(record: Mapping[str, object]) -> str:
 	"""Return one report in a consistent human-readable format."""
 	report_type = str(record.get("report_type", record.get("type", "unknown"))).title()
 	case_id = str(record.get("case_id", "unknown"))
+	status = str(record.get('status', 'Unknown'))
 	category = str(record.get("category", "unknown")).title()
 	description = str(record.get("description", "No description"))
 	image_path = str(
@@ -307,6 +308,7 @@ def format_record(record: Mapping[str, object]) -> str:
 	return (
 		f"{report_type} report\n"
 		f"  Case ID: {case_id}\n"
+		f"  Status: {status}\n"
 		f"  Category: {category}\n"
 		f"  Description: {description}\n"
 		f"  Date: {occurrence_date}\n"
