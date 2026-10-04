@@ -351,11 +351,6 @@ def run_cli(input_function: InputFunction = input):
 	Returns:
 		dict / str: Dictionary of information about the report submitted by user / string "quit" if user chooses to exit the program
 	"""
-	try:
-		report_list = data_manager.load_reports()
-	except (OSError, ValueError) as error:
-		report_list = []
-		print(f"Could not load saved reports: {error}")
 	while True:
 		print("\n" + "=" * 50)
 		print("Welcome to the AI powered lost and found system!")
@@ -378,6 +373,11 @@ def run_cli(input_function: InputFunction = input):
 
 			return report
 		elif command in {"2", "/summary", "summary"}:
+			try:
+				report_list = data_manager.load_reports()
+			except (OSError, ValueError) as error:
+				report_list = []
+				print(f"Could not load saved reports: {error}")
 			display_summary(report_list)
 
 		elif command in {"3", "exit", "quit", "q"}:
