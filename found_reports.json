@@ -1,0 +1,205 @@
+[
+    {
+        "report_type": "found",
+        "category": "bottle",
+        "primary_color": "white",
+        "secondary_color": "black",
+        "material": "stainless steel",
+        "identifying_features": [
+            "black Hydro Flask logo in center",
+            "Hydro Flask branding text near base",
+            "black wide mouth cap with flexible handle strap",
+            "silver stainless steel rim band"
+        ],
+        "brand": "Hydro Flask",
+        "location_lost": "level 1 garden",
+        "additional_notes": null,
+        "date": "22-09-2026",
+        "case_id": "CASE-20260922-6F1106",
+        "image_filename": "CASE-20260922-6F1106.jpg",
+        "status": "closed",
+        "closed_date": "2026-07-07"
+    },
+    {
+        "report_type": "found",
+        "category": "student card",
+        "primary_color": null,
+        "secondary_color": null,
+        "material": null,
+        "identifying_features": [
+            "SIT matriculation card"
+        ],
+        "brand": "SIT",
+        "location_lost": "level E2-06-06",
+        "additional_notes": null,
+        "date": "01-10-2026",
+        "case_id": "CASE-20260930-F82D63",
+        "status": "active"
+    },
+    {
+        "report_type": "found",
+        "category": "keys",
+        "primary_color": "black",
+        "secondary_color": null,
+        "material": null,
+        "identifying_features": [
+            "black cat keychain",
+            "house keys"
+        ],
+        "brand": null,
+        "location_lost": null,
+        "additional_notes": null,
+        "date": "03-10-2026",
+        "case_id": "CASE-20261004-626F8C",
+        "status": "active"
+    },
+    {
+        "report_type": "found",
+        "category": "bag",
+        "primary_color": null,
+        "secondary_color": null,
+        "material": null,
+        "identifying_features": null,
+        "brand": "Gucci",
+        "location_lost": null,
+        "additional_notes": null,
+        "date": "04-10-2026",
+        "case_id": "CASE-20261004-23D673",
+        "status": "active"
+    },
+    {
+        "report_type": "found",
+        "category": "clothing",
+        "date": "10-09-2026",
+        "primary_color": "white",
+        "secondary_color": null,
+        "material": null,
+        "identifying_features": [
+            "sports jacket"
+        ],
+        "brand": "sit",
+        "location_lost": null,
+        "additional_notes": null,
+        "case_id": "CASE-20261004-BEC78A",
+        "status": "active"
+    },
+    {
+        "report_type": "found",
+        "category": "bottle",
+        "primary_color": "blue",
+        "secondary_color": "silver",
+        "material": "stainless steel",
+        "identifying_features": [
+            "matte navy blue finish",
+            "silver flip-top lid with lock",
+            "dent near the bottom rim"
+        ],
+        "brand": "Thermos",
+        "location_lost": "level 3 cafeteria",
+        "additional_notes": "Left on table near vending machines",
+        "date": "28-09-2026",
+        "case_id": "CASE-20260928-8A112C",
+        "status": "active"
+    },
+    {
+        "report_type": "found",
+        "category": "bottle",
+        "primary_color": "pink",
+        "secondary_color": "white",
+        "material": "plastic",
+        "identifying_features": [
+            "transparent pink water bottle",
+            "white time marker scale on side",
+            "built-in straw lid"
+        ],
+        "brand": null,
+        "location_lost": "level 2 library study area",
+        "additional_notes": null,
+        "date": "01-10-2026",
+        "case_id": "CASE-20261001-3D90E1",
+        "status": "active"
+    },
+    {
+        "report_type": "found",
+        "category": "bag",
+        "primary_color": "black",
+        "secondary_color": null,
+        "material": "nylon",
+        "identifying_features": [
+            "black laptop backpack",
+            "pitted zipper pulls",
+            "small reflective strip on right strap"
+        ],
+        "brand": "Herschel",
+        "location_lost": "level E2-06-06",
+        "additional_notes": "Contains lecture notes and charger",
+        "date": "02-10-2026",
+        "case_id": "CASE-20261002-C4B789",
+        "status": "active"
+    },
+    {
+        "report_type": "found",
+        "category": "bag",
+        "primary_color": "beige",
+        "secondary_color": "brown",
+        "material": "canvas",
+        "identifying_features": [
+            "tote bag with brown leather handles",
+            "embroidered floral pattern on front pocket"
+        ],
+        "brand": null,
+        "location_lost": "level 1 garden",
+        "additional_notes": "Handed over to security desk",
+        "date": "03-10-2026",
+        "case_id": "CASE-20261003-91E4F2",
+        "status": "active"
+    },
+    {
+        "report_type": "found",
+        "category": "electronics",
+        "primary_color": "black",
+        "secondary_color": "red",
+        "material": "plastic",
+        "identifying_features": [
+            "wireless over-ear headphones",
+            "red inner cushion lining",
+            "scratches on left ear cup"
+        ],
+        "brand": "Sony",
+        "location_lost": null,
+        "additional_notes": null,
+        "date": "04-10-2026",
+        "case_id": "CASE-20261004-77A902",
+        "status": "active"
+    },
+    {
+        "report_type": "found",
+        "category": "bottle",
+        "primary_color": "black",
+        "secondary_color": null,
+        "material": null,
+        "identifying_features": null,
+        "brand": "Owala",
+        "location_lost": null,
+        "additional_notes": null,
+        "date": "09-09-2026",
+        "case_id": "CASE-20261004-19EECE",
+        "status": "active"
+    },
+    {
+        "report_type": "found",
+        "category": "bottle",
+        "date": "05-10-2026",
+        "primary_color": "black",
+        "secondary_color": null,
+        "material": null,
+        "identifying_features": [
+            "dent"
+        ],
+        "brand": "Hydro Flask",
+        "location_lost": null,
+        "additional_notes": null,
+        "case_id": "CASE-20261005-338E53",
+        "status": "active"
+    }
+]
