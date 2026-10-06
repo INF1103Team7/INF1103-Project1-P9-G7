@@ -359,26 +359,6 @@ def display_summary(records: Iterable[Mapping[str, object]]) -> None:
 	print("======================")
 	print(format_records(records))
 
-# Function to handle the ``/summary`` command and return whether it was requested. (can remove if not needed)
-def collect_summary_view(
-	records: Iterable[Mapping[str, object]],
-	input_function: InputFunction = input,
-) -> bool:
-	"""_summary_
-		Function to handle the ``/summary`` command and return whether it was requested.
-	Args:
-		records (Iterable[Mapping[str, object]]): An iterable of reports from the database, where each report is represented as a mapping of string keys to object values.
-		input_function (InputFunction, optional): A callable function to read user input. Defaults to the built-in input function.
-
-	Returns:
-		bool: True if the /summary command was requested, False otherwise.
-	"""
-	command = input_function("Enter /summary to view reports, or press Enter to continue: ").strip().lower()
-	if command == "/summary":
-		display_summary(records)
-		return True
-	return False
-
 # Function to return the best match report to the user and ask for confirmation if it is a match
 def resolve_best_match(best_match, input_function: InputFunction = input):
 	"""_summary_
@@ -457,10 +437,10 @@ __all__ = [
 	"CATEGORIES",
 	"REPORT_TYPES",
 	"collect_report",
-	"collect_summary_view",
 	"display_summary",
 	"format_record",
 	"format_records",
+	"resolve_best_match",
 	"run_cli",
 ]
 
