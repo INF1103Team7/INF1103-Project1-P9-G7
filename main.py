@@ -71,6 +71,7 @@ def main():
 					print("[!] No suitable match found for the lost report found in the database.")
 					continue
 
+				# Mark report as closed in the database if user confirms that the match is correct
 				resolve_report = io_manager.resolve_best_match(best_match)
 				if resolve_report:
 					print("\n" + "=" * 75)
