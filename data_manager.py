@@ -22,8 +22,6 @@ IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png"}
 # valid statues that a report can have
 VALID_STATUSES = [
     "active",
-    "claimed",
-    "returned",
     "closed"
 ]
 
@@ -71,8 +69,8 @@ def load_reports(reports_file: Path = DATA_FILE) -> list[dict[str, object]]:
             json.dump(reports, file, indent=2)
     return reports
 
-# Save reports to found_reports.json
-def save_reports(
+# Save new reports to found_reports.json
+def save_new_reports(
     report: Mapping[str, object],
     reports_file: Path = DATA_FILE,
     image_directory: Path = IMAGE_DIRECTORY,
@@ -103,6 +101,27 @@ def save_reports(
     with reports_file.open("w", encoding="utf-8") as file:
         json.dump(reports, file, indent=2)
     return stored_report
+
+# saves the current lists of reports into to found_reports.json
+def save_report_list(reports):
+    """_summary_
+        Function to save the current list of reports into the found_reports.json file.
+    Args:
+        reports (list): The list of reports to be saved into the found_reports.json file.
+
+    Returns:
+        bool: True if the reports are saved successfully, False otherwise.
+    """
+    try:
+        # opens reports.json in write mode
+        with DATA_FILE.open("w", encoding="utf-8") as file:
+            # save the report list as formatted JSON
+            json.dump(reports, file, indent=4)
+        # return true when the reports are saved successfully
+        return True
+    # return false if the file cannot be written
+    except OSError:
+        return False
 
 # Store an image in the images directory
 def store_image(
@@ -170,7 +189,7 @@ def update_report_status(case_id, new_status):
             # Store the closure date for automatic deletion later
             if new_status == "closed":
                 report["closed_date"] = date.today().isoformat()
-            return save_reports(reports)
+            return save_report_list(reports)
     return False
 
 # Delete reports that have been closed longer than the retention period (30 days)
@@ -200,7 +219,7 @@ def delete_expired_reports(retention_days=30):
         remaining_reports.append(report)
     # Only update the file when a report has been deleted
     if deleted_count > 0:
-        save_reports(remaining_reports)
+        save_report_list(remaining_reports)
 
     return deleted_count
 
@@ -210,7 +229,7 @@ __all__ = [
     "DATA_FILE",
     "create_case_id",
     "load_reports",
-    "save_reports",
+    "save_new_reports",
     "store_image",
     "get_report_by_id",
     "get_reports_by_category",
