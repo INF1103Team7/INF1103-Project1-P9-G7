@@ -1,27 +1,6 @@
 [
     {
         "report_type": "found",
-        "category": "bottle",
-        "primary_color": "white",
-        "secondary_color": "black",
-        "material": "stainless steel",
-        "identifying_features": [
-            "black Hydro Flask logo in center",
-            "Hydro Flask branding text near base",
-            "black wide mouth cap with flexible handle strap",
-            "silver stainless steel rim band"
-        ],
-        "brand": "Hydro Flask",
-        "location_lost": "level 1 garden",
-        "additional_notes": null,
-        "date": "22-09-2026",
-        "case_id": "CASE-20260922-6F1106",
-        "image_filename": "CASE-20260922-6F1106.jpg",
-        "status": "closed",
-        "closed_date": "2026-07-07"
-    },
-    {
-        "report_type": "found",
         "category": "student card",
         "primary_color": null,
         "secondary_color": null,
