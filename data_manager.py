@@ -271,6 +271,14 @@ def update_report_status(case_id, new_status):
 
 # Delete reports that have been closed longer than the retention period (30 days)
 def delete_expired_reports(retention_days=30):
+    """_summary_
+        Function to delete reports that have been closed longer than the retention period (30 days).
+    Args:
+        retention_days (int, optional): The number of days to retain closed reports before deletion. Defaults to 30.
+
+    Returns:
+        int: The number of reports deleted from the database.
+    """
     reports = load_reports()
     remaining_reports = []
     deleted_count = 0
