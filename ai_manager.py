@@ -35,6 +35,7 @@ AI_CONFIG = types.GenerateContentConfig (
 load_dotenv()  
 
 # Functions
+# AI client initialization
 def _get_ai_client():
     """_summary_
         Sets up the Gemini AI API client using the GEMINI API Key from the .env file
@@ -47,6 +48,7 @@ def _get_ai_client():
         return None
     return genai.Client(api_key=api_key)
 
+# Get mimetype based on the image filename extension
 def _get_mime_type(filename: str) -> str:
     """_summary_
         Helper function to get mimetype based on the image filename extension
@@ -65,6 +67,7 @@ def _get_mime_type(filename: str) -> str:
     # Universal fallback in case of any unexpected issues
     return "application/octet-stream"
 
+# AI feature extraction
 def extract_features(description, image_path=None):
     """_summary_
             Passes user text and optional image bytes to Gemini API with retry handling for feature extraction
@@ -174,6 +177,7 @@ def extract_features(description, image_path=None):
     print(f"[!] Error: Feature extraction failed")
     return None
 
+# AI semantic matching
 def ai_semantic_matching(input_lost_report, datalist: list):
     """_summary_
             Passes lost report and list of lost reports from database to Gemini API with retry handling for semantic matching

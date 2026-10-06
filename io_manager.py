@@ -388,6 +388,7 @@ def resolve_best_match(best_match, input_function: InputFunction = input):
 		else:
 			print("Please enter 'yes' or 'no'.")
 
+# Function to run the main command-line interface for the AI powered lost and found system
 def run_cli(input_function: InputFunction = input):
 	"""_summary_
 		Runs the command-line interface for the AI powered lost and found system.

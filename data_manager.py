@@ -1,4 +1,6 @@
-# imports
+# data_manager file to handle all data storage and retrieval operations for the lost and found reports
+
+# Imports
 import json
 import shutil
 from typing import Mapping
@@ -25,6 +27,7 @@ VALID_STATUSES = [
     "closed"
 ]
 
+# Functions
 # Migrate old image names to new format with case IDs (if any)
 def _migrate_old_image_names(
     reports: list[dict[str, object]],
