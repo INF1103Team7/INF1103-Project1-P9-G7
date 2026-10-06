@@ -188,24 +188,6 @@ def store_image(
     shutil.copy2(source, image_directory / stored_filename)
     return stored_filename
 
-# Find a specific report using its case ID
-def get_report_by_id(case_id):
-    """_summary_
-        Function to find a specific report using its case ID.
-    Args:
-        case_id (str): The case ID of the report to be retrieved.
-
-    Returns:
-        dict: The report dictionary if found, otherwise None.
-    """
-    reports = load_reports()
-
-    for report in reports:
-        if report.get("case_id") == case_id:
-            return report
-
-    return None
-
 # Filter reports by category
 def get_reports_by_category(report_category):
     """_summary_
@@ -323,8 +305,8 @@ __all__ = [
     "create_case_id",
     "load_reports",
     "save_new_reports",
+    "save_report_list",
     "store_image",
-    "get_report_by_id",
     "get_reports_by_category",
     "get_active_reports",
     "update_report_status",
