@@ -296,8 +296,16 @@ def delete_expired_reports(retention_days=30):
                 # Remove reports that have expired
                 if closed_date <= expiry_date:
                     deleted_count += 1
+                    try:
+                        file_to_delete = IMAGE_DIRECTORY / report.get("image_filename")
+                        if file_to_delete.is_file():
+                            file_to_delete.unlink()
+                        print(f"[+] Deleted image for report with case ID: {report.get('case_id')}")
+                    except TypeError:
+                        print(f"[!] No image filename found for report with case ID: {report.get('case_id')}. Skipping image deletion.")
+                    except PermissionError:
+                        print(f"[!] Permission denied when trying to delete image for report with case ID: {report.get('case_id')}. Skipping image deletion.")
                     continue
-
             except ValueError:
                 pass
 
