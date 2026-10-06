@@ -17,7 +17,6 @@ def main():
 			print(f"\n[+] {user_report.get("report_type")} report received. Sending to AI layer for processing...")
 			# AI powered feature extraction
 			user_input_extracted = ai_manager.extract_features(user_report)
-			# print(user_input_extracted)
 
 			if user_input_extracted is None:
 				continue
@@ -28,7 +27,7 @@ def main():
 				# Store report into database
 				print("[+] Storing found report into database...")
 				try:
-					data_manager.save_reports(user_input_extracted)
+					data_manager.save_new_reports(user_input_extracted)
 				except Exception as e:
 					print(f"[!] Error saving report: {e}")
 					continue
@@ -51,7 +50,6 @@ def main():
 					continue
 				print(f"[+] Found {len(report_category_list)} found reports for category: {user_input_extracted.get('category')}.")
 				matching_lost_reports = ai_manager.ai_semantic_matching(user_input_extracted, report_category_list) 
-				print(matching_lost_reports)
 
 				if not matching_lost_reports:
 					continue
@@ -60,8 +58,20 @@ def main():
 				print("\n" + "=" * 75)
 				print("Applying business logic to determine the best match for the lost report")
 				print("=" * 75)
-				best_match = logic_manager.get_best_match(json.loads(matching_lost_reports), json.loads(user_input_extracted).get("date"))
-				print(best_match)
+				best_match = logic_manager.get_best_match(json.loads(matching_lost_reports), user_input_extracted.get("date"))
+				resolve_report = io_manager.resolve_best_match(best_match)
+
+				if resolve_report:
+					print("\n" + "=" * 75)
+					print("Report marked as closed. Closing the matched found report in the databases")
+					print("=" * 75)
+					report = best_match.get("report")
+					id = report.get("case_id")
+					update_status = data_manager.update_report_status(id, "closed")
+					if update_status:
+						print(f"[+] Report with case ID: {id} has been successfully closed.")
+					else:
+						print(f"[!] Failed to close report with case ID: {id}")
 
 	return
 
