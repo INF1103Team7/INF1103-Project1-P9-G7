@@ -254,6 +254,7 @@ def update_report_status(case_id, new_status):
     Returns:
         bool: True if the report was updated successfully, False otherwise
     """
+    new_status = new_status.lower()
     if new_status not in VALID_STATUSES:
         return False
 
