@@ -216,7 +216,7 @@ def get_reports_by_category(report_category):
     Returns:
         list: A list of reports that match the specified category.
     """
-    reports = load_reports()
+    reports = get_active_reports()
 
     matching_reports = []
 
