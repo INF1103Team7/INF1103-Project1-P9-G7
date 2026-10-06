@@ -30,7 +30,15 @@ def _migrate_old_image_names(
     reports: list[dict[str, object]],
     image_directory: Path,
 ) -> bool:
-    """Rename images from older records that do not have case IDs."""
+    """_summary_
+        Function to migrate old image names to new format with case IDs
+    Args:
+        reports (list[dict[str, object]]): List of reports to be checked for old image names
+        image_directory (Path): Path to the image directory where the images are stored
+
+    Returns:
+        bool: True if any image names were migrated, False otherwise
+    """
     changed = False
     for report in reports:
         if report.get("case_id"):
@@ -52,12 +60,26 @@ def _migrate_old_image_names(
 
 # Create a unique case ID for each report
 def create_case_id() -> str:
-	"""Create a readable unique identifier for a report."""
-	return f"CASE-{date.today():%Y%m%d}-{uuid4().hex[:6].upper()}"
+    """_summary_
+        Function to create a unique case ID for each report
+    Returns:
+        str: The unique case ID for the report.
+    """
+    return f"CASE-{date.today():%Y%m%d}-{uuid4().hex[:6].upper()}"
 
 # loads all existing reports from reports.json
 def load_reports(reports_file: Path = DATA_FILE) -> list[dict[str, object]]:
-    """Load saved reports, returning an empty list when none exist yet."""
+    """_summary_
+        Function to load all existing reports from found_reports.json
+    Args:
+        reports_file (Path, optional): The path to the reports file. Defaults to DATA_FILE.
+
+    Raises:
+        ValueError: If the reports file does not contain a list.
+
+    Returns:
+        list[dict[str, object]]: A list of dictionaries representing the reports loaded from the reports file.
+    """
     if not reports_file.is_file():
         return []
     with reports_file.open("r", encoding="utf-8") as file:
@@ -75,7 +97,19 @@ def save_new_reports(
     reports_file: Path = DATA_FILE,
     image_directory: Path = IMAGE_DIRECTORY,
 ) -> dict[str, object]:
-    """Copy a report image and append the report with its stored filename."""
+    """_summary_
+        Function to save new reports to found_reports.json
+    Args:
+        report (Mapping[str, object]): The report data to be saved.
+        reports_file (Path, optional): The path to the reports file. Defaults to DATA_FILE.
+        image_directory (Path, optional): The path to the image directory. Defaults to IMAGE_DIRECTORY.
+
+    Raises:
+        ValueError: If the report does not include an image_path or if the image_path is not a string.
+
+    Returns:
+        dict[str, object]: The saved report data.
+    """
     source_path = report.get("image_path")
     if source_path  is not None and not isinstance(source_path, str):
         raise ValueError("The report must include an image_path.")
@@ -129,7 +163,20 @@ def store_image(
     case_id: str,
     image_directory: Path = IMAGE_DIRECTORY,
 ) -> str:
-    """Copy an image into storage using the case ID as its filename."""
+    """_summary_
+        Function to store an image in the images directory with a new filename based on the case ID.
+    Args:
+        source_path (str | Path): The path to the source image file to be stored.
+        case_id (str): The case ID to be used for the new image filename.
+        image_directory (Path, optional): The path to the image directory. Defaults to IMAGE_DIRECTORY.
+
+    Raises:
+        ValueError: If the source path is not a valid image file or if the case ID is not a string.
+        FileNotFoundError: If the source image file is not found.
+
+    Returns:
+        str: The filename of the stored image.
+    """
     source = Path(source_path).expanduser()
     if source.suffix.lower() not in IMAGE_EXTENSIONS:
         raise ValueError("Only JPG, JPEG, and PNG images can be stored.")
@@ -143,6 +190,14 @@ def store_image(
 
 # Find a specific report using its case ID
 def get_report_by_id(case_id):
+    """_summary_
+        Function to find a specific report using its case ID.
+    Args:
+        case_id (str): The case ID of the report to be retrieved.
+
+    Returns:
+        dict: The report dictionary if found, otherwise None.
+    """
     reports = load_reports()
 
     for report in reports:
@@ -153,6 +208,14 @@ def get_report_by_id(case_id):
 
 # Filter reports by category
 def get_reports_by_category(report_category):
+    """_summary_
+        Function to filter reports by category.
+    Args:
+        report_category (str): The category of reports to be filtered.
+
+    Returns:
+        list: A list of reports that match the specified category.
+    """
     reports = load_reports()
 
     matching_reports = []
@@ -165,6 +228,11 @@ def get_reports_by_category(report_category):
 
 # Return only reports that are currently active
 def get_active_reports():
+    """_summary_
+        Function to return only reports that are currently active.
+    Returns:
+        list: list: A list of active reports.
+    """
     reports = load_reports()
 
     active_reports = []
@@ -177,7 +245,15 @@ def get_active_reports():
 
 # Update a report's status and record when it is closed
 def update_report_status(case_id, new_status):
+    """_summary_
+        Function to update a report's status and record when it is closed.
+    Args:
+        case_id (str): Case ID of the report to be updated
+        new_status (str): New status to be set for the report
 
+    Returns:
+        bool: True if the report was updated successfully, False otherwise
+    """
     if new_status not in VALID_STATUSES:
         return False
 
