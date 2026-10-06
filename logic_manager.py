@@ -1,4 +1,5 @@
-import json
+# logic manager file to apply business rules to the AI output and determine the best match for lost and found reports
+
 from datetime import datetime
 
 # ============================================================
@@ -19,18 +20,24 @@ MIN_FEATURES_STRONG_MATCH = 2
 # excellent multi-attribute match rule.
 MIN_FEATURES_EXCELLENT_MATCH = 3
 
-
+# Function to parse the AI similarity score into a float between 0 and 100
 def parse_score_to_float(score):
-    """Convert the AI similarity_score into a float between 0 and 100.
+    """_summary_
+        Convert the AI similarity_score into a float between 0 and 100.
+        The AI may return the score as:
+        - a % string: "85%" (expected)
+        - an integer or float: 85 / 85.0
+        - a string: "85"
+    
+        Valid score: Returns the score as a float.
+        Invalid score: Returns None.
+        Used by: validate_analysis()
+    Args:
+        score (str): The AI similarity score to parse.
 
-    The AI may return the score as:
-    - a % string: "85%" (expected)
-    - an integer or float: 85 / 85.0
-    - a string: "85"
-
-    Valid score: Returns the score as a float.
-    Invalid score: Returns None.
-    Used by: validate_analysis()"""
+    Returns:
+        float: The parsed similarity score as a float, or None if invalid.
+    """
     # Handle scores returned directly as an integer or float.
     if isinstance(score, (int, float)) and not isinstance(score, bool):
         # Reject numeric scores outside the valid 0-100 range.
@@ -54,21 +61,26 @@ def parse_score_to_float(score):
 
     return None
 
+# Function to validate the AI output before passing to business rule evaluation
 def validate_analysis(ai_result):
-    '''
-    Validate the minimum structure required from the AI output.
+    """_summary_
+        Functiont to validate the minimum structure required from the AI output.
+        Checks:
+        1. The overall AI output is a dictionary.
+        2. similarity_analysis exists and is a dictionary.
+        3. similarity_score exists and is between 0 and 100.
+        4. color_match exists and contains the required is_match key.
+        5. feature_overlap_match exists and is a list.
+    
+        Valid: Returns ("valid", similarity_score).
+        Invalid: Returns ("system_failure", error_message).
+        Used by: evaluate_analysis()
+    Args:
+        ai_result (dict): The AI output to validate.
 
-    Checks:
-    1. The overall AI output is a dictionary.
-    2. similarity_analysis exists and is a dictionary.
-    3. similarity_score exists and is between 0 and 100.
-    4. color_match exists and contains the required is_match key.
-    5. feature_overlap_match exists and is a list.
-
-    Valid: Returns ("valid", similarity_score).
-    Invalid: Returns ("system_failure", error_message).
-    Used by: evaluate_analysis()'''
-
+    Returns:
+        str: parsed similarity_score if valid, or error message if invalid.
+    """
     # 1. The overall AI result must be a dictionary.
     if not isinstance(ai_result, dict):
         return "system_failure", \
@@ -111,19 +123,27 @@ def validate_analysis(ai_result):
     
     return "valid", score
 
+# Function to extract and normalize the AI analysis data for business rule evaluation
 def get_analysis_data(ai_result, lost_report_date=None):
-    '''
-    Extract and normalize the values.
+    """_summary_
+        Extract and normalize the values.
 
-    Missing optional AI fields are given safe default values:
-    - match fields default to "not match"
-    - feature overlaps default to an empty list
-    - invalid dates default to "unknown"
+        Missing optional AI fields are given safe default values:
+        - match fields default to "not match"
+        - feature overlaps default to an empty list
+        - invalid dates default to "unknown"
+    
+        The function also checks whether the found report date occurred before the lost report date.
+    
+        Returns: A dictionary containing the normalized analysis data.
+        Used by: evaluate_analysis()
+    Args:
+        ai_result (dict): The AI result dictionary.
+        lost_report_date (str, optional): The date the item was reported lost. Defaults to None.
 
-    The function also checks whether the found report date occurred before the lost report date.
-
-    Returns: A dictionary containing the normalized analysis data.
-    Used by: evaluate_analysis()'''
+    Returns:
+        dict: A dictionary containing the normalized analysis data.
+    """
 
     # similarity_analysis has already been validated by validate_analysis() before this function is called.
     analysis = ai_result["similarity_analysis"]
@@ -181,18 +201,27 @@ def get_analysis_data(ai_result, lost_report_date=None):
         "time_match": time_match
     }
 
+# Function to classify the AI output attributes into matched and mismatched lists for business rule evaluation
 def classify_traits(data):
-    ''' Classify each item's attribute as either matched or mismatched.
+    """_summary_
+        Classify each item's attribute as either matched or mismatched.
 
-    The attributes checked are:
-    - colour
-    - material
-    - brand
-    - location
-    - identifying features
+        The attributes checked are:
+        - colour
+        - material
+        - brand
+        - location
+        - identifying features
 
-    Returns: a tuple of two lists of attributes: (matched, mismatched)
-    Used by: evaluate_analysis()'''
+        Returns: a tuple of two lists of attributes: (matched, mismatched)
+        Used by: evaluate_analysis()
+    Args:
+        data (dict): The data to classify.
+
+    Returns:
+        list: list of matched attributes.
+        list: list of mismatched attributes.
+    """
 
     matched = []
     mismatched = []
@@ -221,20 +250,27 @@ def classify_traits(data):
 
     return matched, mismatched
 
+# Functiont to evaluate one AI-generated report using the business rules and determine the final score and status
 def evaluate_analysis(ai_result, lost_report_date=None):
-    ''' Evaluate one AI-generated report using the business rules.
+    """_summary_
+        Evaluate one AI-generated report using the business rules.
+        Process:
+        1. Validate the AI output.
+        2. Extract and normalize the analysis data.
+        3. Classify matched and mismatched attributes.
+        4. Apply negative business rules.
+        5. Apply positive business rules.
+        6. Calculate the final composite score.
+        7. Determine the final match status.
+        8. Return a dictionary containing the final score, status, matched attributes, mismatched attributes, triggered rules, and evaluation summary.
+        Used by: get_best_match()
+    Args:
+        ai_result (dict): The AI-generated report to be evaluated.
+        lost_report_date (str, optional): The date the item was lost. Defaults to None.
 
-    Process:
-    1. Validate the AI output.
-    2. Extract and normalize the analysis data.
-    3. Classify matched and mismatched attributes.
-    4. Apply negative business rules.
-    5. Apply positive business rules.
-    6. Calculate the final composite score.
-    7. Determine the final match status.
-
-    Returns: A dictionary containing the final score, status, matched attributes, mismatched attributes, triggered rules, and evaluation summary.
-    Used by: get_best_match()'''
+    Returns:
+        dict: A dictionary containing the final score, status, matched attributes, mismatched attributes, triggered rules, and evaluation summary.
+    """
     # Validate the AI output and extract the original similarity score
     validation, similarity_score = validate_analysis(ai_result)
     # Stop processing if the AI output is invalid
@@ -267,9 +303,9 @@ def evaluate_analysis(ai_result, lost_report_date=None):
     # Count the number of overlapping features for use in business rule evaluation
     feature_count = len(feature_overlaps)
 
-    # ----------------------------
+    # ----------------------------------------------------------------
     # CRITICAL PHYSICAL BOUNDARY CHECKS >> Reject regardless of score
-    # ----------------------------
+    # ----------------------------------------------------------------
     if time_match == "impossible_timeline":
         triggered_rules_list.append("TEMPORAL_PARADOX_VETO")
         return {
@@ -281,9 +317,9 @@ def evaluate_analysis(ai_result, lost_report_date=None):
             "evaluation_summary": "The found date cannot occur before the lost date."
         }
 
-    # ----------------------------
+    # ------------------------------------
     # Negative Business Rules (Penalties)
-    # ----------------------------
+    # ------------------------------------
     '''
     CORE_VISUAL_MISMATCH_VETO → basically no physical evidence matches
     COLOR_AND_MATERIAL_MISMATCH → two important physical attributes disagree
@@ -310,9 +346,9 @@ def evaluate_analysis(ai_result, lost_report_date=None):
         triggered_rules_list.append("COLOR_ONLY_MATCH")
         final_score -= 10.0
 
-    # ----------------------------
+    # ----------------------------------
     # Positive Business Rules (Bonuses)
-    # ----------------------------
+    # ----------------------------------
     positive_rule = None
     positive_bonus = 0.0
     
@@ -425,7 +461,17 @@ def evaluate_analysis(ai_result, lost_report_date=None):
         "evaluation_summary": evaluation_summary
     }
 
+# Function to get the best match from a list of AI results based on the final composite score and business rules
 def get_best_match(ai_result_list, lost_report_date=None):
+    """_summary_
+        Function to apply business rules to a list of AI results and determine the best match based on the final composite score.
+    Args:
+        ai_result_list (list): Top 3 matches returned from AI semantic matching
+        lost_report_date (str, optional): The date the lost report was filed. Defaults to None.
+
+    Returns:
+        dict: The best matching report and its evaluation details.
+    """
     # Store the best matching report and its evaluation.
     # Start with None because no report has been evaluated yet.
     best_report = None
@@ -434,12 +480,6 @@ def get_best_match(ai_result_list, lost_report_date=None):
     # Evaluate AI results one by one and keep track of the best match based on the final composite score.
     for ai_result in ai_result_list:
         evaluation = evaluate_analysis(ai_result, lost_report_date)
-        
-        '''
-        print("\n--- EVALUATION ---")
-        print("Status:", evaluation["status"])
-        print("Score:", evaluation["final_composite_score"])
-        print("Triggered rules:", evaluation["triggered_rules_list"])'''
         
         # Ignore reports that could not be processed successfully or were rejected by the visual mismatch veto rule.
         if evaluation["status"] in ("system_failure", "match_failure"):
