@@ -27,6 +27,7 @@ InputFunction = Callable[[str], str]
 OutputFunction = Callable[[str], None]
 
 # Functions
+# Helper functions to read user input with non empty validation and navigation options
 def _read_non_empty(prompt: str, input_function: InputFunction) -> str:
 	"""_summary_
 		Function to read input from the user and ensure that it is not empty. 
@@ -51,6 +52,7 @@ def _read_non_empty(prompt: str, input_function: InputFunction) -> str:
 			return value
 		print("Please enter a value.")
 
+# Helper functions to read user input with choice validation and navigation options
 def _read_choice(
 	prompt: str,
 	choices: tuple[str, ...],
@@ -82,6 +84,7 @@ def _read_choice(
 			return value
 		print(f"Please choose one of: {', '.join(choices)}.")
 
+# Helper function to read date input from the user with validation and navigation options
 def _read_date(input_function: InputFunction) -> str:
 	"""_summary_
 		Function to read input from the user and return a date string in DD-MM-YYYY format after validating the input.
@@ -111,6 +114,7 @@ def _read_date(input_function: InputFunction) -> str:
 
 		return value
 
+# Helper function to read image path input from the user with validation and navigation options
 def _read_image_path(input_function: InputFunction) -> str:
 	"""_summary_
 		Function to read the image path from the user using a file dialog. Validates the file extension and existence of the file.
@@ -154,6 +158,7 @@ def _read_image_path(input_function: InputFunction) -> str:
 
 		return str(image_path)
 
+# Helper function to print menu choices for the user to select from
 def _print_choices(title: str, choices: tuple[str, ...]) -> None:
 	"""_summary_
 		Function to print menu choices for the user to select from.
@@ -165,6 +170,7 @@ def _print_choices(title: str, choices: tuple[str, ...]) -> None:
 	for number, choice in enumerate(choices, start=1):
 		print(f"{number}. {choice.title()}")
 
+# Helper function to print navigation options for the user to go back or return to the main menu
 def _print_nav(include_back: bool = True) -> None:
 	"""_summary_
 		Function to print navigation options for the user to go back or return to the main menu.
@@ -176,6 +182,7 @@ def _print_nav(include_back: bool = True) -> None:
 
 	print("M. Go back to the Main Menu")
 
+# Function to craft report based on user input
 def collect_report(input_function: InputFunction = input) -> dict[str, str]:
 	"""_summary_
 		Function to collect a lost/found report from the user through a series of prompts. 
@@ -291,8 +298,16 @@ def collect_report(input_function: InputFunction = input) -> dict[str, str]:
 				"date": date,
 			}
 
+# Function to format a single report in a consistent human-readable format
 def format_record(record: Mapping[str, object]) -> str:
-	"""Return one report in a consistent human-readable format."""
+	"""_summary_
+		Function that receives a single report from database and formats it in a consistent human-readable format for summary display
+	Args:
+		record (Mapping[str, object]): A single report from the database represented as a mapping of string keys to object values.
+
+	Returns:
+		str: A formatted string representing the report in a human-readable format.
+	"""
 	report_type = str(record.get("report_type", record.get("type", "unknown"))).title()
 	case_id = str(record.get("case_id", "unknown"))
 	status = str(record.get('status', 'Unknown'))
@@ -315,8 +330,16 @@ def format_record(record: Mapping[str, object]) -> str:
 		f"  Image: {image_path}"
 	)
 
+# Function to receive a list of reports to format for summary display
 def format_records(records: Iterable[Mapping[str, object]]) -> str:
-	"""Return a numbered list of reports, or a useful empty-state message."""
+	"""_summary_
+		Function that receives a list of reports from database and formats them in a consistent human-readable format for summary display
+	Args:
+		records (Iterable[Mapping[str, object]]): An iterable of reports from the database, where each report is represented as a mapping of string keys to object values.
+
+	Returns:
+		str: A formatted string representing the list of reports in a human-readable format, with each report separated by two newlines.
+	"""
 	record_list = list(records)
 	if not record_list:
 		return "No reports found."
@@ -325,22 +348,65 @@ def format_records(records: Iterable[Mapping[str, object]]) -> str:
 		for number, record in enumerate(record_list, start=1)
 	)
 
+# Function to display a summary of reports in a human-readable format
 def display_summary(records: Iterable[Mapping[str, object]]) -> None:
-	"""Print the summary view for the supplied reports."""
+	"""_summary_
+		Function that receives a list of reports from database and displays them in a consistent human-readable format for summary display
+	Args:
+		records (Iterable[Mapping[str, object]]): An iterable of reports from the database, where each report is represented as a mapping of string keys to object values.
+	"""
 	print("\nLost-and-Found Summary")
 	print("======================")
 	print(format_records(records))
 
+# Function to handle the ``/summary`` command and return whether it was requested. (can remove if not needed)
 def collect_summary_view(
 	records: Iterable[Mapping[str, object]],
 	input_function: InputFunction = input,
 ) -> bool:
-	"""Handle the ``/summary`` command and return whether it was requested."""
+	"""_summary_
+		Function to handle the ``/summary`` command and return whether it was requested.
+	Args:
+		records (Iterable[Mapping[str, object]]): An iterable of reports from the database, where each report is represented as a mapping of string keys to object values.
+		input_function (InputFunction, optional): A callable function to read user input. Defaults to the built-in input function.
+
+	Returns:
+		bool: True if the /summary command was requested, False otherwise.
+	"""
 	command = input_function("Enter /summary to view reports, or press Enter to continue: ").strip().lower()
 	if command == "/summary":
 		display_summary(records)
 		return True
 	return False
+
+# Function to return the best match report to the user and ask for confirmation if it is a match
+def resolve_best_match(best_match, input_function: InputFunction = input):
+	"""_summary_
+		Function to return the best match report to the user and ask for confirmation if it is a match.
+	Args:
+		best_match (dict): The best match report to be presented to the user.
+		input_function (InputFunction, optional): A callable function to read user input. Defaults to the built-in input function.
+
+	Returns:
+		boolean: True if the user confirms the match, False otherwise.
+	"""
+	print("[+] Best match found from database:")
+	evaluation = best_match.get("evaluation")
+	print(f"Verdict: {evaluation.get("status")}")
+	print(f"Final score after applying business rules: {evaluation.get("final_composite_score")}/100")
+	print(f"Matched rules: {', '.join(evaluation.get("matched_rules_list")) if evaluation.get("matched_rules_list") else 'None'}")
+	print(f"Mismatched rules: {', '.join(evaluation.get("mismatched_rules_list")) if evaluation.get("mismatched_rules_list") else 'None'}")
+	print(f"Summary: {evaluation.get("evaluation_summary")}")
+
+	while True:
+		resolve = input_function("Is this a match for the item you have lost? (yes/no): ").strip().lower()
+
+		if resolve in {"yes", "y"}:
+			return True
+		elif resolve in {"no", "n"}:
+			return False
+		else:
+			print("Please enter 'yes' or 'no'.")
 
 def run_cli(input_function: InputFunction = input):
 	"""_summary_
