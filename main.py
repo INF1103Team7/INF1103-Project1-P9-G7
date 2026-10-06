@@ -5,6 +5,13 @@ import logic_manager
 import json
 
 def main():
+	# Update database to remove closed reports that have been closed for more than 30 days
+	print("=" * 20)
+	print("Updating database")
+	print("=" * 20)
+	deleted = data_manager.delete_expired_reports()
+	print(f"[+] Database updated. {deleted} closed reports deleted from the database.")
+
 	while True:
 		# Run the CLI interface for the AI powered lost and found system
 		user_report = io_manager.run_cli()
