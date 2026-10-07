@@ -85,11 +85,12 @@ URL of Repository: [https://github.com/INF1103Team7/INF1103-Ai-Powered-Scam-Mess
                                  │(Validate Terminal Input)|
                                  └────────────┬────────────┘
                                               │
-                                              ▼
-                                 ┌─────────────────────────┐
-                                 │       AI Manager        │
-                                 │ (Multimodal Extraction) │
-                                 └────────────┬────────────┘
+                                              ▼               
+                                 ┌─────────────────────────┐  Passes user submitted report & calls Gemini API      ┌─────────────────────────┐
+                                 │       AI Manager        │ ───────────────────────────────────────────────────>  |        Gemini AI        |
+                                 |                         | <───────────────────────────────────────────────────  |                         |
+                                 │   (Feature Extraction)  │ Gemini AI does feature extraction & returns back to   └─────────────────────────┘ 
+                                 └────────────┬────────────┘                      AI manager
                                               │
                                               ▼
                         ┌───────────────────────────────────────────┐
@@ -107,19 +108,41 @@ URL of Repository: [https://github.com/INF1103Team7/INF1103-Ai-Powered-Scam-Mess
              └─────────────────────────┘                    └────────────┬────────────┘
                                                                          │
                                                                          ▼
-                                                            ┌─────────────────────────┐
-                                                            │       AI Manager        │
-                                                            │   (Semantic Matcher)    │
-                                                            └────────────┬────────────┘
-                                                                         │
+                                                            ┌─────────────────────────┐  Passes feature extracted user report & calls Gemini API  ┌─────────────────────────┐
+                                                            │       AI Manager        │ ────────────────────────────────────────────────────────> |        Gemini AI        |
+                                                            │   (Semantic Matching)   │ <──────────────────────────────────────────────────────── |                         |
+                                                            └────────────┬────────────┘ Gemini AI does Semantic Matching and returns a list of    └─────────────────────────┘
+                                                                         │                                      top 3 matches
                                                                          ▼
-                                                            ┌─────────────────────────┐
-                                                            │      Logic Manager      │
-                                                            │ (Multi-Condition Rules) │
-                                                            └────────────┬────────────┘
+                                                  ┌──────────────────────────────────────────────┐
+                                                  │                  Logic Manager               │
+                                                  │ (Multi-Condition Rules Returning best match) │
+                                                  └──────────────────────┬───────────────────────┘
                                                                          │
                                                                          ▼
                                                             ┌─────────────────────────┐
                                                             │       I/O Manager       │
-                                                            │  (Display Top Matches)  │
-                                                            └─────────────────────────┘
+                                                            │  (Display Best Match)   │
+                                                            └────────────┬────────────┘
+                                                                         │
+                                                                         ▼
+                                                    ┌───────────────────────────────────────────┐
+                                                    │  User verifies & confirms if it matches   |
+                                                    |                   or not                  │
+                                                    └──────────────┬────────────────────┬───────┘
+                                                                   │                    │
+                                                      ┌────────────┘                    └────────────┐
+                                                      ▼                                              ▼
+                                             [ CASE A: MATCH ]                              [ CASE B: NOT MATCH ]
+                                                      │                                              │                                              
+                                                      ▼                                              |
+                                     ┌───────────────────────────────────┐                           |                
+                                     │            Data Manager           │                           │
+                                     │ (Marks matched report as closed)  │                           │
+                                     └────────────────┬──────────────────┘                           |
+                                                      |                                 ┌────────────┘
+                                                      |                                 ▼
+                                                      |                     ┌─────────────────────────┐
+                                                      └───────────────────> |    Returns to start     |
+                                                                            └─────────────────────────┘
+                                     
