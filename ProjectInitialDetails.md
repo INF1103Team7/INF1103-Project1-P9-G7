@@ -70,7 +70,7 @@ After receiving the AI output in JSON format this layer will validate it in the 
 
 ## Repository Information 
 
-URL of Repository: [https://github.com/INF1103Team7/INF1103-Ai-Powered-Scam-Message-Risk-Detector](https://github.com/INF1103Team7/INF1103-Project1-P9-G7)
+URL of Repository: [https://github.com/INF1103Team7/INF1103-Project1-P9-G7](https://github.com/INF1103Team7/INF1103-Project1-P9-G7)
 
  
 
