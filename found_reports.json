@@ -180,5 +180,21 @@
     "additional_notes": null,
     "case_id": "CASE-20261005-338E53",
     "status": "active"
+  },
+  {
+    "report_type": "found",
+    "category": "student card",
+    "primary_color": null,
+    "secondary_color": null,
+    "material": null,
+    "identifying_features": [
+      "concession"
+    ],
+    "brand": null,
+    "location_lost": null,
+    "additional_notes": null,
+    "date": "09-09-2026",
+    "case_id": "CASE-20261008-174568",
+    "status": "active"
   }
 ]
