@@ -18,6 +18,8 @@ DATA_FILE = PROJECT_DIRECTORY / "found_reports.json"
 # set the location of the image storage directory
 IMAGE_DIRECTORY = PROJECT_DIRECTORY / "images"
 
+# set the location of the temporary storage directory for extraction
+TEMP_DIRECTORY = PROJECT_DIRECTORY / "temp"
 # valid image file extensions that can be stored
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png"}
 
@@ -164,7 +166,7 @@ def save_report_list(reports):
 def store_image(
     source_path: str | Path,
     case_id: str,
-    image_directory: Path = IMAGE_DIRECTORY,
+    image_directory
 ) -> str:
     """_summary_
         Function to store an image in the images directory with a new filename based on the case ID.
@@ -180,6 +182,7 @@ def store_image(
     Returns:
         str: The filename of the stored image.
     """
+    image_directory = Path(image_directory)
     source = Path(source_path).expanduser()
     if source.suffix.lower() not in IMAGE_EXTENSIONS:
         raise ValueError("Only JPG, JPEG, and PNG images can be stored.")
@@ -187,8 +190,12 @@ def store_image(
         raise FileNotFoundError(f"Image not found: {source}")
 
     image_directory.mkdir(parents=True, exist_ok=True)
-    stored_filename = f"{case_id}{source.suffix.lower()}"
-    shutil.copy2(source, image_directory / stored_filename)
+    if image_directory == IMAGE_DIRECTORY:
+        stored_filename = f"{case_id}{source.suffix.lower()}"
+        shutil.copy2(source, image_directory / stored_filename)
+    elif image_directory == TEMP_DIRECTORY:
+        stored_filename = f"{str(source).split("\\")[-1]}"
+        shutil.copy2(source, image_directory / stored_filename)
     return stored_filename
 
 # Filter reports by category
