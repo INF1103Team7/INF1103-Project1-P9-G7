@@ -20,6 +20,7 @@ IMAGE_DIRECTORY = PROJECT_DIRECTORY / "images"
 
 # set the location of the temporary storage directory for extraction
 TEMP_DIRECTORY = PROJECT_DIRECTORY / "temp"
+
 # valid image file extensions that can be stored
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png"}
 
