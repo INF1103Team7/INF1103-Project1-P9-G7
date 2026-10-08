@@ -108,7 +108,7 @@ def extract_features(description, image_path=None):
     if image_path:
         print("[+] Image filepath found, attempting to add to prompt...")
         try:
-            with open(Path(__file__).parent / f"images/{image_path}", "rb") as f:
+            with open(Path(__file__).parent / f"temp/{image_path}", "rb") as f:
                 image_bytes = f.read()
 
             contents.append(
@@ -123,6 +123,15 @@ def extract_features(description, image_path=None):
         # Handle any other unexpected exceptions
         except Exception as e:
             print(f"[!] Exception occured: {e}")
+    
+        finally:
+            # Clean up the temporary image file
+            try:
+                os.unlink(Path(__file__).parent / f"temp/{image_path}")
+            except FileNotFoundError:
+                print(f"[!] File {image_path} not found, skipping cleanup")
+            except Exception as e:
+                print(f"[!] Exception occurred while cleaning up: {e}")
 
     contents.append(prompt)
 
