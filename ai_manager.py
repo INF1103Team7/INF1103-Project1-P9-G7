@@ -178,6 +178,9 @@ def extract_features(description, image_path=None):
                     time.sleep(delay)
                     delay *= 2
                     continue
+                else:
+                    print(f"[!] API Error {e.code}: {e.message}")
+                    return None
 
             # Handle any other unexpected exceptions
             except Exception as e:
