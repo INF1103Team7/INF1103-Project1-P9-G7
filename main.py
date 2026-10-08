@@ -23,7 +23,10 @@ def main():
 		elif type(user_report) == dict:
 			print(f"\n[+] {user_report.get("report_type")} report received. Sending to AI layer for processing...")
 			# AI powered feature extraction
-			extract_image_path = data_manager.store_image(user_report.get("image_path"), None, data_manager.TEMP_DIRECTORY)
+			if user_report.get("image_path") is not None:
+				extract_image_path = data_manager.store_image(user_report.get("image_path"), None, data_manager.TEMP_DIRECTORY)
+			else:
+				extract_image_path = None
 			user_input_extracted = ai_manager.extract_features(user_report, extract_image_path)
 
 			if user_input_extracted is None:
