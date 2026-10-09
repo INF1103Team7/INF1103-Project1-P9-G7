@@ -124,15 +124,6 @@ def extract_features(description, image_path=None):
         except Exception as e:
             print(f"[!] Exception occured: {e}")
     
-        finally:
-            # Clean up the temporary image file
-            try:
-                os.unlink(Path(__file__).parent / f"temp/{image_path}")
-            except FileNotFoundError:
-                print(f"[!] File {image_path} not found, skipping cleanup")
-            except Exception as e:
-                print(f"[!] Exception occurred while cleaning up: {e}")
-
     contents.append(prompt)
 
     print("[+] Feature extraction prompt built, sending prompt to Gemini AI API")
@@ -173,7 +164,7 @@ def extract_features(description, image_path=None):
                     if attempt == retries:
                         print(f"[!] API Error 503: Model busy. Max Retry reached (Attempt {attempt}/{retries})")
                         print(f"[!] API Error {e.code}: {e.message}")
-                        return None
+                    
                     attempt += 1
                     time.sleep(delay)
                     delay *= 2
