@@ -205,14 +205,12 @@ def store_image(
             print(f"[!] Error saving file to database: {e}")
     elif image_directory == TEMP_DIRECTORY:
         # Check if the application is running in a containerized environment
-        print(os.environ.get("APP_CONTAINER"))
         if os.environ.get("APP_CONTAINER") == "1":
             try:
-                if str(source).startswith("/app/"):
+                if str(source).find("/") != -1:
                     stored_filename = f"{str(source).split("/")[-1]}"
                 else:
                     stored_filename = f"{str(source).split('\\')[-1]}"
-                print(stored_filename)
                 shutil.copy2(source, image_directory / stored_filename)
             except shutil.SameFileError:
                 print(f"[!] File already exists in the destination: {source} skipping copy.")
@@ -364,7 +362,7 @@ def clear_temp_directory(temp_directory: Path = TEMP_DIRECTORY) -> int:
             except OSError as e:
                 print(f"[!] Error deleting temp file {item}: {e}")
 
-    print(f"[+] Cleared {deleted_count} temporary file(s) from {temp_directory.name}/")
+    print(f"\n[+] Cleared {deleted_count} temporary file(s) from {temp_directory.name}/")
     return deleted_count
 
 # Import controls
