@@ -8,6 +8,7 @@ import tkinter as tk
 from tkinter import filedialog
 import os
 import data_manager
+from dotenv import load_dotenv
 
 # Constants
 REPORT_TYPES = ("lost", "found")
@@ -125,7 +126,10 @@ def _read_image_path(input_function: InputFunction) -> str:
 	Returns:
 		str: The path to the selected image file, or None if the selection is cancelled.
 	"""
-	if os.getenv("APP_CONTAINER") != "1" or None:
+	# Load environment variables from .env file
+	load_dotenv()
+	print(os.environ.get("APP_CONTAINER"))
+	if os.environ.get("APP_CONTAINER") != "1":
 		while True: 
 			try:
 				root = tk.Tk()
@@ -168,14 +172,14 @@ def _read_image_path(input_function: InputFunction) -> str:
 	while True:
 		print("Please enter the full path to the image file.")
 		_print_nav()
-		cli_input = input_function("Enter the full image path make sure to include ~ path (Example: ~/Pictures/image.jpg): ")
+		cli_input = input_function("Enter the image name make sure the image is stored in the /temp directory (Example: image.jpg): ")
 		
 		if cli_input.lower() == "b":
 			return BACK
 		elif cli_input.lower() == "m":
 			return MAIN
 
-		image_path = Path(cli_input).expanduser()
+		image_path = Path("temp/" + cli_input).expanduser()
 
 		if image_path.suffix.lower() not in IMAGE_EXTENSIONS:
 			print("Please submit an image with a .jpg, .jpeg, or .png extension.\n")
