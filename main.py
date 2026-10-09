@@ -13,6 +13,8 @@ def main():
 	print(f"[+] Database updated. {deleted} closed reports deleted from the database.")
 
 	while True:
+		# Clear items in the temporary directory to avoid clutter and potential conflicts
+		data_manager.clear_temp_directory()
 		# Run the CLI interface for the AI powered lost and found system
 		user_report = io_manager.run_cli()
 		
@@ -42,6 +44,7 @@ def main():
 				except Exception as e:
 					print(f"[!] Error saving report: {e}")
 					continue
+
 				print("\n" + "=" * 50)
 				print("Found report stored successfully into database!")
 				print("=" * 50)
