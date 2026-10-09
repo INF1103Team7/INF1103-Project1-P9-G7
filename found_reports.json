@@ -233,5 +233,24 @@
     "case_id": "CASE-20261009-BBAC7A",
     "image_filename": "CASE-20261009-BBAC7A.jpg",
     "status": "active"
+  },
+  {
+    "report_type": "found",
+    "category": "electronics",
+    "date": "09-09-2026",
+    "primary_color": "black",
+    "secondary_color": null,
+    "material": null,
+    "identifying_features": [
+      "Lenovo logo tag on palm rest",
+      "Full-size keyboard with numeric keypad",
+      "Windows 11 operating system displayed"
+    ],
+    "brand": "Lenovo",
+    "location_lost": null,
+    "additional_notes": "Report description specified 'legion'",
+    "case_id": "CASE-20261009-EDC530",
+    "image_filename": "CASE-20261009-EDC530.jpg",
+    "status": "active"
   }
 ]
