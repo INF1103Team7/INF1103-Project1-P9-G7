@@ -338,6 +338,7 @@ def delete_expired_reports(retention_days=30):
 
     return deleted_count
 
+# Clear temporary directory
 def clear_temp_directory(temp_directory: Path = TEMP_DIRECTORY) -> int:
     """Unlinks and removes all files inside the specified temporary directory.
 
@@ -378,5 +379,6 @@ __all__ = [
     "get_reports_by_category",
     "get_active_reports",
     "update_report_status",
-    "delete_expired_reports"
+    "delete_expired_reports",
+    "clear_temp_directory"
 ]
