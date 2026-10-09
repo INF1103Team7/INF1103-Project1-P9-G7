@@ -1,7 +1,11 @@
 FROM python:3.12-slim
 
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3-tk \
+    tk-dev \
+    && rm -rf /var/lib/apt/lists/*
+
 ENV APP_CONTAINER=1
-ENV GEMINI_API_KEY=""
 
 WORKDIR /app
 
