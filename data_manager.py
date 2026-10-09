@@ -2,6 +2,8 @@
 
 # Imports
 import json
+import os
+from dotenv import load_dotenv
 import shutil
 from typing import Mapping
 from uuid import uuid4
@@ -183,20 +185,47 @@ def store_image(
     Returns:
         str: The filename of the stored image.
     """
+    # Load environment variables from .env file
+    load_dotenv()
     image_directory = Path(image_directory)
-    source = Path(source_path).expanduser()
+    source = Path(source_path)
     if source.suffix.lower() not in IMAGE_EXTENSIONS:
-        raise ValueError("Only JPG, JPEG, and PNG images can be stored.")
+        print("[!] Only JPG, JPEG, and PNG images can be stored.")
+        return None
     if not source.is_file():
-        raise FileNotFoundError(f"Image not found: {source}")
+        print(f"[!] Image not found: {source}")
+        return None
 
     image_directory.mkdir(parents=True, exist_ok=True)
     if image_directory == IMAGE_DIRECTORY:
         stored_filename = f"{case_id}{source.suffix.lower()}"
-        shutil.copy2(source, image_directory / stored_filename)
+        try:
+            shutil.copy2(source, image_directory / stored_filename)
+        except Exception as e:
+            print(f"[!] Error saving file to database: {e}")
     elif image_directory == TEMP_DIRECTORY:
-        stored_filename = f"{str(source).split("\\")[-1]}"
-        shutil.copy2(source, image_directory / stored_filename)
+        # Check if the application is running in a containerized environment
+        print(os.environ.get("APP_CONTAINER"))
+        if os.environ.get("APP_CONTAINER") == "1":
+            try:
+                if str(source).startswith("/app/"):
+                    stored_filename = f"{str(source).split("/")[-1]}"
+                else:
+                    stored_filename = f"{str(source).split('\\')[-1]}"
+                print(stored_filename)
+                shutil.copy2(source, image_directory / stored_filename)
+            except shutil.SameFileError:
+                print(f"[!] File already exists in the destination: {source} skipping copy.")
+            except Exception as e:
+                print(f"[!] Error copying file: {e}")
+        else:
+            try:
+                stored_filename = f"{str(source).split("\\")[-1]}"
+                shutil.copy2(source, image_directory / stored_filename)
+            except shutil.SameFileError:
+                print(f"[!] File already exists in the destination: {source} skipping copy.")
+            except Exception as e:
+                print(f"[!] Error copying file: {e}")
     return stored_filename
 
 # Filter reports by category
@@ -307,6 +336,34 @@ def delete_expired_reports(retention_days=30):
     if deleted_count > 0:
         save_report_list(remaining_reports)
 
+    return deleted_count
+
+def clear_temp_directory(temp_directory: Path = TEMP_DIRECTORY) -> int:
+    """Unlinks and removes all files inside the specified temporary directory.
+
+    Args:
+        temp_directory (Path, optional): Path to temp folder. Defaults to
+          TEMP_DIRECTORY.
+
+    Returns:
+        int: The number of unlinked temporary files.
+    """
+    deleted_count = 0
+
+    if not temp_directory.exists():
+        return 0
+
+    for item in temp_directory.iterdir():
+        if item.is_file():
+            try:
+                item.unlink()
+                deleted_count += 1
+            except PermissionError:
+                print(f"[!] Permission denied when deleting temp file: {item}")
+            except OSError as e:
+                print(f"[!] Error deleting temp file {item}: {e}")
+
+    print(f"[+] Cleared {deleted_count} temporary file(s) from {temp_directory.name}/")
     return deleted_count
 
 # Import controls
