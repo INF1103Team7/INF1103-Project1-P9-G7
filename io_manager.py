@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Callable, Iterable, Mapping
 import tkinter as tk
 from tkinter import filedialog
+import os
 import data_manager
 
 # Constants
@@ -124,38 +125,67 @@ def _read_image_path(input_function: InputFunction) -> str:
 	Returns:
 		str: The path to the selected image file, or None if the selection is cancelled.
 	"""
-	while True: 
-		root = tk.Tk()
-		root.withdraw()
+	if os.getenv("APP_CONTAINER") != "1" or None:
+		while True: 
+			try:
+				root = tk.Tk()
+				root.withdraw()
 
-		file_path = filedialog.askopenfilename(
-			title = "Select an image",
-			filetypes = [
-				("Image files", "*jpg *jpeg *png"),
-				("JPG files","*jpg"),
-				("JPEG files", "*jpeg"),
-				("PNG files", "*png"),
-			],
-		)
+				file_path = filedialog.askopenfilename(
+					title = "Select an image",
+					filetypes = [
+						("Image files", "*jpg *jpeg *png"),
+						("JPG files","*jpg"),
+						("JPEG files", "*jpeg"),
+						("PNG files", "*png"),
+					],
+				)
 
-		root.destroy()
+				root.destroy()
 
-		if not file_path:
-			print("Image selection is cancelled.")
-			return None
+				if not file_path:
+					print("Image selection is cancelled.")
+					return None
 
-		image_path = Path(file_path)
+				image_path = Path(file_path)
+
+				if image_path.suffix.lower() not in IMAGE_EXTENSIONS:
+					print("Please submit an image with a .jpg, .jpeg, or .png extension.")
+					continue
+
+				if not image_path.is_file():
+					print("The image file could not be found. Please try again.")
+					continue
+
+				print("The image is added successfully. \n")
+
+				return str(image_path)
+			except (tk.TclError, Exception) as e:
+				print(f"[!] An error occurred while selecting the image: {e}")
+				pass
+	# CLI fallback if container does not have GUI support
+	print("\n[!] Headless container environment detected. Using CLI input.")
+	while True:
+		print("Please enter the full path to the image file.")
+		_print_nav()
+		cli_input = input_function("Enter the full image path make sure to include ~ path (Example: ~/Pictures/image.jpg): ")
+		
+		if cli_input.lower() == "b":
+			return BACK
+		elif cli_input.lower() == "m":
+			return MAIN
+
+		image_path = Path(cli_input).expanduser()
 
 		if image_path.suffix.lower() not in IMAGE_EXTENSIONS:
-			print("Please submit an image with a .jpg, .jpeg, or .png extension.")
+			print("Please submit an image with a .jpg, .jpeg, or .png extension.\n")
 			continue
 
 		if not image_path.is_file():
-			print("The image file could not be found. Please try again.")
+			print("The image file could not be found. Please try again.\n")
 			continue
 
-		print("The image is added successfully. \n")
-
+		print("The image is added successfully.\n")
 		return str(image_path)
 
 # Helper function to print menu choices for the user to select from
@@ -270,9 +300,10 @@ def collect_report(input_function: InputFunction = input) -> dict[str, str]:
 			if upload_image == "yes":
 				image_path = _read_image_path(input_function)
 
-				if image_path is None:
+				if image_path is BACK:
 					continue
-
+				if image_path == MAIN:
+					break
 			stage = 5
 
 		#Stage 5 - Date
