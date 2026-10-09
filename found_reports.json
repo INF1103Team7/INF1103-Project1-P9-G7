@@ -196,5 +196,61 @@
     "date": "09-09-2026",
     "case_id": "CASE-20261008-174568",
     "status": "active"
+  },
+  {
+    "report_type": "found",
+    "category": "bottle",
+    "primary_color": "white",
+    "secondary_color": null,
+    "material": null,
+    "identifying_features": [
+      "scratch"
+    ],
+    "brand": null,
+    "location_lost": null,
+    "additional_notes": null,
+    "date": "09-10-2026",
+    "case_id": "CASE-20261009-079A66",
+    "status": "closed",
+    "closed_date": "2026-10-09"
+  },
+  {
+    "report_type": "found",
+    "category": "bottle",
+    "date": "09-09-2026",
+    "primary_color": "white",
+    "secondary_color": "black",
+    "material": "stainless steel",
+    "identifying_features": [
+      "Hydro Flask logo in the center",
+      "Black flex cap with carrying strap",
+      "Brand name 'Hydro Flask' printed near the bottom",
+      "Silver metallic band below the cap"
+    ],
+    "brand": "Hydro Flask",
+    "location_lost": null,
+    "additional_notes": null,
+    "case_id": "CASE-20261009-BBAC7A",
+    "image_filename": "CASE-20261009-BBAC7A.jpg",
+    "status": "active"
+  },
+  {
+    "report_type": "found",
+    "category": "bottle",
+    "primary_color": "White",
+    "secondary_color": "Black",
+    "material": "Stainless steel",
+    "identifying_features": [
+      "Hydro Flask logo",
+      "Black flex cap lid with handle",
+      "Silver stainless steel rim"
+    ],
+    "brand": "Hydro Flask",
+    "location_lost": null,
+    "additional_notes": null,
+    "date": "09-09-2026",
+    "case_id": "CASE-20261009-87C9D1",
+    "image_filename": "CASE-20261009-87C9D1.jpg",
+    "status": "active"
   }
 ]
