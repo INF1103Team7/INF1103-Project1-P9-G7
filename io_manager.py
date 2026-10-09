@@ -128,7 +128,6 @@ def _read_image_path(input_function: InputFunction) -> str:
 	"""
 	# Load environment variables from .env file
 	load_dotenv()
-	print(os.environ.get("APP_CONTAINER"))
 	if os.environ.get("APP_CONTAINER") != "1":
 		while True: 
 			try:
