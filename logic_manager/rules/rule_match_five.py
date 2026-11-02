@@ -1,4 +1,4 @@
-from .match_rule import MatchRule
+from ..match_rule import MatchRule
 class FullMatchRule(MatchRule):
     def __init__(self, config):
         self.config = config
@@ -17,3 +17,5 @@ class FullMatchRule(MatchRule):
     
     def get_rule_name(self):
         return "ALL_MAJOR_ATTRIBUTES_AND_LOCATION_MATCH"
+    def get_rule_type(self):
+            return "positive"

@@ -1,5 +1,4 @@
-from .match_rule import MatchRule
-
+from ..match_rule import MatchRule
 class ColorOnlyMatchRule(MatchRule):
     def is_satisfied(self, data):
         return (
@@ -14,3 +13,6 @@ class ColorOnlyMatchRule(MatchRule):
     
     def get_rule_name(self):
         return "COLOR_ONLY_MATCH"
+    
+    def get_rule_type(self):
+        return "negative"

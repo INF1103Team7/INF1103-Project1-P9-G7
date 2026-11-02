@@ -12,3 +12,7 @@ class MatchRule(ABC):
     @abstractmethod
     def get_rule_name(self):
         pass
+    
+    @abstractmethod
+    def get_rule_type(self):
+        pass

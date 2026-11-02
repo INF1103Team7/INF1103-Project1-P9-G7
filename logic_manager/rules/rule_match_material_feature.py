@@ -1,4 +1,4 @@
-from .match_rule import MatchRule
+from ..match_rule import MatchRule
 class MaterialFeatureMatchRule(MatchRule):
     def __init__(self, config):
         self.config = config
@@ -14,3 +14,6 @@ class MaterialFeatureMatchRule(MatchRule):
     
     def get_rule_name(self):
         return "MATERIAL_AND_MULTIPLE_FEATURES_MATCH"
+    
+    def get_rule_type(self):
+        return "positive"

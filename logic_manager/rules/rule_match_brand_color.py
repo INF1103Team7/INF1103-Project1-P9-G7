@@ -1,4 +1,4 @@
-from .match_rule import MatchRule
+from ..match_rule import MatchRule
 class BrandColorMatchRule(MatchRule):
 
     def is_satisfied(self, data):
@@ -12,3 +12,5 @@ class BrandColorMatchRule(MatchRule):
     
     def get_rule_name(self):
         return "BRAND_AND_COLOR_MATCH"
+    def get_rule_type(self):
+            return "positive"

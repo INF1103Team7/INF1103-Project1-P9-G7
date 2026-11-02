@@ -1,8 +1,9 @@
 from .analysis_validator import AnalysisValidator
 
 class Traits:
-    def __init__(self):
-        self.validator = AnalysisValidator()
+    def __init__(self, validator=None):
+        self.validator = validator or AnalysisValidator()
+
     def get_traits(self, ai_result, lost_report_date=None):
         analysis = ai_result["similarity_analysis"]
         # 1. Extract colour match information

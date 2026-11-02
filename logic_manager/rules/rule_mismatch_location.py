@@ -1,4 +1,4 @@
-from .match_rule import MatchRule
+from ..match_rule import MatchRule
 class LocationMismatchRule(MatchRule):
 
     def is_satisfied(self, data):
@@ -9,3 +9,6 @@ class LocationMismatchRule(MatchRule):
     
     def get_rule_name(self):
         return "LOCATION_MISMATCH"
+    
+    def get_rule_type(self):
+        return "negative"

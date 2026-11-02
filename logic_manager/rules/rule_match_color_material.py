@@ -1,4 +1,4 @@
-from .match_rule import MatchRule
+from ..match_rule import MatchRule
 class ColorMaterialMatchRule(MatchRule):
     def is_satisfied(self, data):
         return (
@@ -11,3 +11,5 @@ class ColorMaterialMatchRule(MatchRule):
     
     def get_rule_name(self):
         return "COLOR_AND_MATERIAL_MATCH"
+    def get_rule_type(self):
+            return "positive"

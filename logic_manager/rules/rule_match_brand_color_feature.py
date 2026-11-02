@@ -1,4 +1,4 @@
-from .match_rule import MatchRule
+from ..match_rule import MatchRule
 class BrandColorFeatureMatchRule(MatchRule):
     def __init__(self, config):
         self.config = config
@@ -15,3 +15,5 @@ class BrandColorFeatureMatchRule(MatchRule):
     
     def get_rule_name(self):
         return "BRAND_COLOR_FEATURE_MATCH"
+    def get_rule_type(self):
+            return "positive"

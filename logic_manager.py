@@ -1,7 +1,52 @@
 # logic manager file to apply business rules to the AI output and determine the best match for lost and found reports
 ## OOP ##
 ## test script CI ##
+from logic_manager.matcher import Matcher
+from logic_manager.match_selector import MatchSelector
 
+class LogicManager:
+    def __init__(self):
+        # Responsible for evaluating individual AI results.
+        self.matcher = Matcher()
+
+        # Responsible for selecting the best evaluation.
+        self.match_selector = MatchSelector()
+
+    def get_best_match(self, ai_result_list, lost_report_date=None):
+        """
+        Evaluate AI results and return the best valid match.
+
+        Args:
+            ai_result_list (list): AI semantic matching results.
+            lost_report_date (str, optional): Date the lost report was filed.
+
+        Returns:
+            dict or None: Best report and its evaluation details.
+        """
+
+        evaluation_results = []
+
+        # 1. Evaluate each AI result individually.
+        for ai_result in ai_result_list:
+
+            evaluation = self.matcher.evaluate_analysis(
+                ai_result,
+                lost_report_date
+            )
+
+            # Store the original report together with its evaluation.
+            evaluation_results.append({
+                "report": ai_result,
+                "evaluation": evaluation
+            })
+
+        # 2. Select the best valid match.
+        best_match = self.match_selector.get_best_match(
+            evaluation_results
+        )
+
+        # 3. Return the selected result.
+        return best_match
 '''
 from datetime import datetime
 
