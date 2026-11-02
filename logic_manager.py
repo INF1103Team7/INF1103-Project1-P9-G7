@@ -1,8 +1,8 @@
 # logic manager file to apply business rules to the AI output and determine the best match for lost and found reports
 ## OOP ##
 ## test script CI ##
-from logic_manager.matcher import Matcher
-from logic_manager.match_selector import MatchSelector
+from logic_classes.matcher import Matcher
+from logic_classes.match_selector import MatchSelector
 
 class LogicManager:
     def __init__(self):
