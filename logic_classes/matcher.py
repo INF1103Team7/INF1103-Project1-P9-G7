@@ -29,22 +29,22 @@ class Matcher:
         self.rule_manager = RuleManager()
 
         # veto rule#
-        self.rule_manager.add_rule(VetoMismatchRule())
+        self.rule_manager.add_rule(VetoMismatchRule(self.threshold_config))
         # negative rules#
         self.rule_manager.add_rule(ColorMaterialMismatchRule())
         self.rule_manager.add_rule(LocationMismatchRule())
         self.rule_manager.add_rule(ColorOnlyMatchRule())
         # positive rules#
-        self.rule_manager.add_rule(FullMatchRule())
-        self.rule_manager.add_rule(FourMatchRule())
-        self.rule_manager.add_rule(BrandColorFeatureMatchRule())
-        self.rule_manager.add_rule(ColorFeatureMaterialMatchRule())
+        self.rule_manager.add_rule(FullMatchRule(self.threshold_config))
+        self.rule_manager.add_rule(FourMatchRule(self.threshold_config))
+        self.rule_manager.add_rule(BrandColorFeatureMatchRule(self.threshold_config))
+        self.rule_manager.add_rule(ColorFeatureMaterialMatchRule(self.threshold_config))
         self.rule_manager.add_rule(BrandColorMaterialMatchRule())
-        self.rule_manager.add_rule(BrandFeatureMatchRule())
+        self.rule_manager.add_rule(BrandFeatureMatchRule(self.threshold_config))
         self.rule_manager.add_rule(BrandColorMatchRule())
         self.rule_manager.add_rule(BrandMaterialMatchRule())
-        self.rule_manager.add_rule(ColorFeatureMatchRule())
-        self.rule_manager.add_rule(MaterialFeatureMatchRule())
+        self.rule_manager.add_rule(ColorFeatureMatchRule(self.threshold_config))
+        self.rule_manager.add_rule(MaterialFeatureMatchRule(self.threshold_config))
         self.rule_manager.add_rule(ColorMaterialMatchRule())
 
         # bonus rule#
