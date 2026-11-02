@@ -4,23 +4,262 @@ from abc import ABC, abstractmethod
 from datetime import date, datetime
 import os
 from pathlib import Path
-from typing import Callable, Iterable, Mapping
+import re
+from typing import Callable, ClassVar, Iterable, Mapping
 import tkinter as tk
 from tkinter import filedialog
 
 import data_manager
 from dotenv import load_dotenv
 
+
 REPORT_TYPES = ("lost", "found")
-CATEGORIES = (
-    "student card",
-    "bottle",
-    "keys",
-    "bag",
-    "clothing",
-    "electronics",
-    "others",
+_COLOR_TERMS = (
+    "black",
+    "blue",
+    "brown",
+    "clear",
+    "gold",
+    "gray",
+    "green",
+    "grey",
+    "orange",
+    "pink",
+    "purple",
+    "red",
+    "silver",
+    "white",
+    "yellow",
+    "navy",
 )
+_MATERIAL_TERMS = (
+    "canvas",
+    "ceramic",
+    "fabric",
+    "glass",
+    "leather",
+    "metal",
+    "plastic",
+    "rubber",
+    "steel",
+    "stainless",
+    "wood",
+    "wooden",
+)
+
+
+class Item(ABC):
+    """Base class for the supported item categories."""
+
+    description_guidance: ClassVar[str]
+    identifying_detail_groups: ClassVar[tuple[tuple[str, ...], ...]]
+
+    @property
+    @abstractmethod
+    def value(self) -> str:
+        """Return the category value used by the existing report data format."""
+
+    @classmethod
+    def from_value(cls, value: str) -> "Item":
+        for item_class in _ITEM_CLASSES:
+            item = item_class()
+            if item.value == value:
+                return item
+        raise ValueError(f"Unsupported item category: {value}")
+
+    def validate_description(self, description: str) -> bool:
+        """Require one identifying detail from each category-specific group."""
+        tokens = re.findall(r"[a-z0-9]+", description.casefold())
+        words = set(tokens)
+        normalized_description = " ".join(tokens)
+
+        def matches_term(term: str) -> bool:
+            if " " in term:
+                return term in normalized_description
+            return term in words or (
+                len(term) >= 4
+                and any(word.startswith(term) for word in words)
+            )
+
+        return all(
+            any(matches_term(term) for term in detail_group)
+            for detail_group in self.identifying_detail_groups
+        )
+
+
+class StudentCard(Item):
+    value: ClassVar[str] = "student card"
+    description_guidance: ClassVar[str] = (
+        "the card's appearance or issuer (not its number), plus a distinctive "
+        "visible feature"
+    )
+    identifying_detail_groups: ClassVar[tuple[tuple[str, ...], ...]] = (
+        (
+            "color",
+            "colour",
+            *_COLOR_TERMS,
+            "school",
+            "sit",
+            "design",
+            "holder",
+            "lanyard",
+        ),
+        ("sticker", "scratch", "damage", "pattern", "mark", "chip", "crease", "logo"),
+    )
+
+
+class Bottle(Item):
+    value: ClassVar[str] = "bottle"
+    description_guidance: ClassVar[str] = (
+        "its color, material, brand, or lid, plus a distinctive mark or feature"
+    )
+    identifying_detail_groups: ClassVar[tuple[tuple[str, ...], ...]] = (
+        (
+            "color",
+            "colour",
+            *_COLOR_TERMS,
+            "material",
+            *_MATERIAL_TERMS,
+            "brand",
+            "lid",
+            "cap",
+            "size",
+            "metal",
+        ),
+        ("dent", "scratch", "sticker", "logo", "mark", "handle", "pattern"),
+    )
+
+
+class Keys(Item):
+    value: ClassVar[str] = "keys"
+    description_guidance: ClassVar[str] = (
+        "the keys or keychain, plus a distinctive tag, fob, color, or mark"
+    )
+    identifying_detail_groups: ClassVar[tuple[tuple[str, ...], ...]] = (
+        (
+            "key",
+            "keys",
+            "keychain",
+            "key chain",
+            "ring",
+            "metal",
+            "number",
+            *_COLOR_TERMS,
+        ),
+        (
+            "tag",
+            "fob",
+            "charm",
+            "color",
+            "colour",
+            *_COLOR_TERMS,
+            "scratch",
+            "mark",
+            "shape",
+        ),
+    )
+
+
+class Bag(Item):
+    value: ClassVar[str] = "bag"
+    description_guidance: ClassVar[str] = (
+        "its color, size, material, or brand, plus a distinctive pocket, strap, "
+        "mark, or feature"
+    )
+    identifying_detail_groups: ClassVar[tuple[tuple[str, ...], ...]] = (
+        (
+            "color",
+            "colour",
+            *_COLOR_TERMS,
+            "size",
+            "material",
+            "brand",
+            "backpack",
+            "tote",
+        ),
+        ("pocket", "strap", "logo", "sticker", "scratch", "mark", "zipper"),
+    )
+
+
+class Clothing(Item):
+    value: ClassVar[str] = "clothing"
+    description_guidance: ClassVar[str] = (
+        "the garment, color, pattern, or material, plus a distinctive logo, "
+        "mark, or feature"
+    )
+    identifying_detail_groups: ClassVar[tuple[tuple[str, ...], ...]] = (
+        (
+            "shirt",
+            "jacket",
+            "pants",
+            "trousers",
+            "hoodie",
+            "coat",
+            "color",
+            "colour",
+            *_COLOR_TERMS,
+            "pattern",
+            "material",
+        ),
+        ("logo", "stain", "tear", "mark", "zipper", "button", "pocket", "design"),
+    )
+
+
+class Electronics(Item):
+    value: ClassVar[str] = "electronics"
+    description_guidance: ClassVar[str] = (
+        "the device type, brand, model, or color, plus a distinctive case, "
+        "mark, or feature (do not include serial numbers)"
+    )
+    identifying_detail_groups: ClassVar[tuple[tuple[str, ...], ...]] = (
+        (
+            "phone",
+            "laptop",
+            "tablet",
+            "earbuds",
+            "headphones",
+            "watch",
+            "brand",
+            "model",
+            "color",
+            "colour",
+            *_COLOR_TERMS,
+        ),
+        ("case", "sticker", "scratch", "mark", "screen", "button", "crack", "shape"),
+    )
+
+
+class OtherItem(Item):
+    value: ClassVar[str] = "others"
+    description_guidance: ClassVar[str] = (
+        "its type, color, material, or shape, plus a distinctive mark or feature"
+    )
+    identifying_detail_groups: ClassVar[tuple[tuple[str, ...], ...]] = (
+        (
+            "type",
+            "color",
+            "colour",
+            *_COLOR_TERMS,
+            "material",
+            *_MATERIAL_TERMS,
+            "shape",
+            "brand",
+            "size",
+        ),
+        ("sticker", "scratch", "mark", "pattern", "damage", "label", "feature"),
+    )
+
+
+_ITEM_CLASSES = (
+    StudentCard,
+    Bottle,
+    Keys,
+    Bag,
+    Clothing,
+    Electronics,
+    OtherItem,
+)
+CATEGORIES = tuple(item_class.value for item_class in _ITEM_CLASSES)
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png"}
 BACK = "BACK"
 MAIN = "MAIN"
@@ -95,6 +334,20 @@ def _read_non_empty(prompt: str, terminal: TerminalIO) -> str:
         if value:
             return value
         terminal.write("Please enter a value.")
+
+
+def _read_item_description(item: Item, terminal: TerminalIO) -> str:
+    prompt = f"\nItem description ({item.description_guidance}): "
+    while True:
+        description = _read_non_empty(prompt, terminal)
+        if description in {BACK, MAIN}:
+            return description
+        if item.validate_description(description):
+            return description
+        terminal.write(
+            "Please add identifying details covering "
+            f"{item.description_guidance}."
+        )
 
 
 def _read_choice(
@@ -245,30 +498,30 @@ class ReportCollector:
             if stage == 1:
                 _print_choices("\nReport type:", REPORT_TYPES, terminal)
                 _print_nav(terminal, include_back=False)
-                report_type = _read_choice(
+                selected_report_type = _read_choice(
                     "Select report type: ", REPORT_TYPES, terminal
                 )
-                if report_type == MAIN:
+                if selected_report_type == MAIN:
                     return None
+                report_type = selected_report_type
                 stage = 2
             elif stage == 2:
                 _print_choices("\nItem category:", CATEGORIES, terminal)
                 _print_nav(terminal)
-                category = _read_choice(
+                selected_category = _read_choice(
                     "Select item category: ", CATEGORIES, terminal
                 )
-                if category == MAIN:
+                if selected_category == MAIN:
                     return None
-                if category == BACK:
+                if selected_category == BACK:
                     stage = 1
                     continue
+                category = Item.from_value(selected_category)
                 stage = 3
             elif stage == 3:
                 terminal.write("\nEnter item description.")
                 _print_nav(terminal)
-                description = _read_non_empty(
-                    "\nItem description: ", terminal
-                )
+                description = _read_item_description(category, terminal)
                 if description == MAIN:
                     return None
                 if description == BACK:
@@ -309,7 +562,7 @@ class ReportCollector:
                     continue
                 return {
                     "report_type": report_type,
-                    "category": category,
+                    "category": category.value,
                     "description": description,
                     "image_path": image_path,
                     "date": occurrence_date,
@@ -488,7 +741,15 @@ def run_cli(
 
 __all__ = [
     "CATEGORIES",
+    "Bag",
+    "Bottle",
+    "Clothing",
+    "Electronics",
+    "Item",
+    "Keys",
+    "OtherItem",
     "REPORT_TYPES",
+    "StudentCard",
     "CallbackTerminal",
     "ConsoleTerminal",
     "IOManager",
