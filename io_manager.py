@@ -1,25 +1,25 @@
-# io_manager file for application CLI interface
 
-# Imports
+
+from abc import ABC, abstractmethod
 from datetime import date, datetime
+import os
 from pathlib import Path
 from typing import Callable, Iterable, Mapping
 import tkinter as tk
 from tkinter import filedialog
-import os
+
 import data_manager
 from dotenv import load_dotenv
 
-# Constants
 REPORT_TYPES = ("lost", "found")
 CATEGORIES = (
-	"student card",
-	"bottle",
-	"keys",
-	"bag",
-	"clothing",
-	"electronics",
-	"others",
+    "student card",
+    "bottle",
+    "keys",
+    "bag",
+    "clothing",
+    "electronics",
+    "others",
 )
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png"}
 BACK = "BACK"
@@ -27,457 +27,481 @@ MAIN = "MAIN"
 
 InputFunction = Callable[[str], str]
 OutputFunction = Callable[[str], None]
+ImageSelector = Callable[[], str | None]
+ReportLoader = Callable[[], Iterable[Mapping[str, object]]]
 
-# Functions
-# Helper functions to read user input with non empty validation and navigation options
-def _read_non_empty(prompt: str, input_function: InputFunction) -> str:
-	"""_summary_
-		Function to read input from the user and ensure that it is not empty. 
-		The function will keep prompting the user until a non-empty value is provided or the user chooses to go back or return to the main menu.
-	Args:
-		prompt (str): Prompt to display to the user
-		input_function (InputFunction): A callable function to read user input. Defaults to the built-in input function.
 
-	Returns:
-		str: The non-empty input value provided by the user, or BACK/MAIN if the user chooses to go back or return to the main menu.
-	"""
-	while True:
-		value = input_function(prompt).strip()
+class TerminalIO(ABC):
+    """Contract for reading from and writing to a user-facing terminal."""
 
-		if value.lower() == "b":
-			return BACK
+    @abstractmethod
+    def read(self, prompt: str) -> str:
+        """Read one response from the user."""
 
-		if value.lower() == "m":
-			return MAIN
-		
-		if value:
-			return value
-		print("Please enter a value.")
+    @abstractmethod
+    def write(self, message: str) -> None:
+        """Display a message to the user."""
 
-# Helper functions to read user input with choice validation and navigation options
+    @abstractmethod
+    def select_image(self) -> str | None:
+        """Select an image, or return a navigation token or None."""
+
+
+class ConsoleTerminal(TerminalIO):
+    """Production terminal adapter using standard input and output."""
+
+    def read(self, prompt: str) -> str:
+        return input(prompt)
+
+    def write(self, message: str) -> None:
+        print(message)
+
+    def select_image(self) -> str | None:
+        return _select_image(input, print)
+
+
+class CallbackTerminal(TerminalIO):
+    """Terminal adapter for tests and other callers supplying callbacks."""
+
+    def __init__(
+        self,
+        input_function: InputFunction = input,
+        output_function: OutputFunction = print,
+        image_selector: ImageSelector | None = None,
+    ) -> None:
+        self._input_function = input_function
+        self._output_function = output_function
+        self._image_selector = image_selector
+
+    def read(self, prompt: str) -> str:
+        return self._input_function(prompt)
+
+    def write(self, message: str) -> None:
+        self._output_function(message)
+
+    def select_image(self) -> str | None:
+        if self._image_selector is not None:
+            return self._image_selector()
+        return _select_image(self.read, self.write)
+
+
+def _read_non_empty(prompt: str, terminal: TerminalIO) -> str:
+    while True:
+        value = terminal.read(prompt).strip()
+        if value.lower() == "b":
+            return BACK
+        if value.lower() == "m":
+            return MAIN
+        if value:
+            return value
+        terminal.write("Please enter a value.")
+
+
 def _read_choice(
-	prompt: str,
-	choices: tuple[str, ...],
-	input_function: InputFunction,
+    prompt: str,
+    choices: tuple[str, ...],
+    terminal: TerminalIO,
 ) -> str:
-	"""_summary_
-		Function to read a choice from the user based on a list of available options.
-	Args:
-		prompt (str): Prompt to display to the user
-		choices (tuple[str, ...]): Tuple of available choices for the user to select from
-		input_function (InputFunction): A callable function to read user input. Defaults to the built-in input function.
+    while True:
+        value = terminal.read(prompt).strip().lower()
+        if value == "b":
+            return BACK
+        if value == "m":
+            return MAIN
+        if value.isdigit() and 1 <= int(value) <= len(choices):
+            return choices[int(value) - 1]
+        if value in choices:
+            return value
+        terminal.write(f"Please choose one of: {', '.join(choices)}.")
 
-	Returns:
-		str: The selected choice from the available options, or BACK/MAIN if the user chooses to go back or return to the main menu.
-	"""
-	while True:
-		value = input_function(prompt).strip().lower()
 
-		if value == "b":
-			return BACK
-		
-		if value == "m":
-			return MAIN
-		
-		if value.isdigit() and 1 <= int(value) <= len(choices):
-			return choices[int(value) - 1]
-		
-		if value in choices:
-			return value
-		print(f"Please choose one of: {', '.join(choices)}.")
+def _read_date(terminal: TerminalIO) -> str:
+    while True:
+        value = _read_non_empty("\nDate of loss/finding (DD-MM-YYYY): ", terminal)
+        if value in {BACK, MAIN}:
+            return value
+        try:
+            occurrence_date = datetime.strptime(value, "%d-%m-%Y").date()
+        except ValueError:
+            terminal.write("Please use a valid date in DD-MM-YYYY format.")
+            continue
+        if occurrence_date > date.today():
+            terminal.write("The date cannot be in the future.")
+            continue
+        return value
 
-# Helper function to read date input from the user with validation and navigation options
-def _read_date(input_function: InputFunction) -> str:
-	"""_summary_
-		Function to read input from the user and return a date string in DD-MM-YYYY format after validating the input.
-	Args:
-		input_function (InputFunction): A callable function to read user input. Defaults to the built-in input function.
 
-	Returns:
-		str: date in DD-MM-YYYY format
-	"""
-	while True:
-		value = _read_non_empty("\nDate of loss/finding (DD-MM-YYYY): ", input_function)
+def _select_image(
+    input_function: InputFunction,
+    output_function: OutputFunction,
+) -> str | None:
+    load_dotenv()
+    if os.environ.get("APP_CONTAINER") != "1":
+        while True:
+            root = None
+            try:
+                root = tk.Tk()
+                root.withdraw()
+                file_path = filedialog.askopenfilename(
+                    title="Select an image",
+                    filetypes=[
+                        ("Image files", "*.jpg *.jpeg *.png"),
+                        ("JPG files", "*.jpg"),
+                        ("JPEG files", "*.jpeg"),
+                        ("PNG files", "*.png"),
+                    ],
+                )
+            except tk.TclError as error:
+                output_function(
+                    f"[!] Unable to open the image selector: {error}"
+                )
+                break
+            finally:
+                if root is not None:
+                    try:
+                        root.destroy()
+                    except tk.TclError as error:
+                        output_function(
+                            f"[!] Unable to close the image selector: {error}"
+                        )
 
-		if value == BACK:
-			return  BACK
+            if not file_path:
+                output_function("Image selection is cancelled.")
+                return None
 
-		if value == MAIN:
-			return MAIN
-		
-		try:
-			occurrence_date = datetime.strptime(value, "%d-%m-%Y").date()
-		except ValueError:
-			print("Please use a valid date in DD-MM-YYYY format.")
-			continue
-		if occurrence_date > date.today():
-			print("The date cannot be in the future.")
-			continue
+            image_path = Path(file_path)
+            if image_path.suffix.lower() not in IMAGE_EXTENSIONS:
+                output_function(
+                    "Please submit an image with a .jpg, .jpeg, or .png extension."
+                )
+                continue
+            if not image_path.is_file():
+                output_function(
+                    "The image file could not be found. Please try again."
+                )
+                continue
 
-		return value
+            output_function("The image is added successfully.\n")
+            return str(image_path)
 
-# Helper function to read image path input from the user with validation and navigation options
-def _read_image_path(input_function: InputFunction) -> str:
-	"""_summary_
-		Function to read the image path from the user using a file dialog. Validates the file extension and existence of the file.
-	Args:
-		input_function (InputFunction): A callable function to read user input. Defaults to the built-in input function.
+    output_function("\n[!] Headless container environment detected. Using CLI input.")
+    while True:
+        output_function("Please enter the full path to the image file.")
+        output_function("B. Go back to the previous step.")
+        output_function("M. Go back to the Main Menu")
+        cli_input = input_function(
+            "Enter the image name make sure the image is stored in the /temp "
+            "directory (Example: image.jpg): "
+        ).strip()
+        if cli_input.lower() == "b":
+            return BACK
+        if cli_input.lower() == "m":
+            return MAIN
 
-	Returns:
-		str: The path to the selected image file, or None if the selection is cancelled.
-	"""
-	# Load environment variables from .env file
-	load_dotenv()
-	if os.environ.get("APP_CONTAINER") != "1":
-		while True: 
-			try:
-				root = tk.Tk()
-				root.withdraw()
+        image_path = Path("temp/" + cli_input).expanduser()
+        if image_path.suffix.lower() not in IMAGE_EXTENSIONS:
+            output_function(
+                "Please submit an image with a .jpg, .jpeg, or .png extension.\n"
+            )
+            continue
+        if not image_path.is_file():
+            output_function("The image file could not be found. Please try again.\n")
+            continue
 
-				file_path = filedialog.askopenfilename(
-					title = "Select an image",
-					filetypes = [
-						("Image files", "*jpg *jpeg *png"),
-						("JPG files","*jpg"),
-						("JPEG files", "*jpeg"),
-						("PNG files", "*png"),
-					],
-				)
+        output_function("The image is added successfully.\n")
+        return str(image_path)
 
-				root.destroy()
 
-				if not file_path:
-					print("Image selection is cancelled.")
-					return None
+def _print_choices(
+    title: str,
+    choices: tuple[str, ...],
+    terminal: TerminalIO,
+) -> None:
+    terminal.write(title)
+    for number, choice in enumerate(choices, start=1):
+        terminal.write(f"{number}. {choice.title()}")
 
-				image_path = Path(file_path)
 
-				if image_path.suffix.lower() not in IMAGE_EXTENSIONS:
-					print("Please submit an image with a .jpg, .jpeg, or .png extension.")
-					continue
+def _print_nav(terminal: TerminalIO, include_back: bool = True) -> None:
+    if include_back:
+        terminal.write("B. Go back to the previous step.")
+    terminal.write("M. Go back to the Main Menu")
 
-				if not image_path.is_file():
-					print("The image file could not be found. Please try again.")
-					continue
 
-				print("The image is added successfully. \n")
+class ReportCollector:
+    """Collect and validate a report using a terminal for one collection."""
 
-				return str(image_path)
-			except (tk.TclError, Exception) as e:
-				print(f"[!] An error occurred while selecting the image: {e}")
-				pass
-	# CLI fallback if container does not have GUI support
-	print("\n[!] Headless container environment detected. Using CLI input.")
-	while True:
-		print("Please enter the full path to the image file.")
-		_print_nav()
-		cli_input = input_function("Enter the image name make sure the image is stored in the /temp directory (Example: image.jpg): ")
-		
-		if cli_input.lower() == "b":
-			return BACK
-		elif cli_input.lower() == "m":
-			return MAIN
+    def collect(
+        self, terminal: TerminalIO
+    ) -> dict[str, str | None] | None:
+        stage = 1
+        report_type = None
+        category = None
+        description = None
+        image_path = None
+        occurrence_date = None
 
-		image_path = Path("temp/" + cli_input).expanduser()
+        while True:
+            if stage == 1:
+                _print_choices("\nReport type:", REPORT_TYPES, terminal)
+                _print_nav(terminal, include_back=False)
+                report_type = _read_choice(
+                    "Select report type: ", REPORT_TYPES, terminal
+                )
+                if report_type == MAIN:
+                    return None
+                stage = 2
+            elif stage == 2:
+                _print_choices("\nItem category:", CATEGORIES, terminal)
+                _print_nav(terminal)
+                category = _read_choice(
+                    "Select item category: ", CATEGORIES, terminal
+                )
+                if category == MAIN:
+                    return None
+                if category == BACK:
+                    stage = 1
+                    continue
+                stage = 3
+            elif stage == 3:
+                terminal.write("\nEnter item description.")
+                _print_nav(terminal)
+                description = _read_non_empty(
+                    "\nItem description: ", terminal
+                )
+                if description == MAIN:
+                    return None
+                if description == BACK:
+                    stage = 2
+                    continue
+                stage = 4
+            elif stage == 4:
+                _print_choices(
+                    "\nWould you like to upload an image?",
+                    ("yes", "no"),
+                    terminal,
+                )
+                _print_nav(terminal)
+                upload_image = _read_choice(
+                    "Select an option: ", ("yes", "no"), terminal
+                )
+                if upload_image == MAIN:
+                    return None
+                if upload_image == BACK:
+                    stage = 3
+                    continue
+                image_path = None
+                if upload_image == "yes":
+                    image_path = terminal.select_image()
+                    if image_path == BACK:
+                        continue
+                    if image_path == MAIN:
+                        return None
+                stage = 5
+            else:
+                terminal.write("\nEnter the date of loss/finding.")
+                _print_nav(terminal)
+                occurrence_date = _read_date(terminal)
+                if occurrence_date == MAIN:
+                    return None
+                if occurrence_date == BACK:
+                    stage = 4
+                    continue
+                return {
+                    "report_type": report_type,
+                    "category": category,
+                    "description": description,
+                    "image_path": image_path,
+                    "date": occurrence_date,
+                }
 
-		if image_path.suffix.lower() not in IMAGE_EXTENSIONS:
-			print("Please submit an image with a .jpg, .jpeg, or .png extension.\n")
-			continue
 
-		if not image_path.is_file():
-			print("The image file could not be found. Please try again.\n")
-			continue
-
-		print("The image is added successfully.\n")
-		return str(image_path)
-
-# Helper function to print menu choices for the user to select from
-def _print_choices(title: str, choices: tuple[str, ...]) -> None:
-	"""_summary_
-		Function to print menu choices for the user to select from.
-	Args:
-		title (str): Title of the menu
-		choices (tuple[str, ...]): Tuple containing the choices to display
-	"""
-	print(title)
-	for number, choice in enumerate(choices, start=1):
-		print(f"{number}. {choice.title()}")
-
-# Helper function to print navigation options for the user to go back or return to the main menu
-def _print_nav(include_back: bool = True) -> None:
-	"""_summary_
-		Function to print navigation options for the user to go back or return to the main menu.
-	Args:
-		include_back (bool, optional): Whether to display back option or not. Defaults to True.
-	"""
-	if include_back:
-		print("B. Go back to the previous step.")
-
-	print("M. Go back to the Main Menu")
-
-# Function to craft report based on user input
-def collect_report(input_function: InputFunction = input) -> dict[str, str]:
-	"""_summary_
-		Function to collect a lost/found report from the user through a series of prompts. 
-		The function guides the user through multiple stages to gather necessary information for the report.
-	Args:
-		input_function (InputFunction, optional): A callable function to read user input. Defaults to the built-in input function.
-
-	Returns:
-		dict[str, str]: Dictionary of string values or None
-	"""
-
-	stage = 1
-
-	report_type = None
-	category = None
-	description = None
-	image_path = None
-	date = None
-
-	while True:
-
-		#Stage 1 - Report Type
-		if stage == 1:
-
-			_print_choices("\nReport type:", REPORT_TYPES)
-			_print_nav(include_back=False)
-
-			report_type = _read_choice("Select report type: ", REPORT_TYPES, input_function)
-
-			if report_type == MAIN:
-				return None
-
-			stage = 2
-
-		#Stage 2 - Category
-		elif stage == 2:
-
-			_print_choices("\nItem category:", CATEGORIES)
-			_print_nav()
-
-			category = _read_choice("Select item category: ", CATEGORIES, input_function)
-
-			if category == MAIN:
-				return None
-
-			if category == BACK:
-				stage = 1
-				continue 
-
-			stage = 3
-
-		#Stage 3 - Description 
-		elif stage == 3:
-
-			print("\nEnter item description. ")
-			_print_nav()
-
-			description = _read_non_empty("\nItem description: ", input_function)
-
-			if description == MAIN:
-				return None 
-
-			if description == BACK:
-				stage = 2
-				continue
-
-			stage = 4
-
-		#Stage 4 - Image Upload
-		elif stage == 4:
-
-			_print_choices("\nWould you like to upload an image?", ("yes","no"))
-			_print_nav()
-
-			upload_image = _read_choice("Select an option: ", ("yes", "no"), input_function)
-
-			if upload_image == MAIN:
-				return None
-
-			if upload_image == BACK:
-				stage = 3
-				continue
-
-			image_path = None 
-			if upload_image == "yes":
-				image_path = _read_image_path(input_function)
-
-				if image_path is BACK:
-					continue
-				if image_path == MAIN:
-					break
-			stage = 5
-
-		#Stage 5 - Date
-		elif stage == 5:
-
-			print("\nEnter the date of loss/finding.")
-			_print_nav()
-
-			date = _read_date(input_function)
-
-			if date == MAIN:
-				return None 
-
-			if date == BACK:
-				stage = 4
-				continue
-
-			return {
-				"report_type": report_type,
-				"category": category,
-				"description": description,
-				"image_path": image_path,
-				"date": date,
-			}
-
-# Function to format a single report in a consistent human-readable format
 def format_record(record: Mapping[str, object]) -> str:
-	"""_summary_
-		Function that receives a single report from database and formats it in a consistent human-readable format for summary display
-	Args:
-		record (Mapping[str, object]): A single report from the database represented as a mapping of string keys to object values.
+    """Format one report without performing terminal I/O."""
+    report_type = str(
+        record.get("report_type", record.get("type", "unknown"))
+    ).title()
+    case_id = str(record.get("case_id", "unknown"))
+    status = str(record.get("status", "Unknown"))
+    category = str(record.get("category", "unknown")).title()
+    identifying_features = record.get(
+        "identifying_features", "No identifying features"
+    )
+    image_path = str(
+        record.get(
+            "image_filename",
+            record.get("image_path", record.get("image", "No image")),
+        )
+    )
+    occurrence_date = str(
+        record.get("date", record.get("occurrence_date", "Unknown date"))
+    )
+    features = (
+        ", ".join(identifying_features)
+        if isinstance(identifying_features, list)
+        else identifying_features
+    )
+    return (
+        f"{report_type} report\n"
+        f"  Case ID: {case_id}\n"
+        f"  Status: {status}\n"
+        f"  Category: {category}\n"
+        f"  Identifying Features: {features}\n"
+        f"  Date: {occurrence_date}\n"
+        f"  Image: {image_path}"
+    )
 
-	Returns:
-		str: A formatted string representing the report in a human-readable format.
-	"""
-	report_type = str(record.get("report_type", record.get("type", "unknown"))).title()
-	case_id = str(record.get("case_id", "unknown"))
-	status = str(record.get('status', 'Unknown'))
-	category = str(record.get("category", "unknown")).title()
-	identifying_features = record.get("identifying_features", "No identifying features")
-	image_path = str(
-		record.get(
-			"image_filename",
-			record.get("image_path", record.get("image", "No image")),
-		)
-	)
-	occurrence_date = str(record.get("date", record.get("occurrence_date", "Unknown date")))
-	return (
-		f"{report_type} report\n"
-		f"  Case ID: {case_id}\n"
-		f"  Status: {status}\n"
-		f"  Category: {category}\n"
-		f"  Identifying Features: {', '.join(identifying_features) if isinstance(identifying_features, list) else identifying_features}\n"
-		f"  Date: {occurrence_date}\n"
-		f"  Image: {image_path}"
-	)
 
-# Function to receive a list of reports to format for summary display
 def format_records(records: Iterable[Mapping[str, object]]) -> str:
-	"""_summary_
-		Function that receives a list of reports from database and formats them in a consistent human-readable format for summary display
-	Args:
-		records (Iterable[Mapping[str, object]]): An iterable of reports from the database, where each report is represented as a mapping of string keys to object values.
+    """Format multiple reports without performing terminal I/O."""
+    record_list = list(records)
+    if not record_list:
+        return "No reports found."
+    return "\n\n".join(
+        f"{number}. {format_record(record)}"
+        for number, record in enumerate(record_list, start=1)
+    )
 
-	Returns:
-		str: A formatted string representing the list of reports in a human-readable format, with each report separated by two newlines.
-	"""
-	record_list = list(records)
-	if not record_list:
-		return "No reports found."
-	return "\n\n".join(
-		f"{number}. {format_record(record)}"
-		for number, record in enumerate(record_list, start=1)
-	)
 
-# Function to display a summary of reports in a human-readable format
-def display_summary(records: Iterable[Mapping[str, object]]) -> None:
-	"""_summary_
-		Function that receives a list of reports from database and displays them in a consistent human-readable format for summary display
-	Args:
-		records (Iterable[Mapping[str, object]]): An iterable of reports from the database, where each report is represented as a mapping of string keys to object values.
-	"""
-	print("\nLost-and-Found Summary")
-	print("======================")
-	print(format_records(records))
+class IOManager:
+    """Coordinate terminal interactions and report presentation."""
 
-# Function to return the best match report to the user and ask for confirmation if it is a match
-def resolve_best_match(best_match, input_function: InputFunction = input):
-	"""_summary_
-		Function to return the best match report to the user and ask for confirmation if it is a match.
-	Args:
-		best_match (dict): The best match report to be presented to the user.
-		input_function (InputFunction, optional): A callable function to read user input. Defaults to the built-in input function.
+    def __init__(
+        self,
+        terminal: TerminalIO | None = None,
+        report_loader: ReportLoader = data_manager.load_reports,
+    ) -> None:
+        self._terminal = terminal if terminal is not None else ConsoleTerminal()
+        self._report_loader = report_loader
+        self._collector = ReportCollector()
 
-	Returns:
-		boolean: True if the user confirms the match, False otherwise.
-	"""
-	print("[+] Best match found from database:")
-	evaluation = best_match.get("evaluation")
-	print(f"Verdict: {evaluation.get("status")}")
-	print(f"Final score after applying business rules: {evaluation.get("final_composite_score")}/100")
-	print(f"Matched rules: {', '.join(evaluation.get("matched_rules_list")) if evaluation.get("matched_rules_list") else 'None'}")
-	print(f"Mismatched rules: {', '.join(evaluation.get("mismatched_rules_list")) if evaluation.get("mismatched_rules_list") else 'None'}")
-	print(f"Summary: {evaluation.get("evaluation_summary")}")
+    def collect_report(self) -> dict[str, str | None] | None:
+        return self._collector.collect(self._terminal)
 
-	while True:
-		resolve = input_function("Is this a match for the item you have lost? (yes/no): ").strip().lower()
+    def display_summary(self, records: Iterable[Mapping[str, object]]) -> None:
+        self._terminal.write("\nLost-and-Found Summary")
+        self._terminal.write("======================")
+        self._terminal.write(format_records(records))
 
-		if resolve in {"yes", "y"}:
-			return True
-		elif resolve in {"no", "n"}:
-			return False
-		else:
-			print("Please enter 'yes' or 'no'.")
+    def resolve_best_match(
+        self, best_match: Mapping[str, object]
+    ) -> bool:
+        self._terminal.write("[+] Best match found from database:")
+        evaluation = best_match.get("evaluation")
+        if not isinstance(evaluation, Mapping):
+            raise ValueError("The best match must include an evaluation mapping.")
 
-# Function to run the main command-line interface for the AI powered lost and found system
-def run_cli(input_function: InputFunction = input):
-	"""_summary_
-		Runs the command-line interface for the AI powered lost and found system.
-	Args:
-		input_function (InputFunction, optional): A callable function to read user input. Defaults to the built-in input function.
+        matched_rules = evaluation.get("matched_rules_list")
+        mismatched_rules = evaluation.get("mismatched_rules_list")
+        self._terminal.write(f"Verdict: {evaluation.get('status')}")
+        self._terminal.write(
+            "Final score after applying business rules: "
+            f"{evaluation.get('final_composite_score')}/100"
+        )
+        self._terminal.write(
+            "Matched rules: "
+            f"{', '.join(matched_rules) if matched_rules else 'None'}"
+        )
+        self._terminal.write(
+            "Mismatched rules: "
+            f"{', '.join(mismatched_rules) if mismatched_rules else 'None'}"
+        )
+        self._terminal.write(f"Summary: {evaluation.get('evaluation_summary')}")
 
-	Returns:
-		dict / str: Dictionary of information about the report submitted by user / string "quit" if user chooses to exit the program
-	"""
-	while True:
-		print("\n" + "=" * 50)
-		print("Welcome to the AI powered lost and found system!")
-		print("=" * 50)
-		print("1. Submit a lost/found report")
-		print("2. View summary of all reports")
-		print("3. Exit")
-		command = input_function("Select an option: ").strip().lower()
+        while True:
+            resolve = self._terminal.read(
+                "Is this a match for the item you have lost? (yes/no): "
+            ).strip().lower()
+            if resolve in {"yes", "y"}:
+                return True
+            if resolve in {"no", "n"}:
+                return False
+            self._terminal.write("Please enter 'yes' or 'no'.")
 
-		if command in {"1", "report", "submit"}:
-			report = collect_report(input_function)
+    def run_cli(self) -> dict[str, str | None] | str:
+        while True:
+            self._terminal.write("\n" + "=" * 50)
+            self._terminal.write("Welcome to the AI powered lost and found system!")
+            self._terminal.write("=" * 50)
+            self._terminal.write("1. Submit a lost/found report")
+            self._terminal.write("2. View summary of all reports")
+            self._terminal.write("3. Exit")
+            command = self._terminal.read("Select an option: ").strip().lower()
 
-			if report is None: 
-				print("\nReport submission cancelled.")
-				continue 
+            if command in {"1", "report", "submit"}:
+                report = self.collect_report()
+                if report is None:
+                    self._terminal.write("\nReport submission cancelled.")
+                    continue
+                self._terminal.write("\n" + "=" * 32)
+                self._terminal.write("Report submitted successfully!")
+                self._terminal.write("=" * 32)
+                return report
+            if command in {"2", "/summary", "summary"}:
+                try:
+                    report_list = self._report_loader()
+                except (OSError, ValueError) as error:
+                    self._terminal.write(f"Could not load saved reports: {error}")
+                    report_list = []
+                self.display_summary(report_list)
+                continue
+            if command in {"3", "exit", "quit", "q"}:
+                self._terminal.write(
+                    "\nExiting the AI powered lost and found system. Goodbye!"
+                )
+                return "quit"
+            self._terminal.write("Please choose 1, 2, or 3.")
 
-			print("\n" + "=" * 32)
-			print("Report submitted successfully!")
-			print("=" * 32)
 
-			return report
-		elif command in {"2", "/summary", "summary"}:
-			try:
-				report_list = data_manager.load_reports()
-			except (OSError, ValueError) as error:
-				report_list = []
-				print(f"Could not load saved reports: {error}")
-			display_summary(report_list)
+def collect_report(
+    input_function: InputFunction = input,
+    output_function: OutputFunction = print,
+) -> dict[str, str | None] | None:
+    terminal = CallbackTerminal(input_function, output_function)
+    return IOManager(terminal).collect_report()
 
-		elif command in {"3", "exit", "quit", "q"}:
-			print("\nExiting the AI powered lost and found system. Goodbye!")
-			return "quit"
-		else:
-			print("Please choose 1, 2, or 3.")
 
-# Import control
+def display_summary(
+    records: Iterable[Mapping[str, object]],
+    output_function: OutputFunction = print,
+) -> None:
+    terminal = CallbackTerminal(output_function=output_function)
+    IOManager(terminal).display_summary(records)
+
+
+def resolve_best_match(
+    best_match: Mapping[str, object],
+    input_function: InputFunction = input,
+    output_function: OutputFunction = print,
+) -> bool:
+    terminal = CallbackTerminal(input_function, output_function)
+    return IOManager(terminal).resolve_best_match(best_match)
+
+
+def run_cli(
+    input_function: InputFunction = input,
+    output_function: OutputFunction = print,
+) -> dict[str, str | None] | str:
+    terminal = CallbackTerminal(input_function, output_function)
+    return IOManager(terminal).run_cli()
+
+
 __all__ = [
-	"CATEGORIES",
-	"REPORT_TYPES",
-	"collect_report",
-	"display_summary",
-	"format_record",
-	"format_records",
-	"resolve_best_match",
-	"run_cli",
+    "CATEGORIES",
+    "REPORT_TYPES",
+    "CallbackTerminal",
+    "ConsoleTerminal",
+    "IOManager",
+    "ReportCollector",
+    "TerminalIO",
+    "collect_report",
+    "display_summary",
+    "format_record",
+    "format_records",
+    "resolve_best_match",
+    "run_cli",
 ]
 
+
 if __name__ == "__main__":
-	run_cli()
+    run_cli()
