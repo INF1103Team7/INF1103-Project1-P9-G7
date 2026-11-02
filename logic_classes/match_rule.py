@@ -1,18 +1,23 @@
 # every business rule class must provide its own implementation of them #
 from abc import ABC, abstractmethod
+# Abstract base class that defines the required structure and behaviour for all business rule classes.
 class MatchRule(ABC):
+    # check whether conditions of business rule are satisfied #
     @abstractmethod
     def is_satisfied(self, data):
         pass
-
+    
+    # determines how the score is calculated if the rule is satisfied #
     @abstractmethod
     def apply_rule(self, score):
         pass
     
+    # returns the name of the business rule #
     @abstractmethod
     def get_rule_name(self):
         pass
     
+    # for RuleManager to organize rules by type#
     @abstractmethod
     def get_rule_type(self):
         pass

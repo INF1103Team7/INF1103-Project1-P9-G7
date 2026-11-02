@@ -91,3 +91,34 @@ def test_tie_score(logic_manager):
             break
 
     assert result["report"] == first_valid_report
+
+# ----------------------------------------
+# Test Impossible Timeline
+# ----------------------------------------
+
+def test_impossible_timeline(logic_manager):
+
+    ai_result = {
+        "date": "10-10-2026",
+        "similarity_analysis": {
+            "similarity_score": 95,
+            "color_match": "match",
+            "material_match": "match",
+            "brand_match": "match",
+            "location_match": "match",
+            "feature_overlap_match": ["logo", "shape"]
+        }
+    }
+
+    lost_report_date = "15-10-2026"
+
+    evaluation = logic_manager.matcher.evaluate_analysis(
+        ai_result,
+        lost_report_date
+    )
+
+    assert evaluation["status"] == "match_failure"
+
+    assert evaluation["final_composite_score"] == 0.0
+
+    assert "TEMPORAL_PARADOX_VETO" in evaluation["triggered_rules_list"]

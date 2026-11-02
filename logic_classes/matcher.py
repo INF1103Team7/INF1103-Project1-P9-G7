@@ -22,19 +22,32 @@ from .rules import (
 )
 
 class Matcher:
+    """
+    Coordinates the validation, trait extraction and business rule evaluation processes to determine how well two reports match.
+    """
+
     def __init__(self, validator=None):
+        # Use the supplied validator or create a new one if none is provided.
         self.validator = validator or AnalysisValidator()
+
+        # Create a Traits object and share the same validator with it.
         self.traits = Traits(self.validator)
+
+        # Create the configuration object that stores matching thresholds.
         self.threshold_config = ThresholdConfig()
+
+        # Create a RuleManager to organise and evaluate business rules.
         self.rule_manager = RuleManager()
 
-        # veto rule#
+        # Register veto rules.
         self.rule_manager.add_rule(VetoMismatchRule(self.threshold_config))
-        # negative rules#
+
+        # Register negative rules.
         self.rule_manager.add_rule(ColorMaterialMismatchRule())
         self.rule_manager.add_rule(LocationMismatchRule())
         self.rule_manager.add_rule(ColorOnlyMatchRule())
-        # positive rules#
+
+        # Register positive rules.
         self.rule_manager.add_rule(FullMatchRule(self.threshold_config))
         self.rule_manager.add_rule(FourMatchRule(self.threshold_config))
         self.rule_manager.add_rule(BrandColorFeatureMatchRule(self.threshold_config))
@@ -47,11 +60,13 @@ class Matcher:
         self.rule_manager.add_rule(MaterialFeatureMatchRule(self.threshold_config))
         self.rule_manager.add_rule(ColorMaterialMatchRule())
 
-        # bonus rule#
+        # Register bonus rules.
         self.rule_manager.add_rule(SecondaryColorMatchRule())
-    
+
     def handle_temporal_paradox(self, data, matched_rules_list, mismatched_rules_list):
+        # Check whether the found date occurs before the reported lost date.
         if data["time_match"] == "impossible_timeline":
+            # Immediately reject the match because the timeline is impossible.
             return {
                 "status": "match_failure",
                 "final_composite_score": 0.0,
@@ -61,22 +76,24 @@ class Matcher:
                 "evaluation_summary": "The found date cannot occur before the lost date."
             }
 
+        # Return None when no temporal paradox is detected.
         return None
 
     def evaluate_rules(self, data, similarity_score, matched_rules_list, mismatched_rules_list):
-        # Evaluate all registered business rules
+        # Delegate the evaluation of registered business rules to RuleManager.
         evaluation = self.rule_manager.evaluate(data, similarity_score)
 
+        # Extract the results returned by RuleManager.
         final_score = evaluation["final_score"]
         triggered_rules_list = evaluation["triggered_rules_list"]
         veto_triggered = evaluation["veto_triggered"]
         positive_rule = evaluation["positive_rule"]
 
-        # Retrieve thresholds from ThresholdConfig
+        # Retrieve the configured thresholds.
         high_threshold = self.threshold_config.get_high_threshold()
         reject_threshold = self.threshold_config.get_reject_threshold()
 
-        # Determine the final matching status
+        # Determine the final matching status based on the score and triggered rules.
         if veto_triggered:
             status = "match_failure"
             evaluation_summary = "The reports have insufficient visual similarity to support a reliable match."
@@ -103,6 +120,7 @@ class Matcher:
             status = "LOW_CONFIDENCE_MATCH"
             evaluation_summary = "The similarity metrics are too low to suggest a viable match."
 
+        # Return the final evaluation details.
         return {
             "status": status,
             "final_composite_score": final_score,
@@ -111,10 +129,12 @@ class Matcher:
             "mismatched_rules_list": mismatched_rules_list,
             "evaluation_summary": evaluation_summary
         }
+
     def evaluate_analysis(self, ai_result, lost_report_date=None):
-        # Validate AI output and obtain the original similarity score
+        # Validate the AI-generated result and retrieve its similarity score.
         validation, similarity_score = self.validator.validate_analysis(ai_result)
 
+        # Stop the evaluation if the AI output is invalid.
         if validation == "system_failure":
             return {
                 "status": "system_failure",
@@ -125,25 +145,26 @@ class Matcher:
                 "evaluation_summary": "Invalid AI output."
             }
 
-        # Extract traits
+        # Extract the matching attributes from the AI result.
         data = self.traits.get_traits(ai_result, lost_report_date)
 
-        # Classify matched and mismatched attributes
+        # Classify the extracted attributes into matched and mismatched lists.
         matched_rules_list, mismatched_rules_list = (
             self.traits.classify_traits(data)
         )
 
-        # Handle temporal paradox
+        # Check whether the reported dates create an impossible timeline.
         temporal_result = self.handle_temporal_paradox(
             data,
             matched_rules_list,
             mismatched_rules_list
         )
 
+        # Return immediately if an impossible timeline is detected.
         if temporal_result is not None:
             return temporal_result
 
-        # Evaluate remaining rules
+        # Evaluate the registered business rules if the result passes validation.
         return self.evaluate_rules(
             data,
             similarity_score,
