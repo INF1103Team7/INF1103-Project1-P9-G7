@@ -12,6 +12,7 @@ logging.getLogger("google_genai.models").setLevel(logging.ERROR)
 from ai_classes.ai_api import AiAPI
 from ai_classes.ai_helper import AiHelper
 from ai_classes.ai_configuration import AiConfiguration
+from ai_classes.ai_service import AiService
 
 # Functions
 # AI feature extraction
@@ -241,5 +242,6 @@ desc = {
     "image_filename": "bottle.jpg"
 }
 
-features = extract_features(desc, desc["image_filename"])
+features = AiService("Feature extraction").extract_features(desc, desc["image_filename"])
+# features = extract_features(desc, desc["image_filename"])
 print(features)
