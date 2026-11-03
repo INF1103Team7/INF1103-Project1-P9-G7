@@ -1,16 +1,24 @@
 import time
+import logging
 from typing import Optional, Any
 from google.genai.errors import APIError
+
+# Classes
 from ai_classes.ai_service_interface import AIServiceInterface
 from ai_classes.ai_api import AiAPI
 from ai_classes.ai_helper import AiHelper
 from ai_classes.ai_configuration import AiConfiguration
+
+# Surpress non critical logging messages from the Google GenAI library
+logging.getLogger("google_genai.models").setLevel(logging.ERROR)
 
 class AiService(AIServiceInterface):
     # Class initialization with operation type
     def __init__(self, operation_type: str):
         self._client = AiAPI()._get_ai_client()
         self._operation_type = operation_type
+        self._ai_config = AiConfiguration()
+        self._ai_helper = AiHelper()
 
     # Execute API call with retry logic
     def _execute_with_retry(self, contents: Any):
@@ -23,8 +31,7 @@ class AiService(AIServiceInterface):
             str: The response from the AI API, stripped of leading and trailing whitespace. or None if an error occurs.
         """
         # Retry loop for API calls in the case of 429 Resource exhausted errors
-        ai_configurations = AiConfiguration()
-        for model_index, active_model in enumerate(ai_configurations.models):
+        for model_index, active_model in enumerate(self._ai_config.models):
             print(f"[+] Active model in use {active_model}")
             # Retry loop for API calls in the case of 503 service unavailable errors
             delay = 5
@@ -34,7 +41,7 @@ class AiService(AIServiceInterface):
                     response = self._client.models.generate_content(
                         model=active_model,
                         contents=contents,
-                        config=ai_configurations.config,
+                        config=self._ai_config.config,
                     )
     
                     print(f"[+] Successful {self._operation_type}")
@@ -45,8 +52,8 @@ class AiService(AIServiceInterface):
                     # Handle error 429 resource exhausted (Rate limit exceeded) and retry with backup models
                     if e.code == 429:
                         print(f"[!] API Error 429: Rate limit hit on {active_model}")
-                        if model_index < len(ai_configurations.models) - 1:
-                            next_model = ai_configurations.models[model_index + 1]
+                        if model_index < len(self._ai_config.models) - 1:
+                            next_model = self._ai_config.models[model_index + 1]
                             print(f"[+] Trying next model: {next_model}")
                         else:
                             print(f"[!] API Error 429: All models rate limit exceeded. {e.message}")
@@ -115,7 +122,7 @@ class AiService(AIServiceInterface):
         contents = []
         if image_path:
             print("[+] Image filepath found, attempting to add to prompt...")
-            contents.append(AiHelper()._load_image_part(image_path))
+            contents.append(self._ai_helper._load_image_part(image_path))
         
         contents.append(prompt)
         print("[+] Feature extraction prompt built, sending prompt to Gemini AI API")
@@ -132,8 +139,7 @@ class AiService(AIServiceInterface):
                 list of the top 3 most similar lost reports in order of similarity, with the most similar report first, or an error message.
         """
         print("[+] Initialising AI client object for semantic matching...")
-        client = AiAPI()._get_ai_client()
-        if not client:
+        if not self._client:
             print(f"[!] Error: Gemini API Key missing")
             return None
         print("[+] AI client object initialised successfully!")
