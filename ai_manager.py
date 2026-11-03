@@ -10,6 +10,7 @@ from google import genai
 from google.genai import types
 from google.genai.errors import APIError
 
+from ai_classes.ai_api import AiAPI
 # Surpress non critical logging messages from the Google GenAI library
 logging.getLogger("google_genai.models").setLevel(logging.ERROR)
 
@@ -296,3 +297,6 @@ def ai_semantic_matching(input_lost_report, datalist: list):
 
 # Import control
 __all__ = ["extract_features", "ai_semantic_matching"]
+
+ai = AiAPI()._get_ai_client()
+print(ai)
