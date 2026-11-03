@@ -1,12 +1,8 @@
 # ai_manager file for AI API calling for feature extraction and semantic matching
 
 # Imports
-import os
 import time
 import logging
-from pathlib import Path
-from dotenv import load_dotenv
-from google import genai
 from google.genai import types
 from google.genai.errors import APIError
 
