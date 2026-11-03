@@ -16,6 +16,7 @@ logging.getLogger("google_genai.models").setLevel(logging.ERROR)
 # Classes
 from ai_classes.ai_api import AiAPI
 from ai_classes.helper import Helper
+from ai_classes.ai_configuration import AiConfiguration
 
 # Constants
 # Gemini AI models to use
@@ -82,7 +83,8 @@ def extract_features(description, image_path=None):
 
     print("[+] Feature extraction prompt built, sending prompt to Gemini AI API")
     # Retry loop for API calls in the case of 429 Resource exhausted errors
-    for model_index, active_model in enumerate(AI_MODELS):
+    ai_configurations = AiConfiguration()
+    for model_index, active_model in enumerate(ai_configurations.models):
         print(f"[+] Active model in use {active_model}")
         # Retry loop for API calls in the case of 503 service unavailable errors
         delay = 5
@@ -92,7 +94,7 @@ def extract_features(description, image_path=None):
                 response = client.models.generate_content(
                     model=active_model,
                     contents=contents,
-                    config=AI_CONFIG,
+                    config=ai_configurations.config,
                 )
 
                 print("[+] Successful feature extraction")
@@ -103,8 +105,8 @@ def extract_features(description, image_path=None):
                 # Handle error 429 resource exhausted (Rate limit exceeded) and retry with backup models
                 if e.code == 429:
                     print(f"[!] API Error 429: Rate limit hit on {active_model}")
-                    if model_index < len(AI_MODELS) - 1:
-                        next_model = AI_MODELS[model_index + 1]
+                    if model_index < len(ai_configurations.models) - 1:
+                        next_model = ai_configurations.models[model_index + 1]
                         print(f"[+] Trying next model: {next_model}")
                     else:
                         print(f"[!] API Error 429: All models rate limit exceeded. {e.message}")
@@ -199,7 +201,8 @@ def ai_semantic_matching(input_lost_report, datalist: list):
 
     print("[+] Semantic AI Matching prompt built, sending prompt to Gemini AI API")
     # Retry loop for API calls in the case of 429 Resource exhausted errors
-    for model_index, active_model in enumerate(AI_MODELS):
+    ai_configurations = AiConfiguration()
+    for model_index, active_model in enumerate(ai_configurations.models):
         print(f"[+] Active model in use {active_model}")
         # Retry loop for API calls in the case of 503 service unavailable errors
         delay = 5
@@ -209,7 +212,7 @@ def ai_semantic_matching(input_lost_report, datalist: list):
                 response = client.models.generate_content(
                     model=active_model,
                     contents=prompt,
-                    config=AI_CONFIG,
+                    config=ai_configurations.config,
                 )
 
                 print("[+] Successful Semantic AI matching")
@@ -220,8 +223,8 @@ def ai_semantic_matching(input_lost_report, datalist: list):
                 # Handle error 429 resource exhausted (Rate limit exceeded) and retry with backup models
                 if e.code == 429:
                     print(f"[!] API Error 429: Rate limit hit on {active_model}")
-                    if model_index < len(AI_MODELS) - 1:
-                        next_model = AI_MODELS[model_index + 1]
+                    if model_index < len(ai_configurations.models) - 1:
+                        next_model = ai_configurations.models[model_index + 1]
                         print(f"[+] Trying next model: {next_model}")
                     else:
                         print(f"[!] API Error 429: All models rate limit exceeded. {e.message}")

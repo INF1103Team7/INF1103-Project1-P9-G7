@@ -3,21 +3,29 @@ from google.genai import types
 # Class to manage AI configuration settings, including models, temperature, and timeout.
 class AiConfiguration:
     # Initialise the AI configuration with default values for models, temperature, and timeout.
-    def __init__(self, models: str, temperature: float, timeout: int):
-        self._models = models or [
+    def __init__(self):
+        self._models = [
             "gemini-3.8-flash",
             "gemini-3.7-flash",
             "gemini-3.6-flash",
             "gemini-3.5-flash"
         ]
-        self._temperature = temperature or 0.1
-        self._timeout = timeout or 90000
+        self._temperature = 0.1
+        self._timeout = 90000
 
         # AI conguration
         self._config = types.GenerateContentConfig (
             response_mime_type = "application/json",
-            temperature = temperature,
+            temperature = self._temperature,
             automatic_function_calling = types.AutomaticFunctionCallingConfig(disable=True),
             # Set request timeout 30 seconds
-            http_options = types.HttpOptions(timeout = timeout)
+            http_options = types.HttpOptions(timeout = self._timeout)
         )
+
+    @property
+    def models(self):
+        return self._models
+
+    @property
+    def config(self):
+        return self._config
