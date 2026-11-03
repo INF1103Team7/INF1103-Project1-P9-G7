@@ -5,6 +5,7 @@ from ai_classes.ai_service import AiService
 
 # Class to manage AI services for feature extraction and semantic matching
 class AiManager:
+    # Class initialization method to set up AI services for feature extraction and semantic matching
     def __init__(self):
         self._feature_extraction_service = AiService("Feature extraction")
         self._semantic_matching_service = AiService("Semantic AI matching")

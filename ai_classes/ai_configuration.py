@@ -1,3 +1,4 @@
+# Imports
 from google.genai import types
 
 # Class to manage AI configuration settings, including models, temperature, and timeout.
@@ -22,6 +23,7 @@ class AiConfiguration:
             http_options = types.HttpOptions(timeout = self._timeout)
         )
 
+    # Property getters for models and config to allow access to these attributes from outside the class.
     @property
     def models(self):
         return self._models

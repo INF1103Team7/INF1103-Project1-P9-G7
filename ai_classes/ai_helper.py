@@ -1,3 +1,4 @@
+# Class to assitst with AI operations with helper functions for image handling and mimetype detection
 class AiHelper:
     @staticmethod
     # Get mimetype based on the image filename extension
@@ -19,7 +20,16 @@ class AiHelper:
         # Universal fallback in case of any unexpected issues
         return "application/octet-stream"
 
-    def _load_image_part(self, image_path: str):
+    # Load image bytes from the specified path and create a Part object for the AI API request
+    def load_image_part(self, image_path: str):
+        """_summary_
+            Helper function to load image bytes from the specified path and create a Part object for the AI API request
+        Args:
+            image_path (str): Path to image file
+
+        Returns:
+            bytes: Image bytes to be passed in AI API request
+        """
         from pathlib import Path
         from google.genai import types
         try:
