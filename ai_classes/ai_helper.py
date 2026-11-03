@@ -1,4 +1,4 @@
-class Helper:
+class AiHelper:
     @staticmethod
     # Get mimetype based on the image filename extension
     def _get_mime_type(filename: str) -> str:

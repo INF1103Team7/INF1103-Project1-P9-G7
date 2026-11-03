@@ -3,7 +3,6 @@
 # Imports
 import time
 import logging
-from google.genai import types
 from google.genai.errors import APIError
 
 # Surpress non critical logging messages from the Google GenAI library
@@ -11,26 +10,8 @@ logging.getLogger("google_genai.models").setLevel(logging.ERROR)
 
 # Classes
 from ai_classes.ai_api import AiAPI
-from ai_classes.helper import Helper
+from ai_classes.ai_helper import AiHelper
 from ai_classes.ai_configuration import AiConfiguration
-
-# Constants
-# Gemini AI models to use
-AI_MODELS = [
-    "gemini-3.8-flash",
-    "gemini-3.7-flash",
-    "gemini-3.6-flash",
-    "gemini-3.5-flash"
-]
-
-# Configuration for the Gemini API request
-AI_CONFIG = types.GenerateContentConfig (
-    response_mime_type = "application/json",
-    temperature = 0.1,
-    automatic_function_calling = types.AutomaticFunctionCallingConfig(disable=True),
-    # Set request timeout 30 seconds
-    http_options = types.HttpOptions(timeout = 90_000)
-)
 
 # Functions
 # AI feature extraction
@@ -73,7 +54,7 @@ def extract_features(description, image_path=None):
     contents = []
     if image_path:
         print("[+] Image filepath found, attempting to add to prompt...")
-        contents.append(Helper()._load_image_part(image_path))
+        contents.append(AiHelper()._load_image_part(image_path))
     
     contents.append(prompt)
 
