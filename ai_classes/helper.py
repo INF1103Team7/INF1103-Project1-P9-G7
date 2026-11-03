@@ -19,11 +19,11 @@ class Helper:
         # Universal fallback in case of any unexpected issues
         return "application/octet-stream"
 
-    def load_image_part(self, image_path: str):
+    def _load_image_part(self, image_path: str):
         from pathlib import Path
         from google.genai import types
         try:
-            with open(Path(__file__).parent / f"temp/{image_path}", "rb") as f:
+            with open(Path(__file__).parent.parent / f"temp/{image_path}", "rb") as f:
                 image_bytes = f.read()
 
             contents = types.Part.from_bytes(data = image_bytes, mime_type = self._get_mime_type(image_path))

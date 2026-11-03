@@ -10,9 +10,12 @@ from google import genai
 from google.genai import types
 from google.genai.errors import APIError
 
-from ai_classes.ai_api import AiAPI
 # Surpress non critical logging messages from the Google GenAI library
 logging.getLogger("google_genai.models").setLevel(logging.ERROR)
+
+# Classes
+from ai_classes.ai_api import AiAPI
+from ai_classes.helper import Helper
 
 # Constants
 # Gemini AI models to use
@@ -32,42 +35,7 @@ AI_CONFIG = types.GenerateContentConfig (
     http_options = types.HttpOptions(timeout = 90_000)
 )
 
-# Load environment variables from .env file
-load_dotenv()  
-
 # Functions
-# AI client initialization
-def _get_ai_client():
-    """_summary_
-        Sets up the Gemini AI API client using the GEMINI API Key from the .env file
-    Returns:
-        Google genai.Client Object: Gemini API client if the GEMINI_API_KEY environment variable is set, otherwise returns None
-    """
-    api_key = os.environ.get("GEMINI_API_KEY")
-    if not api_key:
-        print("Gemini API Key not found. Please set the GEMINI_API_KEY environment variable.")
-        return None
-    return genai.Client(api_key=api_key)
-
-# Get mimetype based on the image filename extension
-def _get_mime_type(filename: str) -> str:
-    """_summary_
-        Helper function to get mimetype based on the image filename extension
-    Args:
-        filename (str): Image filename
-
-    Returns:
-        str: Mimetype to be passed in AI API request
-    """
-    extension = filename.lower().rsplit(".", 1)[-1]
-    if extension in ["jpg", "jpeg"]:
-        return "image/jpeg"
-    elif extension == "png":
-        return "image/png"
-    
-    # Universal fallback in case of any unexpected issues
-    return "application/octet-stream"
-
 # AI feature extraction
 def extract_features(description, image_path=None):
     """_summary_
@@ -79,7 +47,7 @@ def extract_features(description, image_path=None):
             Extracted features as a JSON object or an error message.
     """
     print("[+] Initialising AI client object for feature extraction...")
-    client = _get_ai_client()
+    client = AiAPI()._get_ai_client()
     if not client:
         print(f"[!] Error: Gemini API Key missing")
         return None
@@ -108,22 +76,7 @@ def extract_features(description, image_path=None):
     contents = []
     if image_path:
         print("[+] Image filepath found, attempting to add to prompt...")
-        try:
-            with open(Path(__file__).parent / f"temp/{image_path}", "rb") as f:
-                image_bytes = f.read()
-
-            contents.append(
-                types.Part.from_bytes(data = image_bytes, mime_type = _get_mime_type(image_path))
-            )
-
-            print("[+] Image successfully added to prompt!")
-        # Handle File not found error
-        except FileNotFoundError:
-            print(f"[!] File {image_path} not found, continuing extraction without image")
-
-        # Handle any other unexpected exceptions
-        except Exception as e:
-            print(f"[!] Exception occured: {e}")
+        contents.append(Helper()._load_image_part(image_path))
     
     contents.append(prompt)
 
@@ -192,7 +145,7 @@ def ai_semantic_matching(input_lost_report, datalist: list):
             list of the top 3 most similar lost reports in order of similarity, with the most similar report first, or an error message.
     """
     print("[+] Initialising AI client object for semantic matching...")
-    client = _get_ai_client()
+    client = AiAPI()._get_ai_client()
     if not client:
         print(f"[!] Error: Gemini API Key missing")
         return None
@@ -298,5 +251,15 @@ def ai_semantic_matching(input_lost_report, datalist: list):
 # Import control
 __all__ = ["extract_features", "ai_semantic_matching"]
 
-ai = AiAPI()._get_ai_client()
-print(ai)
+# Testing 
+desc = {
+    "report_type": "lost",
+    "category": "bottle",
+    "description": "White bottle found at level 1 garden",
+    "date": "22-09-2026",
+    "case_id": "CASE-20260922-6F1106",
+    "image_filename": "bottle.jpg"
+}
+
+features = extract_features(desc, desc["image_filename"])
+print(features)
