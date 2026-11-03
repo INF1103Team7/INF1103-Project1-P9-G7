@@ -16,7 +16,7 @@
         "location_lost": "level 2 garden",
         "additional_notes": "Test multi-rule combination.",
         "similarity_analysis": {
-            "similarity_score": "76%",
+            "similarity_score": "65%",
             "color_match": {
                 "is_match": "match",
                 "primary": "white",
@@ -24,8 +24,7 @@
             },
             "material_match": "not match",
             "feature_overlap_match": [
-                "flex cap",
-                "logo"
+                "flex cap"
             ],
             "brand_match": "match",
             "location_match": "not match",
@@ -49,7 +48,7 @@
         "location_lost": "level 3 garden",
         "additional_notes": "Test multi-rule combination.",
         "similarity_analysis": {
-            "similarity_score": "82%",
+            "similarity_score": "50%",
             "color_match": {
                 "is_match": "match",
                 "primary": "white",
@@ -79,7 +78,7 @@
         "location_lost": "level 1 garden",
         "additional_notes": "Test multi-rule combination.",
         "similarity_analysis": {
-            "similarity_score": "55%",
+            "similarity_score": "90%",
             "color_match": {
                 "is_match": "match",
                 "primary": "white"

@@ -3,9 +3,9 @@ from logic_classes.matcher import Matcher
 from logic_classes.match_selector import MatchSelector
 
 class LogicManager:
-    def __init__(self):
+    def __init__(self, threshold_config=None):
         # Responsible for evaluating individual AI results.
-        self.matcher = Matcher()
+        self.matcher = Matcher(threshold_config=threshold_config)
 
         # Responsible for selecting the best evaluation.
         self.match_selector = MatchSelector()

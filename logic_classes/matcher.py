@@ -26,7 +26,7 @@ class Matcher:
     Coordinates the validation, trait extraction and business rule evaluation processes to determine how well two reports match.
     """
 
-    def __init__(self, validator=None):
+    def __init__(self, validator=None, threshold_config=None):
         # Use the supplied validator or create a new one if none is provided.
         self.validator = validator or AnalysisValidator()
 
@@ -34,7 +34,7 @@ class Matcher:
         self.traits = Traits(self.validator)
 
         # Create the configuration object that stores matching thresholds.
-        self.threshold_config = ThresholdConfig()
+        self.threshold_config = threshold_config or ThresholdConfig()
 
         # Create a RuleManager to organise and evaluate business rules.
         self.rule_manager = RuleManager()

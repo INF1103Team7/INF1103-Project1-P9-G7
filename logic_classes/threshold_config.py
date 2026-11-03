@@ -1,6 +1,5 @@
 # Manage configurable thresholds for the business rules.
-# This class encapsulates the threshold values and provides
-# methods to update them with validation.
+# This class encapsulates the threshold values and provides methods to update them with validation.
 
 class ThresholdConfig:
     def __init__(self):
@@ -20,6 +19,8 @@ class ThresholdConfig:
         max_value=None,
         lower_boundary=None,
         higher_boundary=None,
+        lower_boundary_name="lower boundary",
+        higher_boundary_name="higher boundary",
     ):
         # Reject boolean values because bool is a subclass of int in Python.
         if isinstance(value, bool):
@@ -50,7 +51,7 @@ class ThresholdConfig:
                 if higher_boundary <= lower_boundary:
                     return (
                         False,
-                        f"Rejected: {higher_boundary} must be greater than {lower_boundary}",
+                        f"Rejected: {higher_boundary_name} of {higher_boundary} must be greater than {lower_boundary_name} of {lower_boundary}",
                     )
 
             return True, value
@@ -68,6 +69,8 @@ class ThresholdConfig:
         max_value,
         lower_boundary,
         higher_boundary,
+        lower_boundary_name,
+        higher_boundary_name,
         attribute_name,
         success_message,
     ):
@@ -80,6 +83,8 @@ class ThresholdConfig:
             max_value,
             lower_boundary,
             higher_boundary,
+            lower_boundary_name,
+            higher_boundary_name,
         )
 
         # Return the validation error message if the input is invalid.
@@ -102,6 +107,8 @@ class ThresholdConfig:
             100,
             self.__reject_threshold,
             value,
+            "Reject threshold",
+            "High threshold",
             "_ThresholdConfig__high_threshold",
             "Successful update: High threshold is now {value}",
         )
@@ -116,6 +123,8 @@ class ThresholdConfig:
             100,
             value,
             self.__high_threshold,
+            "Reject threshold",
+            "High threshold",
             "_ThresholdConfig__reject_threshold",
             "Successful update: Reject threshold is now {value}",
         )
@@ -130,6 +139,8 @@ class ThresholdConfig:
             None,
             value,
             self.__min_feature_excellent_match,
+            "Minimum feature overlap for strong match",
+            "Minimum feature overlap for excellent match",
             "_ThresholdConfig__min_feature_strong_match",
             "Successful update: Minimum feature overlap for strong match is now {value}",
         )
@@ -144,6 +155,8 @@ class ThresholdConfig:
             None,
             self.__min_feature_strong_match,
             value,
+            "Minimum feature overlap for strong match",
+            "Minimum feature overlap for excellent match",
             "_ThresholdConfig__min_feature_excellent_match",
             "Successful update: Minimum feature overlap for excellent match is now {value}",
         )
@@ -160,7 +173,11 @@ class ThresholdConfig:
 
     def get_min_feature_excellent_match(self):
         return self.__min_feature_excellent_match
-
+    def load_thresholds(self, data):
+        self.__reject_threshold = data["reject_threshold"]
+        self.__high_threshold = data["high_threshold"]
+        self.__min_feature_strong_match = data["min_feature_strong_match"]
+        self.__min_feature_excellent_match = data["min_feature_excellent_match"]
     def reset_all_threshold(self):
         # Restore all threshold values to their original defaults.
         self.__reject_threshold = 50

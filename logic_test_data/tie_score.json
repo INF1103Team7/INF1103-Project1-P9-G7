@@ -43,8 +43,7 @@
         "material": "stainless steel",
         "identifying_features": [
             "black flex cap with handle",
-            "Hydro Flask logo"
-        ],
+            "Hydro Flask logo"        ],
         "brand": "Hydro Flask",
         "location_lost": "level 1 garden",
         "additional_notes": "Second report in tie test.",
@@ -58,8 +57,7 @@
             "material_match": "match",
             "feature_overlap_match": [
                 "black flex cap with handle",
-                "Hydro Flask logo"
-            ],
+                "Hydro Flask logo"            ],
             "brand_match": "match",
             "location_match": "match",
             "similarity_reasoning": "Strong match across color, material, brand, features and location."
