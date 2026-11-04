@@ -1,6 +1,6 @@
 
 from pathlib import Path
-
+import datetime
 from data_classes.data_json_report_storage import JsonReportStorage
 
 
@@ -80,3 +80,48 @@ class DataManager:
                 return self.save_report_list(reports)
 
         return False
+    
+    def delete_expired_reports(self, retention_days=30):
+        reports = self.load_reports()
+
+        remaining_reports = []
+        expired_reports = []
+
+        # calculate the expiry date
+        expiry_date = date.today() - timedelta(
+            days=retention_days
+        )
+
+        for report in reports:
+            expired = False
+
+            if report.get("status") == "closed":
+                closed_date = report.get("closed_date")
+
+                if closed_date:
+                    try:
+                        closed_date = datetime.strptime(
+                            closed_date, "%Y-%m-%d"
+                        ).date()
+
+                        if closed_date <= expiry_date:
+                            expired = True
+
+                    except ValueError:
+                        pass
+
+            if expired:
+                expired_reports.append(report)
+            else:
+                remaining_reports.append(report)
+
+        # No reports need deletion
+        if len(expired_reports) == 0:
+            return 0
+
+        # Save only the remaining reports
+        if not self.save_report_list(remaining_reports):
+            return 0
+
+        return len(expired_reports)
+  
