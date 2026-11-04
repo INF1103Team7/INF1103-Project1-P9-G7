@@ -20,9 +20,24 @@ class DataManager:
     def save_new_report(self, report_data):
         # create a Report object
         report = Report(report_data)
-
         # convert the report into a dictionary
         stored_report = report.to_dict()
+
+        # check whether an image was provided
+        source_path = stored_report.get("image_path")
+        if source_path is not None:
+            if not isinstance(source_path, str):
+                raise ValueError("Image path must be a string")
+
+            image_filename = self.store_image(
+                source_path,
+                report.get_case_id()
+            )
+
+            stored_report["image_filename"] = image_filename
+
+        # remove the original image path
+        stored_report.pop("image_path", None)
 
         # load existing reports
         reports = self.load_reports()
@@ -36,6 +51,38 @@ class DataManager:
 
         return None
     
+    def store_image(self, source_path, case_id):
+        source = Path(source_path)
+
+        # validate the image extension
+        if source.suffix.lower() not in [".jpg", ".jpeg", ".png"]:
+            print("Only JPG, JPEG and PNG images are allowed")
+            return None
+
+        # check whether the image exists
+        if not source.is_file():
+            print("Image not found:", source)
+            return None
+
+        # create the image directory if needed
+        self._image_directory.mkdir(
+            parents=True,
+            exist_ok=True
+        )
+
+        filename = case_id + source.suffix.lower()
+        destination = self._image_directory / filename
+
+        try:
+            if source.resolve() != destination.resolve():
+                shutil.copy2(source, destination)
+
+            return filename
+
+        except OSError as error:
+            print("Error saving image:", error)
+            return None
+        
     def get_active_reports(self):
         # store only reports with active status
         active_reports = []
@@ -124,4 +171,5 @@ class DataManager:
             return 0
 
         return len(expired_reports)
+    
   
