@@ -23,3 +23,24 @@ class Report:
     def get_status(self):
         return self._report_data["status"]
     
+    def update_status(self, new_status):
+        # check that the new status is a string
+        if not isinstance(new_status, str):
+            return False
+
+        new_status = new_status.lower()
+
+        # only allow if status is active or closed
+        if new_status not in ["active", "closed"]:
+            return False
+
+        self._report_data["status"] = new_status
+
+        # record the date when a report is closed
+        if new_status == "closed":
+            self._report_data["closed_date"] = date.today().isoformat()
+        else:
+            self._report_data.pop("closed_date", None)
+
+        return True
+  
