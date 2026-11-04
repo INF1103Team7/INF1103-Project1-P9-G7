@@ -26,6 +26,17 @@ class JsonReportStorage(ReportStorage):
                 raise ValueError("Each report must be a dictionary")
 
         return reports
+    def save_reports(self, reports):
+        # create the parent folder if it does not exist
+        self._file_path.parent.mkdir(
+            parents=True,
+            exist_ok=True
+        )
 
+        # save the report list into the JSON file
+        with self._file_path.open("w", encoding="utf-8") as file:
+            json.dump(reports, file, indent=2)
+
+        return True
     
     
