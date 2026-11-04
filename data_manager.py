@@ -281,29 +281,36 @@ def get_active_reports():
 
 # Update a report's status and record when it is closed
 def update_report_status(case_id, new_status):
-    """_summary_
-        Function to update a report's status and record when it is closed.
-    Args:
-        case_id (str): Case ID of the report to be updated
-        new_status (str): New status to be set for the report
+    # create a DataManager object
+    manager = DataManager(DATA_FILE, IMAGE_DIRECTORY)
 
-    Returns:
-        bool: True if the report was updated successfully, False otherwise
-    """
-    new_status = new_status.lower()
-    if new_status not in VALID_STATUSES:
-        return False
+    # update the report status using the OOP method
+    return manager.update_report_status(case_id, new_status)
 
-    reports = load_reports()
-    for report in reports:
-        if report.get("case_id") == case_id:
-            report["status"] = new_status
+# def update_report_status(case_id, new_status):
+#     """_summary_
+#         Function to update a report's status and record when it is closed.
+#     Args:
+#         case_id (str): Case ID of the report to be updated
+#         new_status (str): New status to be set for the report
 
-            # Store the closure date for automatic deletion later
-            if new_status == "closed":
-                report["closed_date"] = date.today().isoformat()
-            return save_report_list(reports)
-    return False
+#     Returns:
+#         bool: True if the report was updated successfully, False otherwise
+#     """
+#     new_status = new_status.lower()
+#     if new_status not in VALID_STATUSES:
+#         return False
+
+#     reports = load_reports()
+#     for report in reports:
+#         if report.get("case_id") == case_id:
+#             report["status"] = new_status
+
+#             # Store the closure date for automatic deletion later
+#             if new_status == "closed":
+#                 report["closed_date"] = date.today().isoformat()
+#             return save_report_list(reports)
+#     return False
 
 # Delete reports that have been closed longer than the retention period (30 days)
 def delete_expired_reports(retention_days=30):
