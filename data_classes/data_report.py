@@ -9,6 +9,12 @@ class Report:
         # generate a caseID if one is not provided
         if not self._report_data.get("case_id"):
             self._report_data["case_id"] = self.create_case_id()
+        
+        # set "active" as default status
+        if not self._report_data.get("status"):
+            self._report_data["status"] = "active"
 
     def create_case_id(self):
         return f"CASE-{date.today():%Y%m%d}-{uuid4().hex[:6].upper()}"
+    
+    
