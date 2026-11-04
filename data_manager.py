@@ -419,33 +419,48 @@ def delete_expired_reports(retention_days=30):
 #     return deleted_count
 
 # Clear temporary directory
-def clear_temp_directory(temp_directory: Path = TEMP_DIRECTORY) -> int:
-    """Unlinks and removes all files inside the specified temporary directory.
+def clear_temp_directory(temp_directory=TEMP_DIRECTORY):
+    # create a DataManager object
+    manager = DataManager(DATA_FILE, IMAGE_DIRECTORY)
 
-    Args:
-        temp_directory (Path, optional): Path to temp folder. Defaults to
-          TEMP_DIRECTORY.
+    # delete temporary files using the OOP method
+    deleted_count = manager.clear_temp_directory(temp_directory)
 
-    Returns:
-        int: The number of unlinked temporary files.
-    """
-    deleted_count = 0
+    # display the number of deleted files
+    print(
+        f"\n[+] Cleared {deleted_count} temporary file(s) "
+        f"from {Path(temp_directory).name}/"
+    )
 
-    if not temp_directory.exists():
-        return 0
-
-    for item in temp_directory.iterdir():
-        if item.is_file():
-            try:
-                item.unlink()
-                deleted_count += 1
-            except PermissionError:
-                print(f"[!] Permission denied when deleting temp file: {item}")
-            except OSError as e:
-                print(f"[!] Error deleting temp file {item}: {e}")
-
-    print(f"\n[+] Cleared {deleted_count} temporary file(s) from {temp_directory.name}/")
     return deleted_count
+
+# def clear_temp_directory(temp_directory: Path = TEMP_DIRECTORY) -> int:
+#     """Unlinks and removes all files inside the specified temporary directory.
+
+#     Args:
+#         temp_directory (Path, optional): Path to temp folder. Defaults to
+#           TEMP_DIRECTORY.
+
+#     Returns:
+#         int: The number of unlinked temporary files.
+#     """
+#     deleted_count = 0
+
+#     if not temp_directory.exists():
+#         return 0
+
+#     for item in temp_directory.iterdir():
+#         if item.is_file():
+#             try:
+#                 item.unlink()
+#                 deleted_count += 1
+#             except PermissionError:
+#                 print(f"[!] Permission denied when deleting temp file: {item}")
+#             except OSError as e:
+#                 print(f"[!] Error deleting temp file {item}: {e}")
+
+#     print(f"\n[+] Cleared {deleted_count} temporary file(s) from {temp_directory.name}/")
+#     return deleted_count
 
 # Import controls
 __all__ = [
