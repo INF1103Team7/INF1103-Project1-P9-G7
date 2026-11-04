@@ -1,3 +1,6 @@
+import json
+from pathlib import Path
+
 from data_classes.data_report_storage import ReportStorage
 
 class JsonReportStorage(ReportStorage):
