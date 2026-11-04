@@ -68,6 +68,13 @@ class AiService(AIServiceInterface):
                         if attempt == retries:
                             print(f"[!] API Error 503: Model busy. Max Retry reached (Attempt {attempt}/{retries})")
                             print(f"[!] API Error {e.code}: {e.message}")
+                            if model_index < len(self._ai_config.models) - 1:
+                                next_model = self._ai_config.models[model_index + 1]
+                                print(f"[+] Trying next model: {next_model}")
+                            else:
+                                print(f"[!] API Error 503: All models unavailable. {e.message}")
+                                return None
+                            break
                         
                         attempt += 1
                         time.sleep(delay)
@@ -123,7 +130,7 @@ class AiService(AIServiceInterface):
         contents = []
         if image_path:
             print("[+] Image filepath found, attempting to add to prompt...")
-            contents.append(self._ai_helper._load_image_part(image_path))
+            contents.append(self._ai_helper.load_image_part(image_path))
         
         contents.append(prompt)
         print("[+] Feature extraction prompt built, sending prompt to Gemini AI API")
