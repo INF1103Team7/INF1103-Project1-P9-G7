@@ -17,4 +17,9 @@ class Report:
     def create_case_id(self):
         return f"CASE-{date.today():%Y%m%d}-{uuid4().hex[:6].upper()}"
     
+    def get_category(self):
+        return self._report_data.get("category")
+
+    def get_status(self):
+        return self._report_data["status"]
     
