@@ -38,7 +38,7 @@ class AiService(AIServiceInterface):
             print(f"[+] Trying next model: {next_model}")
             return True
         else:
-            print(f"[!] API Error {error_code}: All models rate limit exceeded. {error_message}")
+            print(f"[!] API Error {error_code}: All models have been exhausted. {error_message}")
             return False
     
     # Execute API call with retry logic
@@ -94,7 +94,9 @@ class AiService(AIServiceInterface):
                         continue
                     else:
                         print(f"[!] API Error {e.code}: {e.message}")
-                        return None
+                        if not self._model_rotation(model_index, e.code, e.message):
+                            return None
+                        break
     
                 # Handle any other unexpected exceptions
                 except Exception as e:

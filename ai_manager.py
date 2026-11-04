@@ -120,8 +120,7 @@ test_list = [
     }
 ]
 
-features = AiManager().extract_features(desc, desc["image_filename"])
-# features = extract_features(desc, desc["image_filename"])
-# match_result = AiManager().ai_semantic_matching(extracted_desc, test_list)
-print(features)
-# print(match_result)
+# features = AiManager().extract_features(desc, desc["image_filename"])
+match_result = AiManager().ai_semantic_matching(extracted_desc, test_list)
+# print(features)
+print(match_result)
