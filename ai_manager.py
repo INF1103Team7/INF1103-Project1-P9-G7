@@ -32,6 +32,9 @@ class AiManager:
         """
         return self._semantic_matching_service.ai_semantic_matching(input_lost_report, datalist)
 
+# Import control
+__all__ = ["AiManager"]
+
 # Testing 
 desc = {
     "report_type": "lost",

@@ -47,3 +47,6 @@ class AiHelper:
         # Handle any other unexpected exceptions
         except Exception as e:
             print(f"[!] Exception occured: {e}")
+
+# Import control
+__all__ = ["AiHelper"]

@@ -19,3 +19,6 @@ class AiAPI:
             print("Gemini API Key not found. Please set the GEMINI_API_KEY environment variable.")
             return None
         return genai.Client(api_key=self._api_key)
+
+# Import control
+__all__ = ["AiAPI"]

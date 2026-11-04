@@ -193,3 +193,6 @@ class AiService(AIServiceInterface):
     
         print("[+] Semantic AI Matching prompt built, sending prompt to Gemini AI API")
         return self._execute_with_retry(prompt)
+
+# Import control
+__all__ = ["AiService"]

@@ -11,3 +11,6 @@ class AIServiceInterface(ABC):
     @abstractmethod
     def ai_semantic_matching(self, input_lost_report, data_list: list):
         pass
+
+# Import control
+__all__ = ["AIServiceInterface"]
