@@ -43,4 +43,6 @@ class Report:
             self._report_data.pop("closed_date", None)
 
         return True
-  
+    def to_dict(self):
+        # return report information as a dictionary
+        return dict(self._report_data)
