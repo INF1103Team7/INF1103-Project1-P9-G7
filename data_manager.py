@@ -123,49 +123,71 @@ def load_reports(reports_file=DATA_FILE):
 #     return reports
 
 # Save new reports to found_reports.json
+
 def save_new_reports(
-    report: Mapping[str, object],
-    reports_file: Path = DATA_FILE,
-    image_directory: Path = IMAGE_DIRECTORY,
-) -> dict[str, object]:
-    """_summary_
-        Function to save new reports to found_reports.json
-    Args:
-        report (Mapping[str, object]): The report data to be saved.
-        reports_file (Path, optional): The path to the reports file. Defaults to DATA_FILE.
-        image_directory (Path, optional): The path to the image directory. Defaults to IMAGE_DIRECTORY.
+    report,
+    reports_file=DATA_FILE,
+    image_directory=IMAGE_DIRECTORY
+):
+    # Create a DataManager object
+    manager = DataManager(reports_file, image_directory)
 
-    Raises:
-        ValueError: If the report does not include an image_path or if the image_path is not a string.
-
-    Returns:
-        dict[str, object]: The saved report data.
-    """
+    # Check whether the image path is valid
     source_path = report.get("image_path")
-    if source_path  is not None and not isinstance(source_path, str):
-        raise ValueError("The report must include an image_path.")
 
+    if source_path is not None and not isinstance(source_path, str):
+        raise ValueError("Image path must be a string")
+
+    # Create a copy of the report information
     stored_report = dict(report)
-    case_id = str(stored_report.get("case_id") or create_case_id())
-    stored_report["case_id"] = case_id
-    if isinstance(source_path, str):
-        stored_report["image_filename"] = store_image(
-            source_path,
-            case_id,
-            image_directory,
-        )
-    stored_report.pop("image_path", None)
 
-    # New reports are active by default
-    if "status" not in stored_report:
-        stored_report["status"] = "active"
+    # Save the report using the OOP DataManager
+    saved_report = manager.save_new_report(stored_report)
+    return saved_report
 
-    reports = load_reports(reports_file)
-    reports.append(stored_report)
-    reports_file.parent.mkdir(parents=True, exist_ok=True)
-    with reports_file.open("w", encoding="utf-8") as file:
-        json.dump(reports, file, indent=2)
-    return stored_report
+# def save_new_reports(
+#     report: Mapping[str, object],
+#     reports_file: Path = DATA_FILE,
+#     image_directory: Path = IMAGE_DIRECTORY,
+# ) -> dict[str, object]:
+#     """_summary_
+#         Function to save new reports to found_reports.json
+#     Args:
+#         report (Mapping[str, object]): The report data to be saved.
+#         reports_file (Path, optional): The path to the reports file. Defaults to DATA_FILE.
+#         image_directory (Path, optional): The path to the image directory. Defaults to IMAGE_DIRECTORY.
+
+#     Raises:
+#         ValueError: If the report does not include an image_path or if the image_path is not a string.
+
+#     Returns:
+#         dict[str, object]: The saved report data.
+#     """
+#     source_path = report.get("image_path")
+#     if source_path  is not None and not isinstance(source_path, str):
+#         raise ValueError("The report must include an image_path.")
+
+#     stored_report = dict(report)
+#     case_id = str(stored_report.get("case_id") or create_case_id())
+#     stored_report["case_id"] = case_id
+#     if isinstance(source_path, str):
+#         stored_report["image_filename"] = store_image(
+#             source_path,
+#             case_id,
+#             image_directory,
+#         )
+#     stored_report.pop("image_path", None)
+
+#     # New reports are active by default
+#     if "status" not in stored_report:
+#         stored_report["status"] = "active"
+
+#     reports = load_reports(reports_file)
+#     reports.append(stored_report)
+#     reports_file.parent.mkdir(parents=True, exist_ok=True)
+#     with reports_file.open("w", encoding="utf-8") as file:
+#         json.dump(reports, file, indent=2)
+#     return stored_report
 
 # saves the current lists of reports into to found_reports.json
 def save_report_list(reports):
