@@ -77,28 +77,50 @@ def create_case_id() -> str:
     return f"CASE-{date.today():%Y%m%d}-{uuid4().hex[:6].upper()}"
 
 # loads all existing reports from reports.json
-def load_reports(reports_file: Path = DATA_FILE) -> list[dict[str, object]]:
-    """_summary_
-        Function to load all existing reports from found_reports.json
-    Args:
-        reports_file (Path, optional): The path to the reports file. Defaults to DATA_FILE.
 
-    Raises:
-        ValueError: If the reports file does not contain a list.
+def load_reports(reports_file=DATA_FILE):
+    # create a DataManager object
+    manager = DataManager(
+        reports_file,
+        reports_file.parent / "images"
+    )
 
-    Returns:
-        list[dict[str, object]]: A list of dictionaries representing the reports loaded from the reports file.
-    """
-    if not reports_file.is_file():
-        return []
-    with reports_file.open("r", encoding="utf-8") as file:
-        reports = json.load(file)
-    if not isinstance(reports, list):
-        raise ValueError("The reports file must contain a list.")
-    if _migrate_old_image_names(reports, reports_file.parent / "images"):
-        with reports_file.open("w", encoding="utf-8") as file:
-            json.dump(reports, file, indent=2)
+    # load reports using the OOP method
+    reports = manager.load_reports()
+
+    # migrate older image filenames if necessary
+    if _migrate_old_image_names(
+        reports,
+        reports_file.parent / "images"
+    ):
+        # save the updated reports
+        if not manager.save_report_list(reports):
+            raise OSError("Unable to save migrated reports")
+
     return reports
+
+# def load_reports(reports_file: Path = DATA_FILE) -> list[dict[str, object]]:
+#     """_summary_
+#         Function to load all existing reports from found_reports.json
+#     Args:
+#         reports_file (Path, optional): The path to the reports file. Defaults to DATA_FILE.
+
+#     Raises:
+#         ValueError: If the reports file does not contain a list.
+
+#     Returns:
+#         list[dict[str, object]]: A list of dictionaries representing the reports loaded from the reports file.
+#     """
+#     if not reports_file.is_file():
+#         return []
+#     with reports_file.open("r", encoding="utf-8") as file:
+#         reports = json.load(file)
+#     if not isinstance(reports, list):
+#         raise ValueError("The reports file must contain a list.")
+#     if _migrate_old_image_names(reports, reports_file.parent / "images"):
+#         with reports_file.open("w", encoding="utf-8") as file:
+#             json.dump(reports, file, indent=2)
+#     return reports
 
 # Save new reports to found_reports.json
 def save_new_reports(
