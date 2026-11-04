@@ -55,3 +55,28 @@ class DataManager:
                 matching_reports.append(report)
 
         return matching_reports
+    
+    def get_report_by_id(self, case_id):
+        # search for a report using its case ID
+        for report in self.load_reports():
+            if report.get("case_id") == case_id:
+                return report
+
+        return None
+
+    def update_report_status(self, case_id, new_status):
+        reports = self.load_reports()
+
+        for index in range(len(reports)):
+            if reports[index].get("case_id") == case_id:
+                # create a Report object to update its status
+                report = Report(reports[index])
+
+                if not report.update_status(new_status):
+                    return False
+
+                reports[index] = report.to_dict()
+
+                return self.save_report_list(reports)
+
+        return False
