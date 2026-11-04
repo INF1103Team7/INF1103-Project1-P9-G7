@@ -9,6 +9,7 @@ from typing import Mapping
 from uuid import uuid4
 from pathlib import Path
 from datetime import date, datetime, timedelta
+from data_classes.data_manager_class import DataManager
 
 # Constants
 # location of the JSON file used to store all lost and found reports
