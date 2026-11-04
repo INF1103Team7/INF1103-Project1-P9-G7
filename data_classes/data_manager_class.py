@@ -36,3 +36,22 @@ class DataManager:
 
         return None
     
+    def get_active_reports(self):
+        # store only reports with active status
+        active_reports = []
+
+        for report in self.load_reports():
+            if report.get("status") == "active":
+                active_reports.append(report)
+
+        return active_reports
+
+    def get_reports_by_category(self, category):
+        # store reports matching the selected category
+        matching_reports = []
+
+        for report in self.get_active_reports():
+            if report.get("category") == category:
+                matching_reports.append(report)
+
+        return matching_reports
