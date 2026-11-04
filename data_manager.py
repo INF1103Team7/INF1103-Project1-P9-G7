@@ -313,51 +313,59 @@ def update_report_status(case_id, new_status):
 #     return False
 
 # Delete reports that have been closed longer than the retention period (30 days)
+
 def delete_expired_reports(retention_days=30):
-    """_summary_
-        Function to delete reports that have been closed longer than the retention period (30 days).
-    Args:
-        retention_days (int, optional): The number of days to retain closed reports before deletion. Defaults to 30.
+    # create a DataManager object
+    manager = DataManager(DATA_FILE, IMAGE_DIRECTORY)
 
-    Returns:
-        int: The number of reports deleted from the database.
-    """
-    reports = load_reports()
-    remaining_reports = []
-    deleted_count = 0
+    # delete expired reports using the OOP method
+    return manager.delete_expired_reports(retention_days)
+
+# def delete_expired_reports(retention_days=30):
+#     """_summary_
+#         Function to delete reports that have been closed longer than the retention period (30 days).
+#     Args:
+#         retention_days (int, optional): The number of days to retain closed reports before deletion. Defaults to 30.
+
+#     Returns:
+#         int: The number of reports deleted from the database.
+#     """
+#     reports = load_reports()
+#     remaining_reports = []
+#     deleted_count = 0
     
-    # Calculate the expiry date based on the retention period
-    expiry_date = date.today() - timedelta(days=retention_days)
+#     # Calculate the expiry date based on the retention period
+#     expiry_date = date.today() - timedelta(days=retention_days)
 
-    for report in reports:
-        if report.get("status") == "closed" and report.get("closed_date"):
-            try:
-                closed_date = datetime.strptime(
-                    report["closed_date"],
-                    "%Y-%m-%d"
-                ).date()
-                # Remove reports that have expired
-                if closed_date <= expiry_date:
-                    deleted_count += 1
-                    try:
-                        file_to_delete = IMAGE_DIRECTORY / report.get("image_filename")
-                        if file_to_delete.is_file():
-                            file_to_delete.unlink()
-                        print(f"[+] Deleted image for report with case ID: {report.get('case_id')}")
-                    except TypeError:
-                        print(f"[!] No image filename found for report with case ID: {report.get('case_id')}. Skipping image deletion.")
-                    except PermissionError:
-                        print(f"[!] Permission denied when trying to delete image for report with case ID: {report.get('case_id')}. Skipping image deletion.")
-                    continue
-            except ValueError:
-                pass
+#     for report in reports:
+#         if report.get("status") == "closed" and report.get("closed_date"):
+#             try:
+#                 closed_date = datetime.strptime(
+#                     report["closed_date"],
+#                     "%Y-%m-%d"
+#                 ).date()
+#                 # Remove reports that have expired
+#                 if closed_date <= expiry_date:
+#                     deleted_count += 1
+#                     try:
+#                         file_to_delete = IMAGE_DIRECTORY / report.get("image_filename")
+#                         if file_to_delete.is_file():
+#                             file_to_delete.unlink()
+#                         print(f"[+] Deleted image for report with case ID: {report.get('case_id')}")
+#                     except TypeError:
+#                         print(f"[!] No image filename found for report with case ID: {report.get('case_id')}. Skipping image deletion.")
+#                     except PermissionError:
+#                         print(f"[!] Permission denied when trying to delete image for report with case ID: {report.get('case_id')}. Skipping image deletion.")
+#                     continue
+#             except ValueError:
+#                 pass
 
-        remaining_reports.append(report)
-    # Only update the file when a report has been deleted
-    if deleted_count > 0:
-        save_report_list(remaining_reports)
+#         remaining_reports.append(report)
+#     # Only update the file when a report has been deleted
+#     if deleted_count > 0:
+#         save_report_list(remaining_reports)
 
-    return deleted_count
+#     return deleted_count
 
 # Clear temporary directory
 def clear_temp_directory(temp_directory: Path = TEMP_DIRECTORY) -> int:
