@@ -249,20 +249,27 @@ def get_reports_by_category(report_category):
 
 # Return only reports that are currently active
 def get_active_reports():
-    """_summary_
-        Function to return only reports that are currently active.
-    Returns:
-        list: list: A list of active reports.
-    """
-    reports = load_reports()
+    # create a DataManager object
+    manager = DataManager(DATA_FILE, IMAGE_DIRECTORY)
 
-    active_reports = []
+    # retrieve only active reports
+    return manager.get_active_reports()
 
-    for report in reports:
-        if report.get("status") == "active":
-            active_reports.append(report)
+# def get_active_reports():
+#     """_summary_
+#         Function to return only reports that are currently active.
+#     Returns:
+#         list: list: A list of active reports.
+#     """
+#     reports = load_reports()
 
-    return active_reports
+#     active_reports = []
+
+#     for report in reports:
+#         if report.get("status") == "active":
+#             active_reports.append(report)
+
+#     return active_reports
 
 # Update a report's status and record when it is closed
 def update_report_status(case_id, new_status):
