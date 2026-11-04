@@ -228,24 +228,32 @@ def store_image(
     return stored_filename
 
 # Filter reports by category
+
 def get_reports_by_category(report_category):
-    """_summary_
-        Function to filter reports by category.
-    Args:
-        report_category (str): The category of reports to be filtered.
+    # create a DataManager object
+    manager = DataManager(DATA_FILE, IMAGE_DIRECTORY)
 
-    Returns:
-        list: A list of reports that match the specified category.
-    """
-    reports = get_active_reports()
+    # return active reports matching the selected category
+    return manager.get_reports_by_category(report_category)
 
-    matching_reports = []
+# def get_reports_by_category(report_category):
+#     """_summary_
+#         Function to filter reports by category.
+#     Args:
+#         report_category (str): The category of reports to be filtered.
 
-    for report in reports:
-        if report.get("category") == report_category:
-            matching_reports.append(report)
+#     Returns:
+#         list: A list of reports that match the specified category.
+#     """
+#     reports = get_active_reports()
 
-    return matching_reports
+#     matching_reports = []
+
+#     for report in reports:
+#         if report.get("category") == report_category:
+#             matching_reports.append(report)
+
+#     return matching_reports
 
 # Return only reports that are currently active
 def get_active_reports():
