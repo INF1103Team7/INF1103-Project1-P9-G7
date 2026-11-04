@@ -7,3 +7,14 @@ class JsonReportStorage(ReportStorage):
         
         # convert the file path into a Path object
         self._file_path = Path(file_path)
+        
+    def load_reports(self):
+        # return an empty list if the file does not exist
+        if not self._file_path.is_file():
+            return []
+
+        # open and read the JSON file
+        with self._file_path.open("r", encoding="utf-8") as file:
+            reports = json.load(file)
+
+        return reports
