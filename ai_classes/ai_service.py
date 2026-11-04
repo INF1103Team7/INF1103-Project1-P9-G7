@@ -21,6 +21,26 @@ class AiService(AIServiceInterface):
         self._ai_config = AiConfiguration()
         self._ai_helper = AiHelper()
 
+    # Helper function to rotate through the list of models in case of API errors
+    def _model_rotation(self, model_index: int, error_code: int, error_message: str) -> bool:
+        """_summary_
+            Helper function to handle model rotation in case of API errors
+        Args:
+            model_index (int): Index of the current model in use
+            error_code (int): API error code received from the Gemini API
+            error_message (str): API error message received from the Gemini API
+
+        Returns:
+            bool: True if there are more models to try, False if all models have been exhausted
+        """
+        if model_index < len(self._ai_config.models) - 1:
+            next_model = self._ai_config.models[model_index + 1]
+            print(f"[+] Trying next model: {next_model}")
+            return True
+        else:
+            print(f"[!] API Error {error_code}: All models rate limit exceeded. {error_message}")
+            return False
+    
     # Execute API call with retry logic
     def _execute_with_retry(self, contents: Any):
         """_summary_
@@ -53,11 +73,7 @@ class AiService(AIServiceInterface):
                     # Handle error 429 resource exhausted (Rate limit exceeded) and retry with backup models
                     if e.code == 429:
                         print(f"[!] API Error 429: Rate limit hit on {active_model}")
-                        if model_index < len(self._ai_config.models) - 1:
-                            next_model = self._ai_config.models[model_index + 1]
-                            print(f"[+] Trying next model: {next_model}")
-                        else:
-                            print(f"[!] API Error 429: All models rate limit exceeded. {e.message}")
+                        if not self._model_rotation(model_index, e.code, e.message):
                             return None
                         break 
     
@@ -68,11 +84,7 @@ class AiService(AIServiceInterface):
                         if attempt == retries:
                             print(f"[!] API Error 503: Model busy. Max Retry reached (Attempt {attempt}/{retries})")
                             print(f"[!] API Error {e.code}: {e.message}")
-                            if model_index < len(self._ai_config.models) - 1:
-                                next_model = self._ai_config.models[model_index + 1]
-                                print(f"[+] Trying next model: {next_model}")
-                            else:
-                                print(f"[!] API Error 503: All models unavailable. {e.message}")
+                            if not self._model_rotation(model_index, e.code, e.message):
                                 return None
                             break
                         
