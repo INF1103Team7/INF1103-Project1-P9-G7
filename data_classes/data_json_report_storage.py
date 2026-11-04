@@ -16,5 +16,16 @@ class JsonReportStorage(ReportStorage):
         # open and read the JSON file
         with self._file_path.open("r", encoding="utf-8") as file:
             reports = json.load(file)
+                # Ensure the JSON data contains a list
+        if not isinstance(reports, list):
+            raise ValueError("Reports must be stored as a list")
+
+        # ensure every report is a dictionary
+        for report in reports:
+            if not isinstance(report, dict):
+                raise ValueError("Each report must be a dictionary")
 
         return reports
+
+    
+    
