@@ -191,24 +191,31 @@ def save_new_reports(
 
 # saves the current lists of reports into to found_reports.json
 def save_report_list(reports):
-    """_summary_
-        Function to save the current list of reports into the found_reports.json file.
-    Args:
-        reports (list): The list of reports to be saved into the found_reports.json file.
+    # Create a DataManager object
+    manager = DataManager(DATA_FILE, IMAGE_DIRECTORY)
 
-    Returns:
-        bool: True if the reports are saved successfully, False otherwise.
-    """
-    try:
-        # opens reports.json in write mode
-        with DATA_FILE.open("w", encoding="utf-8") as file:
-            # save the report list as formatted JSON
-            json.dump(reports, file, indent=4)
-        # return true when the reports are saved successfully
-        return True
-    # return false if the file cannot be written
-    except OSError:
-        return False
+    # Save the report list using the OOP method
+    return manager.save_report_list(reports)
+
+# def save_report_list(reports):
+#     """_summary_
+#         Function to save the current list of reports into the found_reports.json file.
+#     Args:
+#         reports (list): The list of reports to be saved into the found_reports.json file.
+
+#     Returns:
+#         bool: True if the reports are saved successfully, False otherwise.
+#     """
+#     try:
+#         # opens reports.json in write mode
+#         with DATA_FILE.open("w", encoding="utf-8") as file:
+#             # save the report list as formatted JSON
+#             json.dump(reports, file, indent=4)
+#         # return true when the reports are saved successfully
+#         return True
+#     # return false if the file cannot be written
+#     except OSError:
+#         return False
 
 # Store an image in the images directory
 def store_image(
