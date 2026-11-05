@@ -1,0 +1,33 @@
+COLOR_TERMS = (
+    "black",
+    "blue",
+    "brown",
+    "clear",
+    "gold",
+    "gray",
+    "green",
+    "grey",
+    "orange",
+    "pink",
+    "purple",
+    "red",
+    "silver",
+    "white",
+    "yellow",
+    "navy",
+)
+
+MATERIAL_TERMS = (
+    "canvas",
+    "ceramic",
+    "fabric",
+    "glass",
+    "leather",
+    "metal",
+    "plastic",
+    "rubber",
+    "steel",
+    "stainless",
+    "wood",
+    "wooden",
+)
