@@ -24,7 +24,7 @@ class LogicManager:
 
         evaluation_results = []
 
-        # 1. Evaluate each AI result individually.
+        # 1. Evaluate each AI result individually
         for ai_result in ai_result_list:
 
             evaluation = self.matcher.evaluate_analysis(
