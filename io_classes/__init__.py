@@ -5,6 +5,8 @@ from .electronics import Electronics
 from .items import Items
 from .keys import Keys
 from .other_item import OtherItem
+from .formatting import Format
+from .print_menu import PrintMenu
 from .student_card import StudentCard
 
 _ITEM_CLASSES = (
@@ -24,8 +26,10 @@ __all__ = [
     "CATEGORIES",
     "Clothing",
     "Electronics",
+    "Format",
     "Items",
     "Keys",
     "OtherItem",
+    "PrintMenu",
     "StudentCard",
 ]
