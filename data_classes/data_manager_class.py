@@ -1,6 +1,6 @@
 import shutil
 from pathlib import Path
-import datetime
+from datetime import date, datetime, timedelta
 
 from data_classes.data_report import Report
 from data_classes.data_json_report_storage import JsonReportStorage
@@ -55,28 +55,29 @@ class DataManager:
         return None
     
     def store_image(self, source_path, case_id):
+        if not isinstance(source_path, (str, Path)):
+            print("Invalid image path")
+            return None
+
         source = Path(source_path)
 
-        # validate the image extension
         if source.suffix.lower() not in [".jpg", ".jpeg", ".png"]:
             print("Only JPG, JPEG and PNG images are allowed")
             return None
 
-        # check whether the image exists
         if not source.is_file():
             print("Image not found:", source)
             return None
-
-        # create the image directory if needed
-        self._image_directory.mkdir(
-            parents=True,
-            exist_ok=True
-        )
 
         filename = case_id + source.suffix.lower()
         destination = self._image_directory / filename
 
         try:
+            self._image_directory.mkdir(
+                parents=True,
+                exist_ok=True
+            )
+
             if source.resolve() != destination.resolve():
                 shutil.copy2(source, destination)
 
@@ -132,15 +133,14 @@ class DataManager:
         return False
     
     def delete_expired_reports(self, retention_days=30):
-        reports = self.load_reports()
+        if type(retention_days) is not int or retention_days < 0:
+            raise ValueError("Retention days must be a non-negative integer")
 
+        reports = self.load_reports()
         remaining_reports = []
         expired_reports = []
 
-        # calculate the expiry date
-        expiry_date = date.today() - timedelta(
-            days=retention_days
-        )
+        expiry_date = date.today() - timedelta(days=retention_days)
 
         for report in reports:
             expired = False
@@ -157,23 +157,39 @@ class DataManager:
                         if closed_date <= expiry_date:
                             expired = True
 
-                    except ValueError:
-                        pass
+                    except (ValueError, TypeError):
+                        print("Invalid closed date in report")
 
             if expired:
                 expired_reports.append(report)
             else:
                 remaining_reports.append(report)
 
-        # No reports need deletion
         if len(expired_reports) == 0:
             return 0
 
-        # Save only the remaining reports
         if not self.save_report_list(remaining_reports):
             return 0
 
-        return len(expired_reports)
+        for report in expired_reports:
+            image_filename = report.get("image_filename")
+
+            if image_filename and isinstance(image_filename, str):
+                image_path = self._image_directory / image_filename
+
+                try:
+                    if image_path.parent.resolve() != self._image_directory.resolve():
+                        print("Invalid image filename:", image_filename)
+                        continue
+
+                    if image_path.is_file():
+                        image_path.unlink()
+
+                except OSError as error:
+                    print("Error deleting image:", error)
+
+            return len(expired_reports)
+        
      # delete images belonging to expired reports
         for report in expired_reports:
             image_filename = report.get("image_filename")
@@ -188,24 +204,30 @@ class DataManager:
                 except OSError as error:
                     print("Error deleting image:", error)
 
-        return len(expired_reports)
+            return len(expired_reports)
 
-    def clear_temp_directory(self, temp_directory):
-        temp_directory = Path(temp_directory)
-        deleted_count = 0
+        def clear_temp_directory(self, temp_directory):
+            temp_directory = Path(temp_directory)
+            deleted_count = 0
 
-        if not temp_directory.exists():
-            return 0
+            if not temp_directory.exists():
+                return 0
 
-        # delete files inside the temporary directory
-        for item in temp_directory.iterdir():
-            if item.is_file():
-                try:
-                    item.unlink()
-                    deleted_count += 1
+            if not temp_directory.is_dir():
+                print("Temporary path is not a directory")
+                return 0
 
-                except OSError as error:
-                    print("Error deleting temp file:", error)
+            try:
+                for item in temp_directory.iterdir():
+                    if item.is_file():
+                        try:
+                            item.unlink()
+                            deleted_count += 1
 
-        return deleted_count
-  
+                        except OSError as error:
+                            print("Error deleting temp file:", error)
+
+            except OSError as error:
+                print("Error accessing temporary directory:", error)
+
+            return deleted_count
