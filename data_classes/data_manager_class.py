@@ -1,6 +1,6 @@
 import shutil
 from pathlib import Path
-import datetime
+from datetime import date, datetime, timedelta
 
 from data_classes.data_report import Report
 from data_classes.data_json_report_storage import JsonReportStorage
