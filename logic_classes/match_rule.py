@@ -21,3 +21,7 @@ class MatchRule(ABC):
     @abstractmethod
     def get_rule_type(self):
         pass
+    
+    # Default behaviour: rules are not skipped when a veto is triggered.
+    def skip_if_veto_triggered(self):
+        return False

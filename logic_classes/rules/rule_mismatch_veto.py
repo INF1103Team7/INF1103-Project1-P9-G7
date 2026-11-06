@@ -1,8 +1,6 @@
 from ..match_rule import MatchRule
 
 class VetoMismatchRule(MatchRule):
-    def __init__(self, config):
-        self.config = config
     def is_satisfied(self, data):
         return (
             data["color_match"] == "not match"

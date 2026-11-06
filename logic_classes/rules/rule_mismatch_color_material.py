@@ -15,3 +15,5 @@ class ColorMaterialMismatchRule(MatchRule):
     
     def get_rule_type(self):
         return "negative"
+    def skip_if_veto_triggered(self):
+        return True

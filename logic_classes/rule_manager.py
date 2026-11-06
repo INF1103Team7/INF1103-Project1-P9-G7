@@ -1,14 +1,60 @@
+from .rules import (
+    BrandColorFeatureMatchRule,
+    BrandColorMaterialMatchRule,
+    BrandColorMatchRule,
+    BrandFeatureMatchRule,
+    BrandMaterialMatchRule,
+    ColorFeatureMaterialMatchRule,
+    ColorFeatureMatchRule,
+    ColorMaterialMatchRule,
+    ColorOnlyMatchRule,
+    FullMatchRule,
+    FourMatchRule,
+    MaterialFeatureMatchRule,
+    SecondaryColorMatchRule,
+    ColorMaterialMismatchRule,
+    LocationMismatchRule,
+    VetoMismatchRule,
+)
+
 class RuleManager:
     """
     Manages and evaluates business rules by grouping them according to their categories.
     """
 
-    def __init__(self):
+    def __init__(self, threshold_config):
         # Store rule objects in separate lists based on their categories.
         self.veto_rules = []
         self.negative_rules = []
         self.positive_rules = []
         self.bonus_rules = []
+        self.__register_default_rules(threshold_config)
+
+    def __register_default_rules(self, threshold_config):
+
+        # Register veto rules.
+        self.add_rule(VetoMismatchRule())
+
+        # Register negative rules.
+        self.add_rule(ColorMaterialMismatchRule())
+        self.add_rule(LocationMismatchRule(threshold_config))
+        self.add_rule(ColorOnlyMatchRule())
+
+        # Register positive rules.
+        self.add_rule(FullMatchRule(threshold_config))
+        self.add_rule(FourMatchRule(threshold_config))
+        self.add_rule(BrandColorFeatureMatchRule(threshold_config))
+        self.add_rule(ColorFeatureMaterialMatchRule(threshold_config))
+        self.add_rule(BrandColorMaterialMatchRule())
+        self.add_rule(BrandFeatureMatchRule(threshold_config))
+        self.add_rule(BrandColorMatchRule())
+        self.add_rule(BrandMaterialMatchRule())
+        self.add_rule(ColorFeatureMatchRule(threshold_config))
+        self.add_rule(MaterialFeatureMatchRule(threshold_config))
+        self.add_rule(ColorMaterialMatchRule())
+
+        # Register bonus rules.
+        self.add_rule(SecondaryColorMatchRule())
 
     def add_rule(self, rule):
         # Map each rule category to its corresponding list.
@@ -62,7 +108,7 @@ class RuleManager:
             # Skip this specific negative rule if a veto rule has already been triggered.
             if (
                 veto_triggered
-                and rule.get_rule_name() == "COLOR_AND_MATERIAL_MISMATCH"
+                and rule.skip_if_veto_triggered()
             ):
                 continue
 

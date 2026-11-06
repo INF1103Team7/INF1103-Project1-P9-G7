@@ -1,15 +1,23 @@
-# Manage configurable thresholds for the business rules.
-# This class encapsulates the threshold values and provides methods to update them with validation.
-
+# Manages the configuration of matching thresholds.
+# Stores default threshold values and allows controlled updates through properties and validation methods.
 class ThresholdConfig:
-    def __init__(self):
-        # Initialise the default threshold values.
-        # Double underscores indicate name-mangled attributes.
-        self.__reject_threshold = 50
-        self.__high_threshold = 80
+    # Initialises the threshold configuration with default values.
+    # Custom values can also be provided during object creation.
+    def __init__(self,reject_threshold=50.0,high_threshold=80.0,min_feature_strong_match=2,min_feature_excellent_match=3):
+        # Initialise default values first.
+        self.__reject_threshold = 50.0
+        self.__high_threshold = 80.0
         self.__min_feature_strong_match = 2
         self.__min_feature_excellent_match = 3
 
+        # Use property setters to validate custom values.
+        self.reject_threshold = reject_threshold
+        self.high_threshold = high_threshold
+        self.min_feature_strong_match = min_feature_strong_match
+        self.min_feature_excellent_match = min_feature_excellent_match
+        self.__consider_location = True
+    # Validates user input before allowing a threshold update.
+    # Checks data type, minimum and maximum values, unchanged values, and relationships between lower and higher threshold boundaries.
     def __validate_input(
         self,
         value,
@@ -34,10 +42,6 @@ class ThresholdConfig:
 
             value = data_type(value)
 
-            # Check whether the new value is different from the current value.
-            if value == current_value:
-                return False, "No change: Input is already set to this value."
-
             # Check the minimum allowed value.
             if value < min_value:
                 return False, f"Invalid: Input must be at least {min_value}"
@@ -53,13 +57,14 @@ class ThresholdConfig:
                         False,
                         f"Rejected: {higher_boundary_name} of {higher_boundary} must be greater than {lower_boundary_name} of {lower_boundary}",
                     )
-
+            # Return the validation result and converted value if all checks pass.
             return True, value
 
         except (ValueError, TypeError):
             # Handle inputs that cannot be converted to the required data type.
             return False, "Invalid: Input must be numeric!!"
-
+    # Validates the new threshold value and returns the updated value.
+    # Raises a ValueError if the input fails validation.
     def __update_threshold(
         self,
         value,
@@ -71,10 +76,7 @@ class ThresholdConfig:
         higher_boundary,
         lower_boundary_name,
         higher_boundary_name,
-        attribute_name,
-        success_message,
     ):
-        # Validate the new threshold before updating the attribute.
         is_valid, result = self.__validate_input(
             value,
             current_value,
@@ -87,102 +89,94 @@ class ThresholdConfig:
             higher_boundary_name,
         )
 
-        # Return the validation error message if the input is invalid.
         if not is_valid:
-            return result
+            raise ValueError(result)
 
-        # Update the specified attribute with the validated value.
-        setattr(self, attribute_name, result)
+        return result
 
-        # Return a success message containing the updated value.
-        return success_message.format(value=result)
+    # Provides controlled access to private threshold attributes.
+    # Property setters ensure that all updates pass through validation.
+    
+    @property
+    def consider_location(self):
+        return self.__consider_location
 
-    def update_high_threshold(self, value):
-        # Update the high threshold while ensuring it remains greater than the reject threshold.
-        return self.__update_threshold(
-            value,
-            self.__high_threshold,
-            float,
-            0,
-            100,
-            self.__reject_threshold,
-            value,
-            "Reject threshold",
-            "High threshold",
-            "_ThresholdConfig__high_threshold",
-            "Successful update: High threshold is now {value}",
-        )
+    @consider_location.setter
+    def consider_location(self, value):
+        if not isinstance(value, bool):
+            raise ValueError("Invalid Location Configuration!!")
 
-    def update_reject_threshold(self, value):
-        # Update the reject threshold while ensuring it remains lower than the high threshold.
-        return self.__update_threshold(
-            value,
-            self.__reject_threshold,
-            float,
-            0,
-            100,
-            value,
-            self.__high_threshold,
-            "Reject threshold",
-            "High threshold",
-            "_ThresholdConfig__reject_threshold",
-            "Successful update: Reject threshold is now {value}",
-        )
-
-    def update_min_feature_strong_match(self, value):
-        # Update the minimum number of overlapping features required for a strong match.
-        return self.__update_threshold(
-            value,
-            self.__min_feature_strong_match,
-            int,
-            1,
-            None,
-            value,
-            self.__min_feature_excellent_match,
-            "Minimum feature overlap for strong match",
-            "Minimum feature overlap for excellent match",
-            "_ThresholdConfig__min_feature_strong_match",
-            "Successful update: Minimum feature overlap for strong match is now {value}",
-        )
-
-    def update_min_feature_excellent_match(self, value):
-        # Update the minimum number of overlapping features required for an excellent match.
-        return self.__update_threshold(
-            value,
-            self.__min_feature_excellent_match,
-            int,
-            1,
-            None,
-            self.__min_feature_strong_match,
-            value,
-            "Minimum feature overlap for strong match",
-            "Minimum feature overlap for excellent match",
-            "_ThresholdConfig__min_feature_excellent_match",
-            "Successful update: Minimum feature overlap for excellent match is now {value}",
-        )
-
-    # Getter methods provide controlled access to the private threshold values.
-    def get_reject_threshold(self):
-        return self.__reject_threshold
-
-    def get_high_threshold(self):
+        self.__consider_location = value
+    
+    # Gets or updates the high confidence threshold.
+    @property
+    def high_threshold(self):
         return self.__high_threshold
-
-    def get_min_feature_strong_match(self):
+    @high_threshold.setter
+    def high_threshold(self, value):
+        # The high threshold must be greater than the reject threshold.
+        self.__high_threshold = self.__update_threshold(
+            value,
+            self.__high_threshold,
+            float,
+            0,
+            100,
+            self.__reject_threshold,
+            value,
+            "Reject threshold",
+            "High threshold",
+        )
+    # Gets or updates the reject threshold.
+    @property
+    def reject_threshold(self):
+        return self.__reject_threshold
+    @reject_threshold.setter
+    def reject_threshold(self, value):
+    # The reject threshold must be lower than the high threshold.
+        self.__reject_threshold = self.__update_threshold(
+            value,
+            self.__reject_threshold,
+            float,
+            0,
+            100,
+            value,
+            self.__high_threshold,
+            "Reject threshold",
+            "High threshold",
+        )
+    # Gets or updates the minimum feature overlap required for a strong match.
+    @property
+    def min_feature_strong_match(self):
         return self.__min_feature_strong_match
-
-    def get_min_feature_excellent_match(self):
+    @min_feature_strong_match.setter
+    def min_feature_strong_match(self, value):
+        # The value must be lower than the excellent match threshold.
+        self.__min_feature_strong_match = self.__update_threshold(
+            value,
+            self.__min_feature_strong_match,
+            int,
+            1,
+            None,
+            value,
+            self.__min_feature_excellent_match,
+            "Minimum feature overlap for strong match",
+            "Minimum feature overlap for excellent match",
+        )
+    # Gets or updates the minimum feature overlap required for an excellent match.
+    @property
+    def min_feature_excellent_match(self):
         return self.__min_feature_excellent_match
-    def load_thresholds(self, data):
-        self.__reject_threshold = data["reject_threshold"]
-        self.__high_threshold = data["high_threshold"]
-        self.__min_feature_strong_match = data["min_feature_strong_match"]
-        self.__min_feature_excellent_match = data["min_feature_excellent_match"]
-    def reset_all_threshold(self):
-        # Restore all threshold values to their original defaults.
-        self.__reject_threshold = 50
-        self.__high_threshold = 80
-        self.__min_feature_strong_match = 2
-        self.__min_feature_excellent_match = 3
-
-        return "All 4 thresholds successfully reset to default values."
+    @min_feature_excellent_match.setter
+    def min_feature_excellent_match(self, value):
+        # The value must be greater than the strong match threshold.
+        self.__min_feature_excellent_match = self.__update_threshold(
+            value,
+            self.__min_feature_excellent_match,
+            int,
+            1,
+            None,
+            self.__min_feature_strong_match,
+            value,
+            "Minimum feature overlap for strong match",
+            "Minimum feature overlap for excellent match",
+        )

@@ -8,7 +8,7 @@ class FourMatchRule(MatchRule):
             data["brand_match"] == "match"
             and data["color_match"] == "match"
             and data["material_match"] == "match"
-            and len(data["feature_overlaps"]) >= self.config.get_min_feature_excellent_match()
+            and len(data["feature_overlaps"]) >= self.config.min_feature_excellent_match
         )
 
     def apply_rule(self, score):

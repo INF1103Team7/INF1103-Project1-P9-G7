@@ -2,24 +2,6 @@ from .analysis_validator import AnalysisValidator
 from .traits import Traits
 from .threshold_config import ThresholdConfig
 from .rule_manager import RuleManager
-from .rules import (
-    BrandColorFeatureMatchRule,
-    BrandColorMaterialMatchRule,
-    BrandColorMatchRule,
-    BrandFeatureMatchRule,
-    BrandMaterialMatchRule,
-    ColorFeatureMaterialMatchRule,
-    ColorFeatureMatchRule,
-    ColorMaterialMatchRule,
-    ColorOnlyMatchRule,
-    FullMatchRule,
-    FourMatchRule,
-    MaterialFeatureMatchRule,
-    SecondaryColorMatchRule,
-    ColorMaterialMismatchRule,
-    LocationMismatchRule,
-    VetoMismatchRule,
-)
 
 class Matcher:
     """
@@ -27,41 +9,18 @@ class Matcher:
     """
 
     def __init__(self, validator=None, threshold_config=None):
-        # Use the supplied validator or create a new one if none is provided.
-        self.validator = validator or AnalysisValidator()
 
-        # Create a Traits object and share the same validator with it.
+        self.validator = (
+            validator if validator is not None else AnalysisValidator()
+        )
+
         self.traits = Traits(self.validator)
 
-        # Create the configuration object that stores matching thresholds.
-        self.threshold_config = threshold_config or ThresholdConfig()
+        self.threshold_config = (
+            threshold_config if threshold_config is not None else ThresholdConfig()
+        )
 
-        # Create a RuleManager to organise and evaluate business rules.
-        self.rule_manager = RuleManager()
-
-        # Register veto rules.
-        self.rule_manager.add_rule(VetoMismatchRule(self.threshold_config))
-
-        # Register negative rules.
-        self.rule_manager.add_rule(ColorMaterialMismatchRule())
-        self.rule_manager.add_rule(LocationMismatchRule())
-        self.rule_manager.add_rule(ColorOnlyMatchRule())
-
-        # Register positive rules.
-        self.rule_manager.add_rule(FullMatchRule(self.threshold_config))
-        self.rule_manager.add_rule(FourMatchRule(self.threshold_config))
-        self.rule_manager.add_rule(BrandColorFeatureMatchRule(self.threshold_config))
-        self.rule_manager.add_rule(ColorFeatureMaterialMatchRule(self.threshold_config))
-        self.rule_manager.add_rule(BrandColorMaterialMatchRule())
-        self.rule_manager.add_rule(BrandFeatureMatchRule(self.threshold_config))
-        self.rule_manager.add_rule(BrandColorMatchRule())
-        self.rule_manager.add_rule(BrandMaterialMatchRule())
-        self.rule_manager.add_rule(ColorFeatureMatchRule(self.threshold_config))
-        self.rule_manager.add_rule(MaterialFeatureMatchRule(self.threshold_config))
-        self.rule_manager.add_rule(ColorMaterialMatchRule())
-
-        # Register bonus rules.
-        self.rule_manager.add_rule(SecondaryColorMatchRule())
+        self.rule_manager = RuleManager(self.threshold_config)
 
     def handle_temporal_paradox(self, data, matched_rules_list, mismatched_rules_list):
         # Check whether the found date occurs before the reported lost date.
@@ -90,8 +49,8 @@ class Matcher:
         positive_rule = evaluation["positive_rule"]
 
         # Retrieve the configured thresholds.
-        high_threshold = self.threshold_config.get_high_threshold()
-        reject_threshold = self.threshold_config.get_reject_threshold()
+        high_threshold = self.threshold_config.high_threshold
+        reject_threshold = self.threshold_config.reject_threshold
 
         # Determine the final matching status based on the score and triggered rules.
         if veto_triggered:
