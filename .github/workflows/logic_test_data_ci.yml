@@ -1,0 +1,52 @@
+name: Logic Test Data CI
+
+on:
+  push:
+    paths:
+      - 'logic*/**'
+      - 'logic_manager.py'
+      - 'tests/test_logic_data.py'
+      - '.github/workflows/logic_test_data_ci.yml'
+      - 'requirements.txt'
+
+  pull_request:
+    paths:
+      - 'logic*/**'
+      - 'logic_manager.py'
+      - 'tests/test_logic_data.py'
+      - '.github/workflows/logic_test_data_ci.yml'
+      - 'requirements.txt'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Download repo code#
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Set up Python environment and install dependencies#
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14.7"
+          cache: "pip"
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Run Logic Test Data tests
+        run: |
+          python -m pytest tests/test_logic_data.py \
+            --cov=logic_classes.threshold_config \
+            --cov=logic_classes.analysis_validator \
+            --cov=logic_classes.traits \
+            --cov=logic_classes.matcher \
+            --cov=logic_classes.rule_manager \
+            --cov=logic_classes.match_selector \
+            --cov=logic_manager \
+            --cov-report=term-missing

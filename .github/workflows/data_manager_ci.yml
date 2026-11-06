@@ -1,0 +1,49 @@
+name: Data Manager CI
+
+on:
+  push:
+    paths:
+      - 'data*/**'
+      - 'data_manager.py'
+      - 'tests/test_data_manager.py'
+      - '.github/workflows/data_manager_ci.yml'
+      - 'requirements.txt'
+
+  pull_request:
+    paths:
+      - 'data*/**'
+      - 'data_manager.py'
+      - 'tests/test_data_manager.py'
+      - '.github/workflows/data_manager_ci.yml'
+      - 'requirements.txt'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Download repo code#
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Set up Python environment and install dependencies#
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14.7"
+          cache: "pip"
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Run Data Manager tests
+        run: |
+          python -m pytest tests/test_data_manager.py \
+            --cov=data_classes.data_manager_class \
+            --cov=data_classes.data_report \
+            --cov=data_classes.data_json_report_storage \
+            --cov-report=term-missing \
+            --cov-report=xml

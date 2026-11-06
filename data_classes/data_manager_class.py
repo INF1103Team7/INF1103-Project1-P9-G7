@@ -206,7 +206,7 @@ class DataManager:
 
             return len(expired_reports)
 
-        def clear_temp_directory(self, temp_directory):
+    def clear_temp_directory(self, temp_directory):
             temp_directory = Path(temp_directory)
             deleted_count = 0
 

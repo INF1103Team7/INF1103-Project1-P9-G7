@@ -9,7 +9,7 @@ class FullMatchRule(MatchRule):
             and data["color_match"] == "match"
             and data["material_match"] == "match"
             and data["location_match"] == "match"
-            and len(data["feature_overlaps"]) >= self.config._min_feature_excellent_match
+            and len(data["feature_overlaps"]) >= self.config.min_feature_excellent_match
         )
 
     def apply_rule(self, score):
