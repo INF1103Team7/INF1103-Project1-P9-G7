@@ -5,6 +5,8 @@ import logic_manager
 import json
 
 def main():
+	io = io_manager.IOManager()
+
 	# Update database to remove closed reports that have been closed for more than 30 days
 	print("=" * 20)
 	print("Updating database")
@@ -16,7 +18,7 @@ def main():
 		# Clear items in the temporary directory to avoid clutter and potential conflicts
 		data_manager.clear_temp_directory()
 		# Run the CLI interface for the AI powered lost and found system
-		user_report = io_manager.run_cli()
+		user_report = io.run_cli()
 		
 		if user_report == "quit":
 			break
@@ -79,7 +81,7 @@ def main():
 					continue
 
 				# Mark report as closed in the database if user confirms that the match is correct
-				resolve_report = io_manager.resolve_best_match(best_match)
+				resolve_report = io.resolve_best_match(best_match)
 				if resolve_report:
 					print("\n" + "=" * 75)
 					print("Report marked as closed. Closing the matched found report in the databases")

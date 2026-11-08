@@ -6,6 +6,7 @@ from .items import Items
 from .keys import Keys
 from .other_item import OtherItem
 from .formatting import Format
+from .io_helper import IoHelper
 from .print_menu import PrintMenu
 from .student_card import StudentCard
 
@@ -28,6 +29,7 @@ __all__ = [
     "Electronics",
     "Format",
     "Items",
+    "IoHelper",
     "Keys",
     "OtherItem",
     "PrintMenu",
