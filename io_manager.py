@@ -208,28 +208,7 @@ run_cli = _default_io_manager.run_cli
 format_record = IOManager.format_record
 format_records = IOManager.format_records
 
-__all__ = [
-    "Bag",
-    "Bottle",
-    "CATEGORIES",
-    "Clothing",
-    "Electronics",
-    "Format",
-    "IOManager",
-    "IMAGE_EXTENSIONS",
-    "Items",
-    "Keys",
-    "OtherItem",
-    "PrintMenu",
-    "REPORT_TYPES",
-    "StudentCard",
-    "collect_report",
-    "display_summary",
-    "format_record",
-    "format_records",
-    "resolve_best_match",
-    "run_cli",
-]
+__all__ = ["IOManager"]
 
 if __name__ == "__main__":
     IOManager().run_cli()
