@@ -1,0 +1,51 @@
+┌──────────────────────────────────────────────────────────────────────────────────────────┐
+  │                                      «interface»                                       │
+  │                                   AIServiceInterface                                   │
+  ├────────────────────────────────────────────────────────────────────────────────────────┤
+  │                                                                                        │
+  ├────────────────────────────────────────────────────────────────────────────────────────┤
+  │ + extract_features(description: Any, image_path: Optional[str] = None): Optional[str]  │
+  │ + ai_semantic_matching(input_lost_report: Any, datalist: list): Optional[str]          │
+  └────────────────────────────────────────────────────────────────────────────────────────┘
+                                               ▲
+                                               │ (Realization / Implements)
+                                               │
+┌──────────────────────────────────────────────┴───────────────────────────────────────────┐
+│                                         AiService                                        │
+├──────────────────────────────────────────────────────────────────────────────────────────┤
+│ _client: Optional[genai.Client]                                                          │
+│ _operation_type: str                                                                     │
+│ _ai_config: AiConfiguration                                                              │
+│ _ai_helper: AiHelper                                                                     │
+├──────────────────────────────────────────────────────────────────────────────────────────┤
+│ + __init__(operation_type: str)                                                          │
+│ _model_rotation(model_index: int, error_code: int, error_message: str): bool             │
+│ _execute_with_retry(contents: Any): Optional[str]                                        │
+│ + extract_features(description: Any, image_path: Optional[str] = None): Optional[str]    │
+│ + ai_semantic_matching(input_lost_report: Any, datalist: list): Optional[str]            │
+└──────┬──────────────────────────────┬─────────────────────────────┬──────────────────────┘
+       │                              │                             │
+       │ (1)                          │ (1)                         │ (1)
+       │                              │                             │
+       │ Composition (1..*)           │ Aggregation (1)             │ Association (1)
+       ▼                              ▼                             ▼
+┌──────────────────────────────┐     ┌─────────────────────────┐   ┌─────────────────────────┐
+│          AiManager           │     │     AiConfiguration     │   │          AiAPI          │
+├──────────────────────────────┤     ├─────────────────────────┤   ├─────────────────────────┤
+│ _feature_extraction_service  │     │ _models: list           │   │ _api_key: Optional[str] │
+│ _semantic_matching_service   │     │ _temperature: float     │   ├─────────────────────────┤
+├──────────────────────────────┤     │ _timeout: int           │   │ + __init__()            │
+│ + __init__()                 │     │ _config: Config         │   │ _get_ai_client(): Client│
+│ + extract_features(...)      │     ├─────────────────────────┤   └─────────────────────────┘
+│ + ai_semantic_matching(...)  │     │ + __init__()            │                │
+└──────────────────────────────┘     │ + models(): list        │                │ (1)
+                                     │ + config(): Config      │                │ Association (1)
+                                     └─────────────────────────┘                ▼
+                                                                   ┌─────────────────────────┐
+                                                                   │        AiHelper         │
+                                                                   ├─────────────────────────┤
+                                                                   │                         │
+                                                                   ├─────────────────────────┤
+                                                                   │ static _get_mime_type() │
+                                                                   │ + load_image_part(...)  │
+                                                                   └─────────────────────────┘
