@@ -151,8 +151,14 @@ class IOManager:
         self,
         best_match: Mapping[str, object],
         input_function: InputFunction = input,
+        *,
+        alternative_matches: Iterable[Mapping[str, object]] = (),
     ) -> bool:
-        return PrintMenu.confirm_best_match(best_match, input_function)
+        return PrintMenu.confirm_best_match(
+            best_match,
+            input_function,
+            alternative_matches=alternative_matches,
+        )
 
     def run_cli(
         self,

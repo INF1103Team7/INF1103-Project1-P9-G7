@@ -74,14 +74,18 @@ def main():
 				print("\n" + "=" * 75)
 				print("Applying business logic to determine the best match for the lost report")
 				print("=" * 75)
-				best_match = logic_manager.get_best_match(json.loads(matching_lost_reports), user_input_extracted.get("date"))
+				matching_results = json.loads(matching_lost_reports)
+				best_match = logic_manager.get_best_match(matching_results, user_input_extracted.get("date"))
 
 				if best_match is None:
 					print("[!] No suitable match found for the lost report found in the database.")
 					continue
 
 				# Mark report as closed in the database if user confirms that the match is correct
-				resolve_report = io.resolve_best_match(best_match)
+				resolve_report = io.resolve_best_match(
+					best_match,
+					alternative_matches=matching_results,
+				)
 				if resolve_report:
 					print("\n" + "=" * 75)
 					print("Report marked as closed. Closing the matched found report in the databases")
