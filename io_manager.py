@@ -4,9 +4,9 @@ from typing import Callable, Iterable, Mapping
 
 import data_manager
 from io_classes import (
-    CATEGORIES,
     Format,
     IoHelper,
+    Items,
     PrintMenu,
 )
 
@@ -51,11 +51,11 @@ class IOManager:
                 stage = 2
 
             elif stage == 2:
-                IoHelper.print_choices("\nItem category:", CATEGORIES)
+                IoHelper.print_choices("\nItem category:", Items.CATEGORIES)
                 IoHelper.print_nav()
 
                 category = IoHelper.read_choice(
-                    "Select item category: ", CATEGORIES, input_function
+                    "Select item category: ", Items.CATEGORIES, input_function
                 )
 
                 if category == MAIN:
