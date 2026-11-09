@@ -9,6 +9,7 @@ from data_classes.data_report import Report
 import data_manager
 from unittest.mock import Mock
 import shutil
+import os
 # --------------------------------------------------
 # Fixtures
 # --------------------------------------------------
@@ -1114,7 +1115,10 @@ def test_function_store_image_temp_directory(tmp_path, monkeypatch):
         source, "CASE-001", temp_directory
     )
 
-    assert result == source.name
+    if os.name == "nt":
+        assert result == source.name
+    else:
+        assert result == str(source)
     assert (temp_directory / result).exists()
 
 
@@ -1147,7 +1151,10 @@ def test_function_store_image_temp_same_file(
 
     captured = capsys.readouterr()
 
-    assert result == "source.jpg"
+    if os.name == "nt":
+        assert result == source.name
+    else:
+        assert result == str(source)
     assert "File already exists" in captured.out
 
 # 22. Handle copy error in temporary directory
