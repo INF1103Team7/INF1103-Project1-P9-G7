@@ -4,18 +4,10 @@ from typing import Callable, Iterable, Mapping
 
 import data_manager
 from io_classes import (
-    Bag,
-    Bottle,
     CATEGORIES,
-    Clothing,
-    Electronics,
     Format,
     IoHelper,
-    Items,
-    Keys,
-    OtherItem,
     PrintMenu,
-    StudentCard,
 )
 
 REPORT_TYPES = ("lost", "found")
@@ -39,7 +31,7 @@ class IOManager:
         stage = 1
 
         report_type = None
-        category: Items | None = None
+        category = ""
         description = None
         image_path = None
         occurrence_date = None
@@ -62,24 +54,21 @@ class IOManager:
                 IoHelper.print_choices("\nItem category:", CATEGORIES)
                 IoHelper.print_nav()
 
-                selected_category = IoHelper.read_choice(
+                category = IoHelper.read_choice(
                     "Select item category: ", CATEGORIES, input_function
                 )
 
-                if selected_category == MAIN:
+                if category == MAIN:
                     return None
 
-                if selected_category == BACK:
+                if category == BACK:
                     stage = 1
                     continue
 
-                category = Items.from_value(selected_category)
                 stage = 3
 
             elif stage == 3:
-                PrintMenu.write(
-                    f"\nEnter item description ({category.description_guidance})."
-                )
+                PrintMenu.write("\nEnter item description.")
                 IoHelper.print_nav()
 
                 description = IoHelper.read_non_empty(
@@ -137,7 +126,7 @@ class IOManager:
 
                 return {
                     "report_type": report_type,
-                    "category": category.value,
+                    "category": category,
                     "description": description,
                     "image_path": image_path,
                     "date": occurrence_date,
