@@ -1,0 +1,408 @@
+LOST AND FOUND - UML CLASS DIAGRAM
+Unicode box-drawing text format (as in the reference example)
+========================================================================
+
+OVERVIEW / CLASS RELATIONSHIPS
+------------------------------------------------------------------------
+                       ┌─────────────────────┐
+                       │    LogicManager     │
+                       └─────────┬───────────┘
+                                 │
+                   Composition (1 each)
+                     ┌───────────┴───────────┐
+                     ▼                       ▼
+              ┌─────────────┐       ┌────────────────┐
+              │   Matcher   │       │ MatchSelector  │
+              └──────┬──────┘       └────────────────┘
+                     │
+           Composition (1 each)
+              ┌──────┴──────────────┐
+              ▼                     ▼
+        ┌──────────┐         ┌──────────────┐
+        │  Traits  │         │ RuleManager  │
+        └────┬─────┘         └──────┬───────┘
+             │                      │ Aggregation (0..*)
+             │ Association (1)      ▼
+             ▼               ┌──────────────────┐
+     ┌──────────────────┐    │ «abstract»       │
+     │ AnalysisValidator│    │ MatchRule        │
+     └──────────────────┘    └────────┬─────────┘
+                                     △
+                                     │ Inheritance
+                                     │ 16 subclasses (below)
+
+  Matcher ──────────────► AnalysisValidator : Association (1)
+  Matcher ──────────────► ThresholdConfig   : Association (1)
+  RuleManager - - - - - ► ThresholdConfig   : Dependency
+  Configured rule classes ─► ThresholdConfig : Association (1)
+
+CORE CLASSES
+------------------------------------------------------------------------
+┌───────────────────────────────────────────────────────────────┐
+│ LogicManager                                                  │
+├───────────────────────────────────────────────────────────────┤
+│ - matcher: Matcher                                            │
+│ - match_selector: MatchSelector                               │
+├───────────────────────────────────────────────────────────────┤
+│ + __init__(threshold_config=None)                             │
+│ + get_best_match(ai_result_list, lost_report_date=None)       │
+└───────────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────────┐
+│ Matcher                                                       │
+├───────────────────────────────────────────────────────────────┤
+│ - validator: AnalysisValidator                                │
+│ - traits: Traits                                              │
+│ - threshold_config: ThresholdConfig                           │
+│ - rule_manager: RuleManager                                   │
+├───────────────────────────────────────────────────────────────┤
+│ + __init__(threshold_config=None, validator=None)             │
+│ + handle_temporal_paradox(...)                                │
+│ + evaluate_rules(...)                                         │
+│ + evaluate_analysis(...)                                      │
+└───────────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────────┐
+│ MatchSelector                                                 │
+├───────────────────────────────────────────────────────────────┤
+│ + STATUS_PRIORITY: dict                                       │
+├───────────────────────────────────────────────────────────────┤
+│ + get_best_match(evaluation_results)                          │
+└───────────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────────┐
+│ Traits                                                        │
+├───────────────────────────────────────────────────────────────┤
+│ - validator: AnalysisValidator                                │
+├───────────────────────────────────────────────────────────────┤
+│ + __init__(validator=None)                                    │
+│ + get_traits(ai_result, lost_report_date=None)                │
+│ + classify_traits(data)                                       │
+└───────────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────────┐
+│ AnalysisValidator                                             │
+├───────────────────────────────────────────────────────────────┤
+│                                                               │
+├───────────────────────────────────────────────────────────────┤
+│ + validate_analysis(ai_result)                                │
+│ + validate_timeline(ai_result, lost_report_date)              │
+│ - __is_valid_ai_result(ai_result)                             │
+│ - __parse_score_to_float(score)                               │
+└───────────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────────┐
+│ ThresholdConfig                                               │
+├───────────────────────────────────────────────────────────────┤
+│ - __reject_threshold: float                                   │
+│ - __high_threshold: float                                     │
+│ - __min_feature_strong_match: int                             │
+│ - __min_feature_excellent_match: int                          │
+│ - __consider_location: bool                                   │
+├───────────────────────────────────────────────────────────────┤
+│ + __init__(...)                                               │
+│ + reject_threshold {property / setter}                        │
+│ + high_threshold {property / setter}                          │
+│ + min_feature_strong_match {property / setter}                │
+│ + min_feature_excellent_match {property / setter}             │
+│ + consider_location {property / setter}                       │
+│ - __validate_input(...)                                       │
+│ - __update_threshold(...)                                     │
+└───────────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────────┐
+│ RuleManager                                                   │
+├───────────────────────────────────────────────────────────────┤
+│ + veto_rules: list                                            │
+│ + negative_rules: list                                        │
+│ + positive_rules: list                                        │
+│ + bonus_rules: list                                           │
+├───────────────────────────────────────────────────────────────┤
+│ + __init__(threshold_config)                                  │
+│ + add_rule(rule)                                              │
+│ + evaluate(data, score)                                       │
+│ - __register_default_rules(threshold_config)                  │
+│ - __apply_rules(...)                                          │
+└───────────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────────┐
+│ «abstract»                                                    │
+│ MatchRule                                                     │
+├───────────────────────────────────────────────────────────────┤
+│                                                               │
+├───────────────────────────────────────────────────────────────┤
+│ + is_satisfied(data) {abstract}                               │
+│ + apply_rule(score) {abstract}                                │
+│ + get_rule_name() {abstract}                                  │
+│ + get_rule_type() {abstract}                                  │
+│ + skip_if_veto_triggered()                                    │
+└───────────────────────────────────────────────────────────────┘
+
+INHERITANCE - ALL 16 CONCRETE MATCH RULES
+------------------------------------------------------------------------
+                         ┌───────────────────────┐
+                         │ «abstract» MatchRule  │
+                         └───────────△───────────┘
+                                     │
+                          ┌──────────┴──────────┐
+                          │  16 implementations │
+                          └─────────────────────┘
+Each class below implements the four abstract methods shown in MatchRule.
+
+┌───────────────────────────────────────────────────────────────┐
+│ BrandColorFeatureMatchRule                                    │
+├───────────────────────────────────────────────────────────────┤
+│ - config: ThresholdConfig                                     │
+├───────────────────────────────────────────────────────────────┤
+│ + __init__(config)                                            │
+│ + is_satisfied(data)                                          │
+│ + apply_rule(score)                                           │
+│ + get_rule_name()                                             │
+│ + get_rule_type()                                             │
+└───────────────────────────────────────────────────────────────┘
+  BrandColorFeatureMatchRule ──────|> MatchRule   [inheritance; positive rule]
+  BrandColorFeatureMatchRule ──────► ThresholdConfig   [association]
+
+┌───────────────────────────────────────────────────────────────┐
+│ BrandColorMaterialMatchRule                                   │
+├───────────────────────────────────────────────────────────────┤
+│                                                               │
+├───────────────────────────────────────────────────────────────┤
+│ + __init__()                                                  │
+│ + is_satisfied(data)                                          │
+│ + apply_rule(score)                                           │
+│ + get_rule_name()                                             │
+│ + get_rule_type()                                             │
+└───────────────────────────────────────────────────────────────┘
+  BrandColorMaterialMatchRule ──────|> MatchRule   [inheritance; positive rule]
+
+┌───────────────────────────────────────────────────────────────┐
+│ BrandColorMatchRule                                           │
+├───────────────────────────────────────────────────────────────┤
+│                                                               │
+├───────────────────────────────────────────────────────────────┤
+│ + __init__()                                                  │
+│ + is_satisfied(data)                                          │
+│ + apply_rule(score)                                           │
+│ + get_rule_name()                                             │
+│ + get_rule_type()                                             │
+└───────────────────────────────────────────────────────────────┘
+  BrandColorMatchRule ──────|> MatchRule   [inheritance; positive rule]
+
+┌───────────────────────────────────────────────────────────────┐
+│ BrandFeatureMatchRule                                         │
+├───────────────────────────────────────────────────────────────┤
+│ - config: ThresholdConfig                                     │
+├───────────────────────────────────────────────────────────────┤
+│ + __init__(config)                                            │
+│ + is_satisfied(data)                                          │
+│ + apply_rule(score)                                           │
+│ + get_rule_name()                                             │
+│ + get_rule_type()                                             │
+└───────────────────────────────────────────────────────────────┘
+  BrandFeatureMatchRule ──────|> MatchRule   [inheritance; positive rule]
+  BrandFeatureMatchRule ──────► ThresholdConfig   [association]
+
+┌───────────────────────────────────────────────────────────────┐
+│ BrandMaterialMatchRule                                        │
+├───────────────────────────────────────────────────────────────┤
+│                                                               │
+├───────────────────────────────────────────────────────────────┤
+│ + __init__()                                                  │
+│ + is_satisfied(data)                                          │
+│ + apply_rule(score)                                           │
+│ + get_rule_name()                                             │
+│ + get_rule_type()                                             │
+└───────────────────────────────────────────────────────────────┘
+  BrandMaterialMatchRule ──────|> MatchRule   [inheritance; positive rule]
+
+┌───────────────────────────────────────────────────────────────┐
+│ ColorFeatureMaterialMatchRule                                 │
+├───────────────────────────────────────────────────────────────┤
+│ - config: ThresholdConfig                                     │
+├───────────────────────────────────────────────────────────────┤
+│ + __init__(config)                                            │
+│ + is_satisfied(data)                                          │
+│ + apply_rule(score)                                           │
+│ + get_rule_name()                                             │
+│ + get_rule_type()                                             │
+└───────────────────────────────────────────────────────────────┘
+  ColorFeatureMaterialMatchRule ──────|> MatchRule   [inheritance; positive rule]
+  ColorFeatureMaterialMatchRule ──────► ThresholdConfig   [association]
+
+┌───────────────────────────────────────────────────────────────┐
+│ ColorFeatureMatchRule                                         │
+├───────────────────────────────────────────────────────────────┤
+│ - config: ThresholdConfig                                     │
+├───────────────────────────────────────────────────────────────┤
+│ + __init__(config)                                            │
+│ + is_satisfied(data)                                          │
+│ + apply_rule(score)                                           │
+│ + get_rule_name()                                             │
+│ + get_rule_type()                                             │
+└───────────────────────────────────────────────────────────────┘
+  ColorFeatureMatchRule ──────|> MatchRule   [inheritance; positive rule]
+  ColorFeatureMatchRule ──────► ThresholdConfig   [association]
+
+┌───────────────────────────────────────────────────────────────┐
+│ ColorMaterialMatchRule                                        │
+├───────────────────────────────────────────────────────────────┤
+│                                                               │
+├───────────────────────────────────────────────────────────────┤
+│ + __init__()                                                  │
+│ + is_satisfied(data)                                          │
+│ + apply_rule(score)                                           │
+│ + get_rule_name()                                             │
+│ + get_rule_type()                                             │
+└───────────────────────────────────────────────────────────────┘
+  ColorMaterialMatchRule ──────|> MatchRule   [inheritance; positive rule]
+
+┌───────────────────────────────────────────────────────────────┐
+│ ColorOnlyMatchRule                                            │
+├───────────────────────────────────────────────────────────────┤
+│                                                               │
+├───────────────────────────────────────────────────────────────┤
+│ + __init__()                                                  │
+│ + is_satisfied(data)                                          │
+│ + apply_rule(score)                                           │
+│ + get_rule_name()                                             │
+│ + get_rule_type()                                             │
+└───────────────────────────────────────────────────────────────┘
+  ColorOnlyMatchRule ──────|> MatchRule   [inheritance; negative rule]
+
+┌───────────────────────────────────────────────────────────────┐
+│ FullMatchRule                                                 │
+├───────────────────────────────────────────────────────────────┤
+│ - config: ThresholdConfig                                     │
+├───────────────────────────────────────────────────────────────┤
+│ + __init__(config)                                            │
+│ + is_satisfied(data)                                          │
+│ + apply_rule(score)                                           │
+│ + get_rule_name()                                             │
+│ + get_rule_type()                                             │
+└───────────────────────────────────────────────────────────────┘
+  FullMatchRule ──────|> MatchRule   [inheritance; positive rule]
+  FullMatchRule ──────► ThresholdConfig   [association]
+
+┌───────────────────────────────────────────────────────────────┐
+│ FourMatchRule                                                 │
+├───────────────────────────────────────────────────────────────┤
+│ - config: ThresholdConfig                                     │
+├───────────────────────────────────────────────────────────────┤
+│ + __init__(config)                                            │
+│ + is_satisfied(data)                                          │
+│ + apply_rule(score)                                           │
+│ + get_rule_name()                                             │
+│ + get_rule_type()                                             │
+└───────────────────────────────────────────────────────────────┘
+  FourMatchRule ──────|> MatchRule   [inheritance; positive rule]
+  FourMatchRule ──────► ThresholdConfig   [association]
+
+┌───────────────────────────────────────────────────────────────┐
+│ MaterialFeatureMatchRule                                      │
+├───────────────────────────────────────────────────────────────┤
+│ - config: ThresholdConfig                                     │
+├───────────────────────────────────────────────────────────────┤
+│ + __init__(config)                                            │
+│ + is_satisfied(data)                                          │
+│ + apply_rule(score)                                           │
+│ + get_rule_name()                                             │
+│ + get_rule_type()                                             │
+└───────────────────────────────────────────────────────────────┘
+  MaterialFeatureMatchRule ──────|> MatchRule   [inheritance; positive rule]
+  MaterialFeatureMatchRule ──────► ThresholdConfig   [association]
+
+┌───────────────────────────────────────────────────────────────┐
+│ SecondaryColorMatchRule                                       │
+├───────────────────────────────────────────────────────────────┤
+│                                                               │
+├───────────────────────────────────────────────────────────────┤
+│ + __init__()                                                  │
+│ + is_satisfied(data)                                          │
+│ + apply_rule(score)                                           │
+│ + get_rule_name()                                             │
+│ + get_rule_type()                                             │
+└───────────────────────────────────────────────────────────────┘
+  SecondaryColorMatchRule ──────|> MatchRule   [inheritance; bonus rule]
+
+┌───────────────────────────────────────────────────────────────┐
+│ ColorMaterialMismatchRule                                     │
+├───────────────────────────────────────────────────────────────┤
+│                                                               │
+├───────────────────────────────────────────────────────────────┤
+│ + __init__()                                                  │
+│ + is_satisfied(data)                                          │
+│ + apply_rule(score)                                           │
+│ + get_rule_name()                                             │
+│ + get_rule_type()                                             │
+│ + skip_if_veto_triggered()                                    │
+└───────────────────────────────────────────────────────────────┘
+  ColorMaterialMismatchRule ──────|> MatchRule   [inheritance; negative rule]
+
+┌───────────────────────────────────────────────────────────────┐
+│ LocationMismatchRule                                          │
+├───────────────────────────────────────────────────────────────┤
+│ - config: ThresholdConfig                                     │
+├───────────────────────────────────────────────────────────────┤
+│ + __init__(config)                                            │
+│ + is_satisfied(data)                                          │
+│ + apply_rule(score)                                           │
+│ + get_rule_name()                                             │
+│ + get_rule_type()                                             │
+└───────────────────────────────────────────────────────────────┘
+  LocationMismatchRule ──────|> MatchRule   [inheritance; negative rule]
+  LocationMismatchRule ──────► ThresholdConfig   [association]
+
+┌───────────────────────────────────────────────────────────────┐
+│ VetoMismatchRule                                              │
+├───────────────────────────────────────────────────────────────┤
+│                                                               │
+├───────────────────────────────────────────────────────────────┤
+│ + __init__()                                                  │
+│ + is_satisfied(data)                                          │
+│ + apply_rule(score)                                           │
+│ + get_rule_name()                                             │
+│ + get_rule_type()                                             │
+└───────────────────────────────────────────────────────────────┘
+  VetoMismatchRule ──────|> MatchRule   [inheritance; veto rule]
+
+RULE GROUPS / AGGREGATION
+------------------------------------------------------------------------
+RuleManager ◇────────► MatchRule  [0..* managed rule objects]
+
+VETO RULES:
+  • VetoMismatchRule
+
+NEGATIVE RULES:
+  • ColorOnlyMatchRule
+  • ColorMaterialMismatchRule
+  • LocationMismatchRule
+
+POSITIVE RULES:
+  • BrandColorFeatureMatchRule
+  • BrandColorMaterialMatchRule
+  • BrandColorMatchRule
+  • BrandFeatureMatchRule
+  • BrandMaterialMatchRule
+  • ColorFeatureMaterialMatchRule
+  • ColorFeatureMatchRule
+  • ColorMaterialMatchRule
+  • FullMatchRule
+  • FourMatchRule
+  • MaterialFeatureMatchRule
+
+BONUS RULES:
+  • SecondaryColorMatchRule
+
+LEGEND
+------------------------------------------------------------------------
++ public     - private
+△ inheritance (subclass points toward abstract base class)
+Composition = owned objects constructed by the containing class
+Aggregation = collection of registered rule objects
+Association = object holds/uses a reference
+Dependency = object supplies configuration to another
+
+NOTE: Method argument/return types are abbreviated where not fully
+specified in the supplied Python source. Diagram uses Unicode
+box-drawing characters to match the reference, rather than 7-bit ASCII.
