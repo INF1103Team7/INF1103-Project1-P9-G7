@@ -41,9 +41,4 @@ jobs:
 
       - name: Run Data Manager tests
         run: |
-          python -m pytest tests/test_data_manager.py \
-            --cov=data_classes.data_manager_class \
-            --cov=data_classes.data_report \
-            --cov=data_classes.data_json_report_storage \
-            --cov-report=term-missing \
-            --cov-report=xml
+          python -m pytest tests/test_data_manager.py -v --cov=data_classes --cov=data_manager --cov-report=term-missing

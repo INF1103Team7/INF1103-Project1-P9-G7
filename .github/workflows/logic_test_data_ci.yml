@@ -41,12 +41,5 @@ jobs:
 
       - name: Run Logic Test Data tests
         run: |
-          python -m pytest tests/test_logic_data.py \
-            --cov=logic_classes.threshold_config \
-            --cov=logic_classes.analysis_validator \
-            --cov=logic_classes.traits \
-            --cov=logic_classes.matcher \
-            --cov=logic_classes.rule_manager \
-            --cov=logic_classes.match_selector \
-            --cov=logic_manager \
-            --cov-report=term-missing
+          python -m pytest tests/test_logic_manager.py -v --cov=logic_classes --cov=logic_manager --cov-report=term-missing
+

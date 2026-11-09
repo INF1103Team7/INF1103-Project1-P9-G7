@@ -188,8 +188,8 @@ class DataManager:
                 except OSError as error:
                     print("Error deleting image:", error)
 
-            return len(expired_reports)
-        
+        return len(expired_reports)
+
      # delete images belonging to expired reports
         for report in expired_reports:
             image_filename = report.get("image_filename")
