@@ -33,8 +33,12 @@ class AiHelper:
         from pathlib import Path
         from google.genai import types
         try:
-            with open(Path(__file__).parent.parent / f"temp/{image_path}", "rb") as f:
-                image_bytes = f.read()
+            if image_path.find("CASE-") != -1:
+                with open(Path(__file__).parent.parent / f"images/{image_path}", "rb") as f:
+                    image_bytes = f.read()
+            else:
+                with open(Path(__file__).parent.parent / f"temp/{image_path}", "rb") as f:
+                    image_bytes = f.read()
 
             contents = types.Part.from_bytes(data = image_bytes, mime_type = self._get_mime_type(image_path))
 
