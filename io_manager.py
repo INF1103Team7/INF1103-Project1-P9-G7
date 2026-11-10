@@ -51,11 +51,11 @@ class IOManager:
                 stage = 2
 
             elif stage == 2:
-                IoHelper.print_choices("\nItem category:", Items.CATEGORIES)
+                IoHelper.print_choices("\nItem category:", Items.categories())
                 IoHelper.print_nav()
 
                 category = IoHelper.read_choice(
-                    "Select item category: ", Items.CATEGORIES, input_function
+                    "Select item category: ", Items.categories(), input_function
                 )
 
                 if category == MAIN:
