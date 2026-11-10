@@ -62,66 +62,10 @@ class PrintMenu:
         cls.write(f"Summary: {evaluation.get('evaluation_summary')}")
 
     @classmethod
-    def display_location_alternatives(
-        cls,
-        matches: Iterable[Mapping[str, object]],
-        best_match: Mapping[str, object],
-    ) -> None:
-        best_report = best_match.get("report")
-        best_case_id = (
-            best_report.get("case_id")
-            if isinstance(best_report, Mapping)
-            else None
-        )
-        alternatives = []
-
-        for report in matches:
-            if report is best_report or (
-                best_case_id is not None
-                and report.get("case_id") == best_case_id
-            ):
-                continue
-
-            analysis = report.get("similarity_analysis")
-            if not isinstance(analysis, Mapping):
-                continue
-
-            color_match = analysis.get("color_match")
-            if isinstance(color_match, Mapping):
-                color_match = color_match.get("is_match")
-
-            features = analysis.get("feature_overlap_match")
-            if (
-                color_match == "match"
-                and analysis.get("material_match") == "match"
-                and analysis.get("brand_match") == "match"
-                and isinstance(features, list)
-                and bool(features)
-                and analysis.get("location_match") == "not match"
-            ):
-                alternatives.append(report)
-
-        cls.write(
-            "\nOther reports matching all traits except location:"
-        )
-        if not alternatives:
-            cls.write("No other reports match every trait except location.")
-            return
-
-        for number, report in enumerate(alternatives, start=1):
-            cls.write(f"\n{number}. {Format.record(report)}")
-            cls.write(
-                "  Location: "
-                f"{report.get('location_lost', report.get('location', 'Unknown'))}"
-            )
-
-    @classmethod
     def confirm_best_match(
         cls,
         best_match: Mapping[str, object],
-        input_function: Callable[[str], str] = input,
-        *,
-        alternative_matches: Iterable[Mapping[str, object]] = (),
+        input_function: Callable[[str], str] = input
     ) -> bool:
         evaluation = best_match.get("evaluation")
         if not isinstance(evaluation, Mapping):
@@ -135,7 +79,6 @@ class PrintMenu:
             if resolve in {"yes", "y"}:
                 return True
             if resolve in {"no", "n"}:
-                # cls.display_location_alternatives(alternative_matches, best_match)
                 return False
             cls.write("Please enter 'yes' or 'no'.")
 
