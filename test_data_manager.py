@@ -4,7 +4,7 @@ import tempfile
 from pathlib import Path
 from datetime import date, timedelta
 
-from data_classes.data_manager_class import DataManager
+from data_classes.data_manager_service import DataManager
 
 
 def run_tests():

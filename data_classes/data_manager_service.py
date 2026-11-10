@@ -1,18 +1,20 @@
 import shutil
 from pathlib import Path
 from datetime import date, datetime, timedelta
+from dotenv import load_dotenv
+import os
 
 from data_classes.data_report import Report
 from data_classes.data_json_report_storage import JsonReportStorage
 
-
-
-class DataManager:
-    def __init__(self, reports_file, image_directory):
+class DataManagerService:
+    def __init__(self, reports_file, image_directory, temp_directory, image_extensions):
         # create the JSON storage object
         self._storage = JsonReportStorage(reports_file)
         # store the image directory path
-        self._image_directory = Path(image_directory)
+        self._image_directory = image_directory
+        self._image_extensions = image_extensions 
+        self._temp_directory = temp_directory
     
     def load_reports(self):
         # load reports using the JSON storage object
@@ -56,38 +58,62 @@ class DataManager:
 
         return None
     
-    def store_image(self, source_path, case_id):
-        if not isinstance(source_path, (str, Path)):
-            print("Invalid image path")
-            return None
+    # Store an image in the images directory
+    def store_image(self, source_path: str | Path, case_id: str) -> str:
+        """_summary_
+            Function to store an image in the images directory with a new filename based on the case ID.
+        Args:
+            source_path (str | Path): The path to the source image file to be stored.
+            case_id (str): The case ID to be used for the new image filename.
+            image_directory (Path, optional): The path to the image directory. Defaults to IMAGE_DIRECTORY.
 
+        Raises:
+            ValueError: If the source path is not a valid image file or if the case ID is not a string.
+            FileNotFoundError: If the source image file is not found.
+
+        Returns:
+            str: The filename of the stored image.
+        """
+        # Load environment variables from .env file
+        load_dotenv(Path(__file__).parent.parent / ".env")
+        image_directory = Path(self._image_directory)
         source = Path(source_path)
-
-        if source.suffix.lower() not in [".jpg", ".jpeg", ".png"]:
-            print("Only JPG, JPEG and PNG images are allowed")
+        if source.suffix.lower() not in self._image_extensions:
+            print("[!] Only JPG, JPEG, and PNG images can be stored.")
             return None
-
         if not source.is_file():
-            print("Image not found:", source)
+            print(f"[!] Image not found: {source}")
             return None
 
-        filename = case_id + source.suffix.lower()
-        destination = self._image_directory / filename
-
-        try:
-            self._image_directory.mkdir(
-                parents=True,
-                exist_ok=True
-            )
-
-            if source.resolve() != destination.resolve():
-                shutil.copy2(source, destination)
-
-            return filename
-
-        except OSError as error:
-            print("Error saving image:", error)
-            return None
+        image_directory.mkdir(parents=True, exist_ok=True)
+        if image_directory == self._image_directory:
+            stored_filename = f"{case_id}{source.suffix.lower()}"
+            try:
+                shutil.copy2(source, image_directory / stored_filename)
+            except Exception as e:
+                print(f"[!] Error saving file to database: {e}")
+        elif image_directory == self._temp_directory:
+            # Check if the application is running in a containerized environment
+            if os.environ.get("APP_CONTAINER") == "1":
+                try:
+                    if str(source).find("/") != -1:
+                        stored_filename = f"{str(source).split("/")[-1]}"
+                    else:
+                        stored_filename = f"{str(source).split('\\')[-1]}"
+                    shutil.copy2(source, image_directory / stored_filename)
+                except shutil.SameFileError:
+                    print(f"[!] File already exists in the destination: {source} skipping copy.")
+                except Exception as e:
+                    print(f"[!] Error copying file: {e}")
+            else:
+                try:
+                    stored_filename = f"{str(source).split("\\")[-1]}"
+                    shutil.copy2(source, image_directory / stored_filename)
+                except shutil.SameFileError:
+                    print(f"[!] File already exists in the destination: {source} skipping copy.")
+                except Exception as e:
+                    print(f"[!] Error copying file: {e}")
+        return stored_filename
         
     def get_active_reports(self):
         # store only reports with active status

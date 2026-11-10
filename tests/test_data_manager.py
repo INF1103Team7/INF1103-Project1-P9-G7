@@ -3,7 +3,7 @@ import json
 import pytest
 from datetime import date, timedelta
 from pathlib import Path
-from data_classes.data_manager_class import DataManager
+from data_classes.data_manager_service import DataManager
 from data_classes.data_json_report_storage import JsonReportStorage
 from data_classes.data_report import Report
 import data_manager
