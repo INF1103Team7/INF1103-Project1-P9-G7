@@ -153,6 +153,7 @@ class IOManager:
         self,
         input_function: InputFunction = input,
     ) -> dict[str, str] | str:
+        data = data_manager.DataManager()
         while True:
             PrintMenu.section(
                 "Welcome to the AI powered lost and found system!",
@@ -175,7 +176,7 @@ class IOManager:
 
             if command in {"2", "/summary", "summary"}:
                 try:
-                    report_list = data_manager.load_reports()
+                    report_list = data.load_reports()
                 except (OSError, ValueError) as error:
                     report_list = []
                     PrintMenu.write(f"Could not load saved reports: {error}")
