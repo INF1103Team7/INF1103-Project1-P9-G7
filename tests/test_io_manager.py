@@ -8,7 +8,11 @@ import pytest
 from io_manager import IOManager
 import tkinter as tk
 import io_classes.io_helper as io_helper_module
-from io_classes.io_helper import IoHelper
+
+
+@pytest.fixture(autouse=True)
+def isolate_dotenv(monkeypatch):
+    monkeypatch.setattr(io_helper_module, "load_dotenv", lambda _path: None)
 
 def test_format_single_record():
     report = {
@@ -420,66 +424,6 @@ def test_print_best_match_no_rules(capsys):
     assert "Mismatched rules: None" in captured.out
 
 
-def test_display_location_alternatives_valid(capsys):
-    best_report = {"case_id": "CASE001"}
-
-    alternative_report = {
-        "case_id": "CASE002",
-        "report_type": "found",
-        "category": "bottle",
-        "location_lost": "Library",
-        "similarity_analysis": {
-            "color_match": "match",
-            "material_match": "match",
-            "brand_match": "match",
-            "feature_overlap_match": ["logo"],
-            "location_match": "not match",
-        },
-    }
-
-    best_match = {"report": best_report}
-
-    PrintMenu.display_location_alternatives(
-        [best_report, alternative_report],
-        best_match
-    )
-
-    captured = capsys.readouterr()
-
-    assert "Other reports matching all traits except location:" in captured.out
-    assert "Case ID: CASE002" in captured.out
-    assert "Location: Library" in captured.out
-    assert "Case ID: CASE001" not in captured.out
-
-
-def test_display_location_alternatives_none(capsys):
-    best_match = {
-        "report": {"case_id": "CASE001"}
-    }
-
-    reports = [
-        {
-            "case_id": "CASE002",
-            "similarity_analysis": {
-                "color_match": "not match",
-                "material_match": "match",
-                "brand_match": "match",
-                "feature_overlap_match": ["logo"],
-                "location_match": "not match",
-            },
-        }
-    ]
-
-    PrintMenu.display_location_alternatives(
-        reports,
-        best_match
-    )
-
-    captured = capsys.readouterr()
-
-    assert "No other reports match every trait except location." in captured.out
-
-
 def test_confirm_best_match_yes():
     best_match = {
         "evaluation": {
@@ -499,7 +443,7 @@ def test_confirm_best_match_yes():
     assert result is True
 
 
-def test_confirm_best_match_no(capsys):
+def test_confirm_best_match_no():
     best_match = {
         "report": {"case_id": "CASE001"},
         "evaluation": {
@@ -513,14 +457,10 @@ def test_confirm_best_match_no(capsys):
 
     result = PrintMenu.confirm_best_match(
         best_match,
-        input_function=lambda prompt: "no",
-        alternative_matches=[]
+        input_function=lambda prompt: "no"
     )
 
-    captured = capsys.readouterr()
-
     assert result is False
-    assert "No other reports match every trait except location." in captured.out
 
 
 def test_confirm_best_match_invalid_retry(capsys):
@@ -547,16 +487,15 @@ def test_confirm_best_match_invalid_retry(capsys):
     assert "Please enter 'yes' or 'no'." in captured.out
 
 
-def test_confirm_best_match_missing_evaluation():
+def test_confirm_best_match_missing_evaluation(capsys):
     best_match = {
         "report": {"case_id": "CASE001"}
     }
 
-    with pytest.raises(ValueError):
-        PrintMenu.confirm_best_match(
-            best_match,
-            input_function=lambda prompt: "yes"
-        )
+    result = PrintMenu.confirm_best_match(best_match, input_function=pytest.fail)
+
+    assert result is None
+    assert "The best match must include an evaluation mapping" in capsys.readouterr().out
 
 
 def test_collect_report_success():
@@ -714,12 +653,12 @@ def test_run_cli_exit(capsys):
     manager = IOManager()
 
     result = manager.run_cli(
-        input_function=lambda prompt: "3"
+        input_function=lambda prompt: "4"
     )
 
     captured = capsys.readouterr()
 
-    assert result == "quit"
+    assert result == ("quit", None)
     assert "Exiting the AI powered lost and found system." in captured.out
 
 
@@ -735,12 +674,13 @@ def test_run_cli_submit_report(capsys):
         "01-01-2025",         # Date
     ])
 
-    result = manager.run_cli(
+    result, logic = manager.run_cli(
         input_function=lambda prompt: next(inputs)
     )
 
     captured = capsys.readouterr()
 
+    assert logic is None
     assert result["report_type"] == "lost"
     assert result["category"] == "bottle"
     assert result["description"] == "Black water bottle"
@@ -750,7 +690,7 @@ def test_run_cli_submit_report(capsys):
 def test_run_cli_invalid_option(capsys):
     manager = IOManager()
 
-    inputs = iter(["9", "3"])
+    inputs = iter(["9", "4"])
 
     result = manager.run_cli(
         input_function=lambda prompt: next(inputs)
@@ -758,8 +698,8 @@ def test_run_cli_invalid_option(capsys):
 
     captured = capsys.readouterr()
 
-    assert "Please choose 1, 2, or 3." in captured.out
-    assert result == "quit"
+    assert "Please choose 1, 2, 3 or 4." in captured.out
+    assert result == ("quit", None)
 
 # monkeypatch temporarily replaces load_reports() with a function that returns sample data so dont need actual saved reports; connect to db
 def test_run_cli_summary(monkeypatch, capsys):
@@ -779,11 +719,11 @@ def test_run_cli_summary(monkeypatch, capsys):
     ]
 
     monkeypatch.setattr(
-        "io_manager.data_manager.load_reports",
-        lambda: fake_reports
+        "io_manager.data_manager.DataManager.load_reports",
+        lambda self: fake_reports
     )
 
-    inputs = iter(["2", "3"])
+    inputs = iter(["2", "4"])
 
     result = manager.run_cli(
         input_function=lambda prompt: next(inputs)
@@ -791,7 +731,7 @@ def test_run_cli_summary(monkeypatch, capsys):
 
     captured = capsys.readouterr()
 
-    assert result == "quit"
+    assert result == ("quit", None)
     assert "Lost-and-Found Summary" in captured.out
     assert "Case ID: CASE001" in captured.out
     assert "Case ID: CASE002" in captured.out
@@ -800,15 +740,15 @@ def test_run_cli_summary(monkeypatch, capsys):
 def test_run_cli_summary_error(monkeypatch, capsys):
     manager = IOManager()
 
-    def fake_load_reports():
+    def fake_load_reports(self):
         raise OSError("Database unavailable")
 
     monkeypatch.setattr(
-        "io_manager.data_manager.load_reports",
+        "io_manager.data_manager.DataManager.load_reports",
         fake_load_reports
     )
 
-    inputs = iter(["2", "3"])
+    inputs = iter(["2", "4"])
 
     result = manager.run_cli(
         input_function=lambda prompt: next(inputs)
@@ -816,7 +756,7 @@ def test_run_cli_summary_error(monkeypatch, capsys):
 
     captured = capsys.readouterr()
 
-    assert result == "quit"
+    assert result == ("quit", None)
     assert "Could not load saved reports: Database unavailable" in captured.out
     assert "No reports found." in captured.out
 
@@ -929,21 +869,16 @@ def test_run_cli_cancel_submission(monkeypatch):
 
     inputs = iter([
         "1",  # Submit report
-        "3"   # Exit after cancellation
+        "4"   # Exit after cancellation
     ])
 
     result = manager.run_cli(
         lambda prompt: next(inputs)
     )
 
-    assert result == "quit"
+    assert result == ("quit", None)
 
 def test_image_dialog_cancel(monkeypatch):
-    monkeypatch.setattr(
-        io_helper_module,
-        "load_dotenv",
-        lambda: None
-    )
     monkeypatch.delenv("APP_CONTAINER", raising=False)
 
     class FakeRoot:
@@ -967,9 +902,6 @@ def test_image_dialog_cancel(monkeypatch):
 
 
 def test_image_dialog_valid_image(tmp_path, monkeypatch):
-    monkeypatch.setattr(
-        io_helper_module, "load_dotenv", lambda: None
-    )
     monkeypatch.delenv("APP_CONTAINER", raising=False)
 
     image = tmp_path / "photo.jpg"
@@ -996,9 +928,6 @@ def test_image_dialog_valid_image(tmp_path, monkeypatch):
 
 
 def test_image_dialog_invalid_extension(tmp_path, monkeypatch):
-    monkeypatch.setattr(
-        io_helper_module, "load_dotenv", lambda: None
-    )
     monkeypatch.delenv("APP_CONTAINER", raising=False)
 
     invalid_file = tmp_path / "document.txt"
@@ -1033,9 +962,6 @@ def test_image_dialog_invalid_extension(tmp_path, monkeypatch):
 
 
 def test_image_dialog_missing_file(tmp_path, monkeypatch):
-    monkeypatch.setattr(
-        io_helper_module, "load_dotenv", lambda: None
-    )
     monkeypatch.delenv("APP_CONTAINER", raising=False)
 
     missing_image = tmp_path / "missing.jpg"
@@ -1069,9 +995,6 @@ def test_image_dialog_missing_file(tmp_path, monkeypatch):
 
 
 def test_image_dialog_tkinter_error(tmp_path, monkeypatch, capsys):
-    monkeypatch.setattr(
-        io_helper_module, "load_dotenv", lambda: None
-    )
     monkeypatch.delenv("APP_CONTAINER", raising=False)
 
     valid_image = tmp_path / "photo.jpg"
@@ -1111,3 +1034,40 @@ def test_image_dialog_tkinter_error(tmp_path, monkeypatch, capsys):
 
     assert "Window unavailable" in captured.out
     assert result == str(valid_image)
+
+
+def test_run_cli_configures_logic(monkeypatch):
+    monkeypatch.setattr(
+        PrintMenu, "configure_threshhold", lambda: (45, 85, 1, 4, False)
+    )
+    commands = iter(["3"])
+
+    report, logic = IOManager().run_cli(lambda prompt: next(commands))
+
+    assert report is None
+    config = logic.matcher.threshold_config
+    assert config.reject_threshold == 45
+    assert config.high_threshold == 85
+    assert config.min_feature_strong_match == 1
+    assert config.min_feature_excellent_match == 4
+    assert config.consider_location is False
+
+
+def test_configure_thresholds_retries_invalid_input(capsys):
+    answers = [
+        "invalid",
+        "45", "85", "1", "4", "maybe",
+        "45", "85", "1", "4", "no", "yes",
+    ]
+    scripted_input = iter(answers)
+
+    def read_answer(prompt):
+        # The configuration menu catches Exception and retries.
+        return next(scripted_input, None) or pytest.fail(f"Unexpected prompt {prompt!r}")
+
+    result = PrintMenu.configure_threshhold(read_answer)
+
+    assert result == (45, 85, 1, 4, False)
+    output = capsys.readouterr().out
+    assert "Error in configuration" in output
+    assert "Invalid input for location consideration" in output

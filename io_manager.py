@@ -1,4 +1,4 @@
-# CLI and report-display manager for the lost-and-found application
+# CLI and report-display manager for the lost-and-found application.
 
 # Imports
 import data_manager

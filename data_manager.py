@@ -1,4 +1,4 @@
-# data_manager file to handle all data storage and retrieval operations for the lost and found reports.
+# data_manager file to handle all data storage and retrieval operations for the lost and found reports..
 
 # Imports
 from pathlib import Path

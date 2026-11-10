@@ -260,3 +260,35 @@ def test_location_config_disabled_ignores_location_penalty():
     result = logic_manager.matcher.evaluate_analysis(ai_result)
 
     assert "LOCATION_MISMATCH" not in result["triggered_rules_list"]
+
+@pytest.mark.parametrize("answer, expected_status", [("yes", "closed"), ("no", "active")])
+def test_report_match_confirmation_across_layers(
+    tmp_path, monkeypatch, logic_manager, answer, expected_status
+):
+    import data_manager
+    from io_manager import IOManager
+
+    monkeypatch.setattr(data_manager, "DATA_FILE", tmp_path / "reports.json")
+    monkeypatch.setattr(data_manager, "IMAGE_DIRECTORY", tmp_path / "images")
+    monkeypatch.setattr(data_manager, "TEMP_DIRECTORY", tmp_path / "temp")
+    data = data_manager.DataManager()
+
+    report = data.save_new_reports({
+        "report_type": "found", "category": "bottle", "date": "25-09-2026"
+    })
+    candidate, = data.get_reports_by_category("bottle")
+    # Supply a deterministic analysis at the boundary where AI normally runs.
+    candidate["similarity_analysis"] = load_test_data("success.json")[0]["similarity_analysis"]
+    match = logic_manager.get_best_match([candidate], LOST_REPORT_DATE)
+    assert match is not None
+    assert match["report"]["case_id"] == report["case_id"]
+    assert match["evaluation"]["status"] == "RECOMMENDED_MATCH"
+
+    confirmed = IOManager().resolve_best_match(match, input_function=lambda prompt: answer)
+    assert confirmed is (answer == "yes")
+    if confirmed:
+        assert data.update_report_status(match["report"]["case_id"], "closed")
+
+    saved, = data_manager.DataManager().load_reports()
+    assert saved["status"] == expected_status
+    assert "similarity_analysis" not in saved

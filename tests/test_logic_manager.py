@@ -7,6 +7,7 @@ from logic_classes.match_rule import MatchRule
 from logic_classes.match_selector import MatchSelector
 from logic_classes.matcher import Matcher
 from logic_classes.rule_manager import RuleManager
+from logic_classes.rules import ColorMaterialMismatchRule, ColorOnlyMatchRule
 from logic_classes.threshold_config import ThresholdConfig
 from logic_classes.traits import Traits
 
@@ -219,54 +220,34 @@ def test_threshold_config_accepts_valid_custom_values():
     assert config.min_feature_excellent_match == 4
 
 
-@pytest.mark.parametrize("value", [True, False])
-def test_threshold_config_rejects_boolean_high_threshold(config, value):
-    with pytest.raises(ValueError):
-        config.high_threshold = value
-
-
-def test_threshold_config_rejects_high_threshold_above_100(config):
-    with pytest.raises(ValueError):
-        config.high_threshold = 101
-
-
-def test_threshold_config_rejects_negative_reject_threshold(config):
-    with pytest.raises(ValueError):
-        config.reject_threshold = -1
-
-
-def test_threshold_config_rejects_high_threshold_below_reject(config):
-    with pytest.raises(ValueError):
-        config.high_threshold = 40
-
-
-def test_threshold_config_rejects_reject_threshold_above_high(config):
-    with pytest.raises(ValueError):
-        config.reject_threshold = 90
-
-
-def test_threshold_config_rejects_decimal_feature_count(config):
-    with pytest.raises(ValueError):
-        config.min_feature_strong_match = 2.5
-
-
-def test_threshold_config_rejects_boolean_feature_count(config):
-    with pytest.raises(ValueError):
-        config.min_feature_strong_match = True
-
-
-def test_threshold_config_rejects_strong_feature_count_not_below_excellent(
-    config
+@pytest.mark.parametrize(
+    ("attribute", "valid_value", "invalid_value", "default_value"),
+    [
+        ("high_threshold", 85, True, 80.0),
+        ("high_threshold", 85, False, 80.0),
+        ("high_threshold", 85, 101, 80.0),
+        ("high_threshold", 85, 50, 80.0),
+        ("high_threshold", 85, 40, 80.0),
+        ("reject_threshold", 45, -1, 50.0),
+        ("reject_threshold", 45, 80, 50.0),
+        ("reject_threshold", 45, 90, 50.0),
+        ("min_feature_strong_match", 1, 2.5, 2),
+        ("min_feature_strong_match", 1, True, 2),
+        ("min_feature_strong_match", 1, 3, 2),
+        ("min_feature_excellent_match", 4, 2, 3),
+        ("consider_location", False, "False", True),
+    ],
+)
+def test_invalid_threshold_update_restores_default(
+    config, capsys, attribute, valid_value, invalid_value, default_value
 ):
-    with pytest.raises(ValueError):
-        config.min_feature_strong_match = 3
+    setattr(config, attribute, valid_value)
+    assert getattr(config, attribute) == valid_value
 
+    setattr(config, attribute, invalid_value)
 
-def test_threshold_config_rejects_excellent_feature_count_not_above_strong(
-    config
-):
-    with pytest.raises(ValueError):
-        config.min_feature_excellent_match = 2
+    assert getattr(config, attribute) == default_value
+    assert "Using default value" in capsys.readouterr().out
 
 
 def test_threshold_config_accepts_valid_threshold_updates(config):
@@ -301,11 +282,6 @@ def test_threshold_config_consider_location_accepts_boolean(config):
     config.consider_location = True
 
     assert config.consider_location is True
-
-
-def test_threshold_config_consider_location_rejects_non_boolean(config):
-    with pytest.raises(ValueError):
-        config.consider_location = "False"
 
 
 # ============================================================
@@ -438,6 +414,51 @@ def test_rule_manager_applies_positive_rule_once():
 
     assert result["final_score"] == 60
     assert result["positive_rule"] == "POSITIVE_ONE"
+
+
+@pytest.mark.parametrize(
+    ("color", "material", "expected_score", "expected_rules"),
+    [
+        ("not match", "not match", 70, ["COLOR_AND_MATERIAL_MISMATCH"]),
+        ("match", "not match", 80, []),
+        ("not match", "match", 80, []),
+    ],
+)
+def test_color_material_mismatch_penalty(color, material, expected_score, expected_rules):
+    manager = create_empty_rule_manager()
+    manager.add_rule(ColorMaterialMismatchRule())
+
+    result = manager.evaluate({"color_match": color, "material_match": material}, 80)
+
+    assert result["final_score"] == expected_score
+    assert result["triggered_rules_list"] == expected_rules
+
+
+def test_veto_skips_color_material_mismatch():
+    manager = create_empty_rule_manager()
+    manager.add_rule(DummyRule("VETO", "veto", score_change=-20))
+    manager.add_rule(ColorMaterialMismatchRule())
+
+    result = manager.evaluate({"color_match": "not match", "material_match": "not match"}, 80)
+
+    assert result["final_score"] == 60
+    assert result["triggered_rules_list"] == ["VETO"]
+
+
+def test_veto_keeps_negative_rule_with_default_skip_behavior():
+    manager = create_empty_rule_manager()
+    manager.add_rule(DummyRule("VETO", "veto", score_change=-20))
+    manager.add_rule(ColorOnlyMatchRule())
+
+    result = manager.evaluate({
+        "color_match": "match",
+        "material_match": "not match",
+        "brand_match": "not match",
+        "feature_overlaps": [],
+    }, 80)
+
+    assert result["final_score"] == 50
+    assert result["triggered_rules_list"] == ["VETO", "COLOR_ONLY_MATCH"]
 
 
 def test_rule_manager_applies_bonus_rules():

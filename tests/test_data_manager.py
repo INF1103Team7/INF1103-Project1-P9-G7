@@ -3,13 +3,10 @@ import json
 import pytest
 from datetime import date, timedelta
 from pathlib import Path
-from data_classes.data_manager_service import DataManager
+from data_classes.data_manager_service import DataManagerService
 from data_classes.data_json_report_storage import JsonReportStorage
 from data_classes.data_report import Report
 import data_manager
-from unittest.mock import Mock
-import shutil
-import os
 # --------------------------------------------------
 # Fixtures
 # --------------------------------------------------
@@ -25,8 +22,10 @@ def image_directory(tmp_path):
 
 
 @pytest.fixture
-def manager(reports_file, image_directory):
-    return DataManager(reports_file, image_directory)
+def manager(reports_file, image_directory, tmp_path):
+    return DataManagerService(
+        reports_file, image_directory, tmp_path / "temp", {".jpg", ".jpeg", ".png"}
+    )
 
 
 # --------------------------------------------------
@@ -264,13 +263,9 @@ def test_reject_invalid_json(manager, reports_file):
         manager.load_reports()
 
 
-def test_store_image_invalid_type(manager, capsys):
-    result = manager.store_image(123, "CASE-001")
-
-    captured = capsys.readouterr()
-
-    assert result is None
-    assert "Invalid image path" in captured.out
+def test_store_image_invalid_type(manager):
+    with pytest.raises(TypeError):
+        manager.store_image(123, "CASE-001")
 
 
 def test_store_image_invalid_extension(manager, tmp_path, capsys):
@@ -285,7 +280,7 @@ def test_store_image_invalid_extension(manager, tmp_path, capsys):
     captured = capsys.readouterr()
 
     assert result is None
-    assert "Only JPG, JPEG and PNG images are allowed" in captured.out
+    assert "Only JPG, JPEG, and PNG images can be stored" in captured.out
 
 
 def test_store_image_missing_file(manager, tmp_path, capsys):
@@ -306,12 +301,15 @@ def test_store_image_missing_file(manager, tmp_path, capsys):
     "invalid_days",
     [-1, "30", 3.5, True, None]
 )
-def test_delete_expired_reports_invalid_retention(manager, invalid_days):
-    with pytest.raises(
-        ValueError,
-        match="Retention days must be a non-negative integer"
-    ):
-        manager.delete_expired_reports(invalid_days)
+def test_delete_expired_reports_invalid_retention(manager, invalid_days, capsys):
+    today = date.today()
+    expired = {"status": "closed", "closed_date": (today - timedelta(days=30)).isoformat()}
+    recent = {"status": "closed", "closed_date": (today - timedelta(days=29)).isoformat()}
+    assert manager.save_report_list([expired, recent])
+
+    assert manager.delete_expired_reports(invalid_days) == 1
+    assert manager.load_reports() == [recent]
+    assert "using default 30 days" in capsys.readouterr().out
 
 
 def test_delete_expired_reports_none_expired(manager):
@@ -364,7 +362,7 @@ def test_store_image_same_source_destination(manager, image_directory):
     assert source_image.read_bytes() == b"test image"
 
 
-def test_store_image_copy_error(manager, tmp_path, monkeypatch, capsys):
+def test_store_image_copy_error(manager, tmp_path, image_directory, monkeypatch, capsys):
     source_image = tmp_path / "sample.jpg"
     source_image.write_bytes(b"test image")
 
@@ -372,7 +370,7 @@ def test_store_image_copy_error(manager, tmp_path, monkeypatch, capsys):
         raise OSError("Copy failed")
 
     monkeypatch.setattr(
-        "data_classes.data_manager_class.shutil.copy2",
+        "data_classes.data_manager_service.shutil.copy2",
         fake_copy
     )
 
@@ -383,8 +381,9 @@ def test_store_image_copy_error(manager, tmp_path, monkeypatch, capsys):
 
     captured = capsys.readouterr()
 
-    assert result is None
-    assert "Error saving image: Copy failed" in captured.out
+    assert result == "CASE-001.jpg"
+    assert not (image_directory / result).exists()
+    assert "Error copying file: Copy failed" in captured.out
 
 
 def test_delete_expired_report_image(manager, image_directory):
@@ -524,7 +523,7 @@ def test_clear_temp_directory_access_error(
     assert "Error accessing temporary directory: Access denied" in captured.out
 
 
-def test_load_reports_not_list(reports_file):
+def test_load_reports_not_list(reports_file, capsys):
     storage = JsonReportStorage(reports_file)
 
     reports_file.write_text(
@@ -532,14 +531,11 @@ def test_load_reports_not_list(reports_file):
         encoding="utf-8"
     )
 
-    with pytest.raises(
-        ValueError,
-        match="Reports must be stored as a list"
-    ):
-        storage.load_reports()
+    assert storage.load_reports() == []
+    assert "Reports must be stored as a list" in capsys.readouterr().out
 
 
-def test_load_reports_invalid_item(reports_file):
+def test_load_reports_invalid_item(reports_file, capsys):
     storage = JsonReportStorage(reports_file)
 
     reports_file.write_text(
@@ -550,11 +546,8 @@ def test_load_reports_invalid_item(reports_file):
         encoding="utf-8"
     )
 
-    with pytest.raises(
-        ValueError,
-        match="Each report must be a dictionary"
-    ):
-        storage.load_reports()
+    assert storage.load_reports() == []
+    assert "Each report must be a dictionary" in capsys.readouterr().out
 
 
 def test_save_reports_invalid_data(reports_file, capsys):
@@ -753,502 +746,39 @@ def test_delete_expired_reports_image_delete_error(
     assert "Error deleting image: Permission denied" in captured.out
 
 
-# ============================================================
-# Tests for data_manager.py (function-based interface)
-# ============================================================
-
-
-# 1. Case ID generation
-def test_function_create_case_id():
-    case_id = data_manager.create_case_id()
-
-    assert case_id.startswith(f"CASE-{date.today():%Y%m%d}-")
-    assert len(case_id.split("-")[-1]) == 6
-
-
-def test_function_create_case_id_unique():
-    first_id = data_manager.create_case_id()
-    second_id = data_manager.create_case_id()
-
-    assert first_id != second_id
-
-
-# 2. Load reports without migration
-def test_function_load_reports_no_migration(tmp_path):
-    reports_file = tmp_path / "reports.json"
-
-    reports = [
-        {"case_id": "CASE-001", "status": "active"}
-    ]
-
-    reports_file.write_text(json.dumps(reports), encoding="utf-8")
-
-    result = data_manager.load_reports(reports_file)
-
-    assert result == reports
-
-
-# 3. Load reports and migrate old image filenames
-def test_function_load_reports_migration(tmp_path):
-    reports_file = tmp_path / "reports.json"
-    image_directory = tmp_path / "images"
-    image_directory.mkdir()
-
-    old_image = image_directory / "old.jpg"
-    old_image.write_bytes(b"image data")
-
-    reports = [
-        {
-            "category": "bottle",
-            "image_filename": "old.jpg"
-        }
-    ]
-
-    reports_file.write_text(json.dumps(reports), encoding="utf-8")
-
-    result = data_manager.load_reports(reports_file)
-
-    assert len(result) == 1
-    assert result[0]["case_id"].startswith("CASE-")
-    assert result[0]["image_filename"].endswith(".jpg")
-
-    new_image = image_directory / result[0]["image_filename"]
-
-    assert new_image.exists()
-    assert not old_image.exists()
-
-    saved_reports = json.loads(reports_file.read_text(encoding="utf-8"))
-    assert saved_reports == result
-
-
-# 4. Migration skips reports that already have case IDs
-def test_function_migration_existing_case_id(tmp_path):
-    reports = [
-        {
-            "case_id": "CASE-001",
-            "image_filename": "old.jpg"
-        }
-    ]
-
-    result = data_manager._migrate_old_image_names(
-        reports, tmp_path
-    )
-
-    assert result is False
-    assert reports[0]["image_filename"] == "old.jpg"
-
-
-# 5. Migration skips invalid image filenames
-@pytest.mark.parametrize("filename", [None, 123, True])
-def test_function_migration_invalid_filename(tmp_path, filename):
-    reports = [{"image_filename": filename}]
-
-    result = data_manager._migrate_old_image_names(
-        reports, tmp_path
-    )
-
-    assert result is False
-    assert "case_id" not in reports[0]
-
-
-# 6. Migration skips missing image files
-def test_function_migration_missing_image(tmp_path):
-    reports = [{"image_filename": "missing.jpg"}]
-
-    result = data_manager._migrate_old_image_names(
-        reports, tmp_path
-    )
-
-    assert result is False
-    assert "case_id" not in reports[0]
-
-
-# 7. Migration fails to save updated reports
-def test_function_load_reports_migration_save_failure(
-    tmp_path, monkeypatch
-):
-    reports_file = tmp_path / "reports.json"
-    image_directory = tmp_path / "images"
-    image_directory.mkdir()
-
-    (image_directory / "old.jpg").write_bytes(b"image")
-
-    reports_file.write_text(
-        json.dumps([{"image_filename": "old.jpg"}]),
-        encoding="utf-8"
-    )
-
-    monkeypatch.setattr(
-        data_manager.DataManager,
-        "save_report_list",
-        lambda self, reports: False
-    )
-
-    with pytest.raises(
-        OSError,
-        match="Unable to save migrated reports"
-    ):
-        data_manager.load_reports(reports_file)
-
-
-# 8. Save a new report through the wrapper
-def test_function_save_new_reports(tmp_path):
-    reports_file = tmp_path / "reports.json"
-    image_directory = tmp_path / "images"
-
-    report = {
-        "case_id": "CASE-001",
-        "category": "bottle"
-    }
-
-    result = data_manager.save_new_reports(
-        report, reports_file, image_directory
-    )
-
-    assert result["case_id"] == "CASE-001"
-    assert result["status"] == "active"
-
-    saved = json.loads(reports_file.read_text(encoding="utf-8"))
-    assert len(saved) == 1
-
-
-# 9. Reject invalid image path through the wrapper
-def test_function_save_new_reports_invalid_path(tmp_path):
-    reports_file = tmp_path / "reports.json"
-
-    report = {
-        "case_id": "CASE-001",
-        "image_path": 123
-    }
-
-    with pytest.raises(
-        ValueError,
-        match="Image path must be a string"
-    ):
-        data_manager.save_new_reports(
-            report, reports_file, tmp_path / "images"
-        )
-
-    assert not reports_file.exists()
-
-
-# 10. Save report list through the wrapper
-def test_function_save_report_list(tmp_path, monkeypatch):
-    reports_file = tmp_path / "reports.json"
-
-    monkeypatch.setattr(data_manager, "DATA_FILE", reports_file)
-
-    reports = [{"case_id": "CASE-001"}]
-
-    result = data_manager.save_report_list(reports)
-
-    assert result is True
-    assert json.loads(reports_file.read_text(encoding="utf-8")) == reports
-
-
-# 11. Get active reports through the wrapper
-def test_function_get_active_reports(tmp_path, monkeypatch):
-    reports_file = tmp_path / "reports.json"
-    monkeypatch.setattr(data_manager, "DATA_FILE", reports_file)
-
-    reports_file.write_text(json.dumps([
-        {"case_id": "CASE-001", "status": "active"},
-        {"case_id": "CASE-002", "status": "closed"}
-    ]), encoding="utf-8")
-
-    result = data_manager.get_active_reports()
-
-    assert len(result) == 1
-    assert result[0]["case_id"] == "CASE-001"
-
-
-# 12. Filter reports by category through the wrapper
-def test_function_get_reports_by_category(tmp_path, monkeypatch):
-    reports_file = tmp_path / "reports.json"
-    monkeypatch.setattr(data_manager, "DATA_FILE", reports_file)
-
-    reports_file.write_text(json.dumps([
-        {"case_id": "CASE-001", "category": "bottle", "status": "active"},
-        {"case_id": "CASE-002", "category": "bag", "status": "active"},
-        {"case_id": "CASE-003", "category": "bottle", "status": "closed"}
-    ]), encoding="utf-8")
-
-    result = data_manager.get_reports_by_category("bottle")
-
-    assert len(result) == 1
-    assert result[0]["case_id"] == "CASE-001"
-
-
-# 13. Update report status through the wrapper
-def test_function_update_report_status(tmp_path, monkeypatch):
-    reports_file = tmp_path / "reports.json"
-    monkeypatch.setattr(data_manager, "DATA_FILE", reports_file)
-
-    reports_file.write_text(json.dumps([
-        {"case_id": "CASE-001", "status": "active"}
-    ]), encoding="utf-8")
-
-    result = data_manager.update_report_status(
-        "CASE-001", "closed"
-    )
-
-    assert result is True
-
-    saved = json.loads(reports_file.read_text(encoding="utf-8"))
-    assert saved[0]["status"] == "closed"
-    assert saved[0]["closed_date"] == date.today().isoformat()
-
-
-# 14. Delete expired reports through the wrapper
-def test_function_delete_expired_reports(tmp_path, monkeypatch):
-    reports_file = tmp_path / "reports.json"
-    image_directory = tmp_path / "images"
-
-    monkeypatch.setattr(data_manager, "DATA_FILE", reports_file)
-    monkeypatch.setattr(data_manager, "IMAGE_DIRECTORY", image_directory)
-
-    old_date = (date.today() - timedelta(days=40)).isoformat()
-
-    reports_file.write_text(json.dumps([
-        {
-            "case_id": "CASE-001",
-            "status": "closed",
-            "closed_date": old_date
-        }
-    ]), encoding="utf-8")
-
-    result = data_manager.delete_expired_reports(30)
-
-    assert result == 1
-    assert json.loads(reports_file.read_text(encoding="utf-8")) == []
-
-
-# 15. Clear temporary directory through the wrapper
-def test_function_clear_temp_directory(tmp_path, monkeypatch, capsys):
-    reports_file = tmp_path / "reports.json"
-    monkeypatch.setattr(data_manager, "DATA_FILE", reports_file)
-
-    temp_directory = tmp_path / "temp"
-    temp_directory.mkdir()
-
-    (temp_directory / "test.txt").write_text("temporary")
-
-    result = data_manager.clear_temp_directory(temp_directory)
-
-    captured = capsys.readouterr()
-
-    assert result == 1
-    assert list(temp_directory.iterdir()) == []
-    assert "Cleared 1 temporary file(s)" in captured.out
-
-
-# 16. Store image with invalid extension
-def test_function_store_image_invalid_extension(tmp_path):
-    source = tmp_path / "test.txt"
-    source.write_text("not an image")
-
-    result = data_manager.store_image(
-        source, "CASE-001", tmp_path / "images"
-    )
-
-    assert result is None
-
-
-# 17. Store image that does not exist
-def test_function_store_image_missing_file(tmp_path):
-    result = data_manager.store_image(
-        tmp_path / "missing.jpg",
-        "CASE-001",
-        tmp_path / "images"
-    )
-
-    assert result is None
-
-
-# 18. Store image in the configured image directory
-def test_function_store_image_main_directory(tmp_path, monkeypatch):
-    image_directory = tmp_path / "images"
-    monkeypatch.setattr(data_manager, "IMAGE_DIRECTORY", image_directory)
-
-    source = tmp_path / "source.JPG"
+@pytest.fixture
+def public_manager(tmp_path, monkeypatch):
+    monkeypatch.setattr(data_manager, "DATA_FILE", tmp_path / "reports.json")
+    monkeypatch.setattr(data_manager, "IMAGE_DIRECTORY", tmp_path / "images")
+    monkeypatch.setattr(data_manager, "TEMP_DIRECTORY", tmp_path / "temp")
+    return data_manager.DataManager()
+
+
+def test_data_manager_stores_and_reloads_report(public_manager, tmp_path):
+    source = tmp_path / "bottle.JPG"
+    source.write_bytes(b"image")
+    report = public_manager.save_new_reports({
+        "category": "bottle",
+        "image_path": str(source),
+    })
+
+    assert report["status"] == "active"
+    assert report["image_filename"] == f'{report["case_id"]}.jpg'
+    assert (tmp_path / "images" / report["image_filename"]).read_bytes() == b"image"
+    assert "image_path" not in report
+    assert data_manager.DataManager().load_reports() == [report]
+
+
+def test_data_manager_stages_image_and_clears_temp(public_manager, tmp_path, monkeypatch):
+    # Use a relative path outside the staging directory to exercise copying.
+    monkeypatch.chdir(tmp_path)
+    staging = tmp_path / "temp"
+    staging.mkdir()
+    source = tmp_path / "bottle.jpg"
     source.write_bytes(b"image")
 
-    result = data_manager.store_image(
-        source, "CASE-001", image_directory
-    )
-
-    assert result == "CASE-001.jpg"
-    assert (image_directory / "CASE-001.jpg").read_bytes() == b"image"
-
-
-# 19. Handle image copy errors in the main directory
-def test_function_store_image_copy_error(
-    tmp_path, monkeypatch, capsys
-):
-    image_directory = tmp_path / "images"
-    monkeypatch.setattr(data_manager, "IMAGE_DIRECTORY", image_directory)
-
-    source = tmp_path / "source.jpg"
-    source.write_bytes(b"image")
-
-    def fake_copy(source, destination):
-        raise OSError("Copy failed")
-
-    monkeypatch.setattr(data_manager.shutil, "copy2", fake_copy)
-
-    data_manager.store_image(source, "CASE-001", image_directory)
-
-    captured = capsys.readouterr()
-    assert "Error saving file to database:" in captured.out
-
-
-# 20. Store image in temporary directory (non-container)
-def test_function_store_image_temp_directory(tmp_path, monkeypatch):
-    temp_directory = tmp_path / "temp"
-    monkeypatch.setattr(data_manager, "TEMP_DIRECTORY", temp_directory)
-    monkeypatch.delenv("APP_CONTAINER", raising=False)
-
-    source = tmp_path / "source.jpg"
-    source.write_bytes(b"image")
-
-    result = data_manager.store_image(
-        source, "CASE-001", temp_directory
-    )
-
-    if os.name == "nt":
-        assert result == source.name
-    else:
-        assert result == str(source)
-    assert (temp_directory / result).exists()
-
-
-# 21. Handle duplicate image in temporary directory
-
-def test_function_store_image_temp_same_file(
-    tmp_path, monkeypatch, capsys
-):
-    temp_directory = tmp_path / "temp"
-    temp_directory.mkdir()
-
-    monkeypatch.setattr(
-        data_manager, "TEMP_DIRECTORY", temp_directory
-    )
-    monkeypatch.delenv("APP_CONTAINER", raising=False)
-
-    source = temp_directory / "source.jpg"
-    source.write_bytes(b"image")
-
-    def fake_copy(source, destination):
-        raise shutil.SameFileError("Same file")
-
-    monkeypatch.setattr(
-        data_manager.shutil, "copy2", fake_copy
-    )
-
-    result = data_manager.store_image(
-        source, "CASE-001", temp_directory
-    )
-
-    captured = capsys.readouterr()
-
-    if os.name == "nt":
-        assert result == source.name
-    else:
-        assert result == str(source)
-    assert "File already exists" in captured.out
-
-# 22. Handle copy error in temporary directory
-def test_function_store_image_temp_copy_error(
-    tmp_path, monkeypatch, capsys
-):
-    temp_directory = tmp_path / "temp"
-
-    monkeypatch.setattr(data_manager, "TEMP_DIRECTORY", temp_directory)
-    monkeypatch.delenv("APP_CONTAINER", raising=False)
-
-    source = tmp_path / "source.jpg"
-    source.write_bytes(b"image")
-
-    def fake_copy(source, destination):
-        raise OSError("Copy failed")
-
-    monkeypatch.setattr(data_manager.shutil, "copy2", fake_copy)
-
-    data_manager.store_image(source, "CASE-001", temp_directory)
-
-    captured = capsys.readouterr()
-
-    assert "Error copying file:" in captured.out
-
-
-# 23. Store image in container environment
-def test_function_store_image_container(tmp_path, monkeypatch):
-    temp_directory = tmp_path / "temp"
-
-    monkeypatch.setattr(data_manager, "TEMP_DIRECTORY", temp_directory)
-    monkeypatch.setenv("APP_CONTAINER", "1")
-
-    source = tmp_path / "source.jpg"
-    source.write_bytes(b"image")
-
-    result = data_manager.store_image(
-        source, "CASE-001", temp_directory
-    )
-
-    assert result == "source.jpg"
-    assert (temp_directory / result).exists()
-
-
-# 24. Handle duplicate image in container environment
-def test_function_store_image_container_same_file(
-    tmp_path, monkeypatch, capsys
-):
-    temp_directory = tmp_path / "temp"
-    temp_directory.mkdir()
-
-    monkeypatch.setattr(
-        data_manager, "TEMP_DIRECTORY", temp_directory
-    )
-    monkeypatch.setenv("APP_CONTAINER", "1")
-
-    source = temp_directory / "source.jpg"
-    source.write_bytes(b"image")
-
-    def fake_copy(source, destination):
-        raise shutil.SameFileError("Same file")
-
-    monkeypatch.setattr(
-        data_manager.shutil, "copy2", fake_copy
-    )
-
-    result = data_manager.store_image(
-        source, "CASE-001", temp_directory
-    )
-
-    captured = capsys.readouterr()
-
-    assert result == "source.jpg"
-    assert "File already exists" in captured.out
-
-# 25. Handle copy error in container environment
-def test_function_store_image_container_copy_error(
-    tmp_path, monkeypatch, capsys
-):
-    temp_directory = tmp_path / "temp"
-
-    monkeypatch.setattr(data_manager, "TEMP_DIRECTORY", temp_directory)
-    monkeypatch.setenv("APP_CONTAINER", "1")
-
-    source = tmp_path / "source.jpg"
-    source.write_bytes(b"image")
-
-    def fake_copy(source, destination):
-        raise OSError("Copy failed")
-
-    monkeypatch.setattr(data_manager.shutil, "copy2", fake_copy)
-
-    data_manager.store_image(source, "CASE-001", temp_directory)
-
-    captured = capsys.readouterr()
-
-    assert "Error copying file:" in captured.out
+    assert public_manager.store_image(source.name, None) == source.name
+    assert (staging / source.name).read_bytes() == b"image"
+    assert public_manager.clear_temp_directory() == 1
+    assert list(staging.iterdir()) == []
+    assert source.exists()
