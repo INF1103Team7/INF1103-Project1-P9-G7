@@ -82,7 +82,7 @@ class IoHelper:
 
     @staticmethod
     def read_image_path(input_function: InputFunction) -> str | None:
-        load_dotenv()
+        load_dotenv(Path(__file__).parent.parent / ".env")
         if os.environ.get("APP_CONTAINER") != "1":
             while True:
                 try:
