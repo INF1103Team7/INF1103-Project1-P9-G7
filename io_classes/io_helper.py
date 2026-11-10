@@ -4,14 +4,10 @@ from pathlib import Path
 import tkinter as tk
 from tkinter import filedialog
 from typing import Callable
-
 from dotenv import load_dotenv
-
 from .print_menu import PrintMenu
 
-
 InputFunction = Callable[[str], str]
-
 
 class IoHelper:
     BACK = "BACK"
