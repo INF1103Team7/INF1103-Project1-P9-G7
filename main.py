@@ -7,7 +7,6 @@ import json
 def main():
 	io = io_manager.IOManager()
 	ai = ai_manager.AiManager()
-	logic = logic_manager.LogicManager()
 	data = data_manager.DataManager()
 
 	# Update database to remove closed reports that have been closed for more than 30 days
@@ -16,12 +15,29 @@ def main():
 	print("=" * 20)
 	deleted = data.delete_expired_reports(30)  # Delete reports closed for more than 30 days
 	print(f"[+] Database updated. {deleted} closed reports deleted from the database.")
-
+	
+	active_logic = None
+	
 	while True:
 		# Clear items in the temporary directory to avoid clutter and potential conflicts
 		data.clear_temp_directory()
+
 		# Run the CLI interface for the AI powered lost and found system
-		user_report = io.run_cli()
+		while True:
+			user_report, configured_logic = io.run_cli(current_logic=active_logic)
+
+			# Update persistent logic instance if user configured it
+			if configured_logic is not None:
+				active_logic = configured_logic
+			
+			# If a report was submitted, break to process it
+			if user_report is not None and user_report != "quit":
+				# If logic was never configured by user, fallback to default
+				if active_logic is None:
+					active_logic = logic_manager.LogicManager()
+
+				logic = active_logic
+				break
 		
 		if user_report == "quit":
 			break

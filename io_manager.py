@@ -3,6 +3,8 @@
 from typing import Callable, Iterable, Mapping
 
 import data_manager
+from logic_manager import LogicManager
+from logic_classes.threshold_config import ThresholdConfig
 from io_classes import (
     Format,
     IoHelper,
@@ -152,6 +154,7 @@ class IOManager:
     def run_cli(
         self,
         input_function: InputFunction = input,
+        current_logic=None 
     ) -> dict[str, str] | str:
         data = data_manager.DataManager()
         while True:
@@ -161,7 +164,8 @@ class IOManager:
             )
             PrintMenu.write("1. Submit a lost/found report")
             PrintMenu.write("2. View summary of all reports")
-            PrintMenu.write("3. Exit")
+            PrintMenu.write("3. Configure system settings")
+            PrintMenu.write("4. Exit")
             command = input_function("Select an option: ").strip().lower()
 
             if command in {"1", "report", "submit"}:
@@ -172,22 +176,31 @@ class IOManager:
                     continue
 
                 PrintMenu.section("Report submitted successfully!", 32)
-                return report
+                return report, current_logic
 
-            if command in {"2", "/summary", "summary"}:
+            elif command in {"2", "/summary", "summary"}:
                 try:
                     report_list = data.load_reports()
                 except (OSError, ValueError) as error:
                     report_list = []
                     PrintMenu.write(f"Could not load saved reports: {error}")
                 self.display_summary(report_list)
-            elif command in {"3", "exit", "quit", "q"}:
+            
+            elif command in {"3", "config", "settings"}:
+                reject, high, min_strong, min_excellent, consider_location = PrintMenu.configure_threshhold()
+                threshold_config = ThresholdConfig(reject, high, min_strong, min_excellent)
+                threshold_config.consider_location = consider_location
+                
+                logic = LogicManager(threshold_config=threshold_config)
+                return None, logic
+            
+            elif command in {"4", "exit", "quit", "q"}:
                 PrintMenu.write(
                     "\nExiting the AI powered lost and found system. Goodbye!"
                 )
-                return "quit"
+                return "quit", None
             else:
-                PrintMenu.write("Please choose 1, 2, or 3.")
+                PrintMenu.write("Please choose 1, 2, 3 or 4.")
 
 
 _default_io_manager = IOManager()
