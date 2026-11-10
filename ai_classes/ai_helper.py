@@ -21,7 +21,7 @@ class AiHelper:
         return "application/octet-stream"
 
     # Load image bytes from the specified path and create a Part object for the AI API request
-    def load_image_part(self, image_path: str):
+    def load_image_part(self, image_path: str) -> bytes:
         """_summary_
             Helper function to load image bytes from the specified path and create a Part object for the AI API request
         Args:

@@ -42,7 +42,7 @@ class AiService(AIServiceInterface):
             return False
     
     # Execute API call with retry logic
-    def _execute_with_retry(self, contents: Any):
+    def _execute_with_retry(self, contents: Any) -> Optional[str]:
         """_summary_
             Method to execute the AI API call with retry logic for handling rate limits and service unavailability.
         Args:
@@ -106,7 +106,7 @@ class AiService(AIServiceInterface):
         return None
 
     # Feature extraction service method
-    def extract_features(self, description, image_path: Optional[str] = None):
+    def extract_features(self, description: str, image_path: Optional[str] = None) -> Optional[dict]:
         """_summary_
                 Passes user text and optional image bytes to Gemini API with retry handling for feature extraction
             Args:
@@ -151,7 +151,7 @@ class AiService(AIServiceInterface):
         return self._execute_with_retry(contents)
 
     # Semantic matching service method
-    def ai_semantic_matching(self, input_lost_report, datalist: list):
+    def ai_semantic_matching(self, input_lost_report: str, datalist: list) -> Optional[list]:
         """_summary_
                 Passes lost report and list of lost reports from database to Gemini API with retry handling for semantic matching
             Args:

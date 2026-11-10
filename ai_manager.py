@@ -10,7 +10,7 @@ class AiManager:
         self._feature_extraction_service = AiService("Feature extraction")
         self._semantic_matching_service = AiService("Semantic AI matching")
 
-    def extract_features(self, description, image_path: str = None):
+    def extract_features(self, description: str, image_path: str = None):
         """_summary_
                 Passes user text and optional image bytes to Gemini API with retry handling for feature extraction
             Args:
@@ -21,7 +21,7 @@ class AiManager:
         """
         return self._feature_extraction_service.extract_features(description, image_path)
 
-    def ai_semantic_matching(self, input_lost_report, datalist: list):
+    def ai_semantic_matching(self, input_lost_report: str, datalist: list):
         """_summary_
                 Passes lost report and list of lost reports from database to Gemini API with retry handling for semantic matching
             Args:
