@@ -188,10 +188,12 @@ class IOManager:
             
             elif command in {"3", "config", "settings"}:
                 reject, high, min_strong, min_excellent, consider_location = PrintMenu.configure_threshhold()
+                PrintMenu.write("[+] Applying new configuration settings")
                 threshold_config = ThresholdConfig(reject, high, min_strong, min_excellent)
                 threshold_config.consider_location = consider_location
                 
                 logic = LogicManager(threshold_config=threshold_config)
+                PrintMenu.write("[+] New configuration settings applied successfully")
                 return None, logic
             
             elif command in {"4", "exit", "quit", "q"}:
