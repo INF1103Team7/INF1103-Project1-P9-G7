@@ -1,3 +1,5 @@
+# Matcher class
+
 from .analysis_validator import AnalysisValidator
 from .traits import Traits
 from .threshold_config import ThresholdConfig
@@ -22,7 +24,7 @@ class Matcher:
 
         self.rule_manager = RuleManager(self.threshold_config)
 
-    def handle_temporal_paradox(self, data, matched_rules_list, mismatched_rules_list):
+    def handle_temporal_paradox(self, data: dict, matched_rules_list: list, mismatched_rules_list: list) -> dict | None:
         # Check whether the found date occurs before the reported lost date.
         if data["time_match"] == "impossible_timeline":
             # Immediately reject the match because the timeline is impossible.
@@ -38,7 +40,7 @@ class Matcher:
         # Return None when no temporal paradox is detected.
         return None
 
-    def evaluate_rules(self, data, similarity_score, matched_rules_list, mismatched_rules_list):
+    def evaluate_rules(self, data: dict, similarity_score: float, matched_rules_list: list, mismatched_rules_list: list) -> dict:
         # Delegate the evaluation of registered business rules to RuleManager.
         evaluation = self.rule_manager.evaluate(data, similarity_score)
 
@@ -89,7 +91,7 @@ class Matcher:
             "evaluation_summary": evaluation_summary
         }
 
-    def evaluate_analysis(self, ai_result, lost_report_date=None):
+    def evaluate_analysis(self, ai_result: dict, lost_report_date=None) -> dict:
         # Validate the AI-generated result and retrieve its similarity score.
         validation, similarity_score = self.validator.validate_analysis(ai_result)
 

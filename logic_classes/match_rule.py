@@ -1,6 +1,7 @@
-# every business rule class must provide its own implementation of them #
-from abc import ABC, abstractmethod
 # Abstract base class that defines the required structure and behaviour for all business rule classes.
+
+from abc import ABC, abstractmethod
+
 class MatchRule(ABC):
     # check whether conditions of business rule are satisfied #
     @abstractmethod

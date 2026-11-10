@@ -1,3 +1,5 @@
+# match selector class
+
 class MatchSelector:
     """
     Selects the best matching report from a list of evaluation results.
@@ -9,7 +11,7 @@ class MatchSelector:
         "LOW_CONFIDENCE_MATCH": 1
     }
 
-    def get_best_match(self, evaluation_results):
+    def get_best_match(self, evaluation_results: list) -> dict | None:
         best_report = None
         best_evaluation = None
 

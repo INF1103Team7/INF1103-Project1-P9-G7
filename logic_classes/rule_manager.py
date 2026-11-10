@@ -1,3 +1,6 @@
+# Rule manager class
+
+# Imports
 from .rules import (
     BrandColorFeatureMatchRule,
     BrandColorMaterialMatchRule,
@@ -56,7 +59,7 @@ class RuleManager:
         # Register bonus rules.
         self.add_rule(SecondaryColorMatchRule())
 
-    def add_rule(self, rule):
+    def add_rule(self, rule: object) -> None:
         # Map each rule category to its corresponding list.
         categories = {
             "veto": self.veto_rules,
@@ -75,7 +78,7 @@ class RuleManager:
         # Add the rule object to the appropriate category list.
         categories[category].append(rule)
 
-    def __apply_rules(self, rules, data, score, triggered_rules_list):
+    def __apply_rules(self, rules: list, data: dict, score: float, triggered_rules_list: list) -> float:
         # Apply every rule in the supplied list if its conditions are satisfied.
         for rule in rules:
             if rule.is_satisfied(data):
@@ -87,7 +90,7 @@ class RuleManager:
 
         return score
 
-    def evaluate(self, data, score):
+    def evaluate(self, data: dict, score: float) -> dict:
         # Store the names of all rules that are triggered during evaluation.
         triggered_rules_list = []
         veto_triggered = False

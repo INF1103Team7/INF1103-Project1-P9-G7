@@ -10,7 +10,7 @@ class LogicManager:
         # Responsible for selecting the best evaluation.
         self.match_selector = MatchSelector()
 
-    def get_best_match(self, ai_result_list, lost_report_date=None):
+    def get_best_match(self, ai_result_list: list, lost_report_date=None) -> dict:
         """
         Evaluate AI results and return the best valid match.
 

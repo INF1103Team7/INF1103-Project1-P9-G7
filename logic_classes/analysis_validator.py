@@ -1,3 +1,5 @@
+# analysis validator class
+
 from datetime import datetime
 
 class AnalysisValidator:
@@ -7,7 +9,7 @@ class AnalysisValidator:
     Ensures that similarity scores, matching attributes and reported dates are in the expected format before further evaluation.
     """
 
-    def __is_valid_ai_result(self, ai_result):
+    def __is_valid_ai_result(self, ai_result: dict) -> bool:
         # Check that the AI result is a dictionary containing a valid similarity_analysis dictionary.
         return (
             isinstance(ai_result, dict)
@@ -15,7 +17,7 @@ class AnalysisValidator:
             and isinstance(ai_result["similarity_analysis"], dict)
         )
 
-    def __parse_score_to_float(self, score):
+    def __parse_score_to_float(self, score: any) -> float:
         # Handle scores returned directly as an integer or float.
         # Boolean values are excluded because bool is a subclass of int in Python.
         if isinstance(score, (int, float)) and not isinstance(score, bool):
@@ -34,7 +36,7 @@ class AnalysisValidator:
         # Ensure the converted score is within the accepted range of 0 to 100.
         return value if 0 <= value <= 100 else None
 
-    def validate_analysis(self, ai_result):
+    def validate_analysis(self, ai_result: dict) -> tuple[str, float]:
         """
         Validate the structure and matching information in an AI result.
 
@@ -87,7 +89,7 @@ class AnalysisValidator:
         # Return the successful validation status and converted score.
         return "valid", score
 
-    def validate_timeline(self, ai_result, lost_report_date):
+    def validate_timeline(self, ai_result: dict, lost_report_date: str) -> str:
         """
         Check whether the found report date is chronologically valid compared with the lost report date.
         """
