@@ -70,3 +70,8 @@ class DataManager:
         )
 
         return deleted_count
+
+    def store_image(self, source_path, case_id):
+        # store the image using the OOP method
+        stored_filename = self._manager.store_image(source_path, case_id)
+        return stored_filename
