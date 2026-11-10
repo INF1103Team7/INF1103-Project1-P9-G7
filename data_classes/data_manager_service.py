@@ -1,8 +1,9 @@
 import shutil
+import os
+from typing import Optional
 from pathlib import Path
 from datetime import date, datetime, timedelta
 from dotenv import load_dotenv
-import os
 
 from data_classes.data_report import Report
 from data_classes.data_json_report_storage import JsonReportStorage
@@ -36,10 +37,7 @@ class DataManagerService:
             if not isinstance(source_path, str):
                 raise ValueError("Image path must be a string")
 
-            image_filename = self.store_image(
-                source_path,
-                report.get_case_id()
-            )
+            image_filename = self.store_image(source_path, report.get_case_id())
 
             stored_report["image_filename"] = image_filename
 
@@ -59,7 +57,7 @@ class DataManagerService:
         return None
     
     # Store an image in the images directory
-    def store_image(self, source_path: str | Path, case_id: str) -> str:
+    def store_image(self, source_path: str | Path, case_id: Optional[str]) -> str:
         """_summary_
             Function to store an image in the images directory with a new filename based on the case ID.
         Args:
@@ -86,33 +84,33 @@ class DataManagerService:
             return None
 
         image_directory.mkdir(parents=True, exist_ok=True)
-        if image_directory == self._image_directory:
-            stored_filename = f"{case_id}{source.suffix.lower()}"
-            try:
-                shutil.copy2(source, image_directory / stored_filename)
-            except Exception as e:
-                print(f"[!] Error saving file to database: {e}")
-        elif image_directory == self._temp_directory:
-            # Check if the application is running in a containerized environment
-            if os.environ.get("APP_CONTAINER") == "1":
+        # Store image temporarily for extraction
+        if not case_id:
+            if source_path.find("temp") == -1:
                 try:
-                    if str(source).find("/") != -1:
+                    if isinstance(source, Path):
+                        stored_filename = f"{source.name}"
+                    elif str(source).find("/") != -1:
                         stored_filename = f"{str(source).split("/")[-1]}"
                     else:
                         stored_filename = f"{str(source).split('\\')[-1]}"
-                    shutil.copy2(source, image_directory / stored_filename)
+                    shutil.copy2(source, self._temp_directory / stored_filename)
                 except shutil.SameFileError:
                     print(f"[!] File already exists in the destination: {source} skipping copy.")
                 except Exception as e:
                     print(f"[!] Error copying file: {e}")
             else:
-                try:
-                    stored_filename = f"{str(source).split("\\")[-1]}"
-                    shutil.copy2(source, image_directory / stored_filename)
-                except shutil.SameFileError:
-                    print(f"[!] File already exists in the destination: {source} skipping copy.")
-                except Exception as e:
-                    print(f"[!] Error copying file: {e}")
+                stored_filename = source.name
+
+        # Save image to images directory after extraction
+        else:
+            try:
+                stored_filename = f"{case_id}{source.suffix.lower()}"
+                shutil.copy2(source, image_directory / stored_filename)
+            except shutil.SameFileError:
+                print(f"[!] File already exists in the destination: {source} skipping copy.")
+            except Exception as e:
+                print(f"[!] Error copying file: {e}")
         return stored_filename
         
     def get_active_reports(self):
