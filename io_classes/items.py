@@ -1,4 +1,4 @@
-"""Provide the supported item categories for report collection."""
+# Item class to handle item categories and related functionalities
 class Items:
     _CATEGORIES = (
         "student card",
@@ -11,6 +11,5 @@ class Items:
     )
 
     @classmethod
-    def categories(cls):
-        """Returns the supported item categories tuple."""
+    def categories(cls) -> tuple[str, ...]: # Returns the supported item categories tuple.
         return cls._CATEGORIES

@@ -1,35 +1,51 @@
-from typing import Callable, Iterable, Mapping
+# Print menu class
 
+from typing import Callable, Iterable, Mapping
 from .formatting import Format
 
-
+# Centralize terminal output for menus, reports, and status messages
 class PrintMenu:
-    """Centralize terminal output for menus, reports, and status messages."""
-
     @staticmethod
     def write(message: object = "") -> None:
+        """_summary_
+            Helper method to print messages to the terminal. Can be used for printing menus, reports, and status messages.
+        Args:
+            message (object, optional): The message to print. Defaults to "".
+        """
         print(message)
 
     @classmethod
     def choices(cls, title: str, choices: tuple[str, ...]) -> None:
+        """_summary_
+            Displays a list of choices to the user in a formatted manner.
+        Args:
+            title (str): The title of the choices section.
+            choices (tuple[str, ...]): A tuple of strings representing the choices to display.
+        """
         cls.write(title)
         for number, choice in enumerate(choices, start=1):
             cls.write(f"{number}. {choice.title()}")
 
     @classmethod
     def navigation(cls, include_back: bool = True) -> None:
+        """_summary_
+            Displays navigation options to the user, including the option to go back to the previous step or return to the main menu.
+        Args:
+            include_back (bool, optional): Whether to include the 'go back' option. Defaults to True.
+        """
         if include_back:
             cls.write("B. Go back to the previous step.")
         cls.write("M. Go back to the Main Menu")
 
     @classmethod
-    def section(
-        cls,
-        title: str,
-        width: int,
-        *,
-        leading_newline: bool = True,
-    ) -> None:
+    def section(cls, title: str, width: int, *, leading_newline: bool = True,) -> None:
+        """_summary_
+            Helper method to display a section title with a specified width and optional leading newline for better readability.
+        Args:
+            title (str): The title of the section to display.
+            width (int): The width of the section title, which determines how many '=' characters will be printed above and below the title.
+            leading_newline (bool, optional): Whether to include a leading newline before the section title. Defaults to True.
+        """
         prefix = "\n" if leading_newline else ""
         cls.write(f"{prefix}{'=' * width}")
         cls.write(title)
@@ -37,12 +53,22 @@ class PrintMenu:
 
     @classmethod
     def display_summary(cls, records: Iterable[Mapping[str, object]]) -> None:
+        """_summary_
+            Displays a summary of lost and found reports in a formatted manner.
+        Args:
+            records (Iterable[Mapping[str, object]]): An iterable of dictionaries, each representing a report with its details.
+        """
         cls.write("\nLost-and-Found Summary")
         cls.write("======================")
         cls.write(Format.records(records))
 
     @classmethod
     def best_match(cls, evaluation: Mapping[str, object]) -> None:
+        """_summary_
+            Displays the best match found from the database.
+        Args:
+            evaluation (Mapping[str, object]): A mapping containing the evaluation details of the best match.
+        """
         cls.write("[+] Best match found from database:")
         cls.write(f"Verdict: {evaluation.get('status')}")
         cls.write(
@@ -62,14 +88,19 @@ class PrintMenu:
         cls.write(f"Summary: {evaluation.get('evaluation_summary')}")
 
     @classmethod
-    def confirm_best_match(
-        cls,
-        best_match: Mapping[str, object],
-        input_function: Callable[[str], str] = input
-    ) -> bool:
+    def confirm_best_match(cls, best_match: Mapping[str, object], input_function: Callable[[str], str] = input) -> bool:
+        """_summary_
+            Function to confirm the best match found from the database with the user.
+        Args:
+            best_match (Mapping[str, object]): A mapping containing the details of the best match report.
+            input_function (Callable[[str], str], optional): The function to use for user input. Defaults to input.
+
+        Returns:
+            bool: _description_
+        """
         evaluation = best_match.get("evaluation")
         if not isinstance(evaluation, Mapping):
-            raise ValueError("The best match must include an evaluation mapping.")
+            return print("[!] Error: The best match must include an evaluation mapping.")
         cls.best_match(evaluation)
 
         while True:
@@ -83,7 +114,15 @@ class PrintMenu:
             cls.write("Please enter 'yes' or 'no'.")
 
     @classmethod
-    def configure_threshhold(cls, input_function: Callable[[str], str] = input):
+    def configure_threshhold(cls, input_function: Callable[[str], str] = input) -> tuple[int, int, int, int, bool]:
+        """_summary_
+            Function to configure AI semantic matching thresholds with user input.
+        Args:
+            input_function (Callable[[str], str], optional): The function to use for user input. Defaults to input.
+
+        Returns:
+            tuple[int, int, int, int, bool]: A tuple containing the configured thresholds.
+        """
         while True:
             cls.write("\nConfigurable AI semantic matching thresholds")
             cls.write("=============================================")
@@ -118,5 +157,5 @@ class PrintMenu:
             except Exception as e:
                 cls.write(f"[!] Error in configuration: {e}")
                 continue
-        cls.write("[+] Configuration complete.")
+        cls.write("\n[+] Configuration complete.")
         return reject, high, min_strong, min_excellent, consider_location

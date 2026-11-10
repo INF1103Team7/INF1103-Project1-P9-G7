@@ -1,11 +1,20 @@
+# Format class
+
+# Imports
 from typing import Iterable, Mapping
 
-
+# Create human-readable strings for reports
 class Format:
-    """Create human-readable strings for reports."""
-
     @staticmethod
     def record(record: Mapping[str, object]) -> str:
+        """_summary_
+            Function to format a single lost or found report into a human-readable string.
+        Args:
+            record (Mapping[str, object]): A dictionary containing the report details.
+
+        Returns:
+            str: A formatted string representation of the report.
+        """
         report_type = str(
             record.get("report_type", record.get("type", "unknown"))
         ).title()
@@ -41,6 +50,14 @@ class Format:
 
     @classmethod
     def records(cls, records: Iterable[Mapping[str, object]]) -> str:
+        """_summary_
+            Function to format multiple lost or found reports into a human-readable string.
+        Args:
+            records (Iterable[Mapping[str, object]]): An iterable of dictionaries, each containing the details of a report.
+
+        Returns:
+            str: A formatted string representation of all the reports, separated by two newlines.
+        """
         record_list = list(records)
         if not record_list:
             return "No reports found."

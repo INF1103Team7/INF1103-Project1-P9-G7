@@ -1,3 +1,6 @@
+# io helper class to handle user input and output for the lost-and-found application
+
+# Imports
 from datetime import date, datetime
 import os
 from pathlib import Path
@@ -9,6 +12,7 @@ from .print_menu import PrintMenu
 
 InputFunction = Callable[[str], str]
 
+# Helper class to handle user input and output for the lost-and-found application
 class IoHelper:
     BACK = "BACK"
     MAIN = "MAIN"
@@ -16,6 +20,15 @@ class IoHelper:
 
     @staticmethod
     def read_non_empty(prompt: str, input_function: InputFunction) -> str:
+        """_summary_
+            Helper method to read non-empty input from the user. It will keep prompting the user until a non-empty value is provided.
+        Args:
+            prompt (str): _description_
+            input_function (InputFunction): _description_
+
+        Returns:
+            str: _description_
+        """
         while True:
             value = input_function(prompt).strip()
 
@@ -30,11 +43,17 @@ class IoHelper:
             PrintMenu.write("Please enter a value.")
 
     @staticmethod
-    def read_choice(
-        prompt: str,
-        choices: tuple[str, ...],
-        input_function: InputFunction,
-    ) -> str:
+    def read_choice(prompt: str, choices: tuple[str, ...], input_function: InputFunction) -> str:
+        """_summary_
+            Helper method to read a choice from the user. It will keep prompting the user until a valid choice is provided.
+        Args:
+            prompt (str): prompt to display to the user for input
+            choices (tuple[str, ...]): A tuple of valid choices
+            input_function (InputFunction): The function to use for user input
+
+        Returns:
+            str: The user's choice, which will be one of the valid choices or a navigation command (BACK or MAIN).
+        """
         while True:
             value = input_function(prompt).strip().lower()
 
@@ -53,6 +72,14 @@ class IoHelper:
 
     @staticmethod
     def read_date(input_function: InputFunction) -> str:
+        """_summary_
+            Helper method to read a date input from the user in DD-MM-YYYY format. It will keep prompting the user until a valid date is provided.
+        Args:
+            input_function (InputFunction): The function to use for user input
+
+        Returns:
+            str: The user's input date in DD-MM-YYYY format, or a navigation command (BACK or MAIN).
+        """
         while True:
             value = IoHelper.read_non_empty(
                 "\nDate of loss/finding (DD-MM-YYYY): ",
@@ -78,6 +105,14 @@ class IoHelper:
 
     @staticmethod
     def read_image_path(input_function: InputFunction) -> str | None:
+        """_summary_
+            Helper method to read an image file path from the user. It will open a file dialog for the user to select an image file, or allow the user to input the path manually if in a headless environment.
+        Args:
+            input_function (InputFunction): The function to use for user input
+
+        Returns:
+            str | None: The path to the selected image file, or None if the user cancels the selection.
+        """
         load_dotenv(Path(__file__).parent.parent / ".env")
         if os.environ.get("APP_CONTAINER") != "1":
             while True:
@@ -155,8 +190,19 @@ class IoHelper:
 
     @staticmethod
     def print_choices(title: str, choices: tuple[str, ...]) -> None:
+        """_summary_
+            Displays a list of choices to the user in a formatted manner.
+        Args:
+            title (str): The title to display above the list of choices.
+            choices (tuple[str, ...]): A tuple of choices to display to the user.
+        """
         PrintMenu.choices(title, choices)
 
     @staticmethod
     def print_nav(include_back: bool = True) -> None:
+        """_summary_
+            Displays navigation options to the user, including the option to go back to the previous step or return to the main menu.
+        Args:
+            include_back (bool, optional): Whether to include the "back" option. Defaults to True.
+        """
         PrintMenu.navigation(include_back)

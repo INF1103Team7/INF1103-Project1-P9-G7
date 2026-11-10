@@ -1,8 +1,8 @@
-"""CLI and report-display manager for the lost-and-found application.."""
+# CLI and report-display manager for the lost-and-found application
 
-from typing import Callable, Iterable, Mapping
-
+# Imports
 import data_manager
+from typing import Callable, Iterable, Mapping
 from logic_manager import LogicManager
 from logic_classes.threshold_config import ThresholdConfig
 from io_classes import (
@@ -12,6 +12,7 @@ from io_classes import (
     PrintMenu,
 )
 
+# Constants
 REPORT_TYPES = ("lost", "found")
 IMAGE_EXTENSIONS = IoHelper.IMAGE_EXTENSIONS
 BACK = IoHelper.BACK
@@ -19,17 +20,21 @@ MAIN = IoHelper.MAIN
 
 InputFunction = Callable[[str], str]
 
-
+# Class to manage the command-line input and output for the lost-and-found application
 class IOManager:
-    """Coordinate the command-line input and output helpers."""
 
     format_record = staticmethod(Format.record)
     format_records = staticmethod(Format.records)
 
-    def collect_report(
-        self,
-        input_function: InputFunction = input,
-    ) -> dict[str, str] | None:
+    def collect_report(self, input_function: InputFunction = input) -> dict[str, str] | None:
+        """_summary_
+            Function to collect a lost or found report from the user through a command-line interface.
+        Args:
+            input_function (InputFunction, optional): The function to use for reading user input. Defaults to input.
+
+        Returns:
+            dict[str, str] | None: A dictionary containing the report details if the report is successfully collected, or None if the user cancels the report submission.
+        """
         stage = 1
 
         report_type = None
@@ -136,26 +141,35 @@ class IOManager:
 
     @staticmethod
     def display_summary(records: Iterable[Mapping[str, object]]) -> None:
+        """_summary_
+            Displays a summary of lost and found reports in a formatted manner.
+        Args:
+            records (Iterable[Mapping[str, object]]): An iterable of dictionaries, each representing a report with its details.
+        """
         PrintMenu.display_summary(records)
 
-    def resolve_best_match(
-        self,
-        best_match: Mapping[str, object],
-        input_function: InputFunction = input,
-        *,
-        alternative_matches: Iterable[Mapping[str, object]] = (),
-    ) -> bool:
-        return PrintMenu.confirm_best_match(
-            best_match,
-            input_function,
-            alternative_matches=alternative_matches,
-        )
+    def resolve_best_match(self, best_match: Mapping[str, object], input_function: InputFunction = input) -> bool:
+        """_summary_
+            Resolves the best match for a lost report by prompting the user for confirmation.
+        Args:
+            best_match (Mapping[str, object]): A dictionary containing the details of the best match report.
+            input_function (InputFunction, optional): The function to use for reading user input. Defaults to input.
 
-    def run_cli(
-        self,
-        input_function: InputFunction = input,
-        current_logic=None 
-    ) -> dict[str, str] | str:
+        Returns:
+            bool: True if the user confirms the match, False otherwise.
+        """
+        return PrintMenu.confirm_best_match(best_match, input_function)
+
+    def run_cli(self,input_function: InputFunction = input, current_logic=None) -> dict[str, str] | str:
+        """_summary_
+            Runs the command-line interface for the lost-and-found application, allowing users to submit reports, view summaries, and configure system settings.
+        Args:
+            input_function (InputFunction, optional): The function to use for reading user input. Defaults to input.
+            current_logic (_type_, optional): The current logic class to use. Defaults to None.
+
+        Returns:
+            dict[str, str] | str: A dictionary containing the report details if a report is submitted, or "quit" if the user chooses to exit the application.
+        """
         data = data_manager.DataManager()
         while True:
             PrintMenu.section(
