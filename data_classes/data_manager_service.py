@@ -9,7 +9,7 @@ from data_classes.data_report import Report
 from data_classes.data_json_report_storage import JsonReportStorage
 
 class DataManagerService:
-    def __init__(self, reports_file, image_directory, temp_directory, image_extensions):
+    def __init__(self, reports_file: str, image_directory: Path, temp_directory: Path, image_extensions: list[str]):
         # create the JSON storage object
         self._storage = JsonReportStorage(reports_file)
         # store the image directory path
@@ -17,15 +17,35 @@ class DataManagerService:
         self._image_extensions = image_extensions 
         self._temp_directory = temp_directory
     
-    def load_reports(self):
-        # load reports using the JSON storage object
+    def load_reports(self) -> list[dict]:
+        """_summary_
+            Loads all existing reports from the JSON file.
+        
+        Returns:
+            list[dict]: A list of dictionaries, each representing a report.
+        """
         return self._storage.load_reports()
     
-    def save_report_list(self, reports):
-        # save reports using the JSON storage object
+    def save_report_list(self, reports: list[dict]) -> bool:
+        """_summary_
+            Saves the current list of reports into the JSON file.
+        Args:
+            reports (list[dict]): A list of dictionaries, each representing a report.
+
+        Returns:
+            bool: True if the reports were saved successfully, False otherwise.
+        """
         return self._storage.save_reports(reports)
     
-    def save_new_report(self, report_data):
+    def save_new_report(self, report_data: dict) -> dict | None:
+        """_summary_
+            Save new reports to found_reports.json
+        Args:
+            new_report (dict): A dictionary representing the new report to be saved.
+
+        Returns:
+            None
+        """
         # create a Report object
         report = Report(report_data)
         # convert the report into a dictionary
@@ -56,21 +76,15 @@ class DataManagerService:
 
         return None
     
-    # Store an image in the images directory
     def store_image(self, source_path: str | Path, case_id: Optional[str]) -> str:
         """_summary_
-            Function to store an image in the images directory with a new filename based on the case ID.
+            Function to store an image file in the designated image directory. It checks for valid image extensions, creates necessary directories, and handles file copying.
         Args:
-            source_path (str | Path): The path to the source image file to be stored.
-            case_id (str): The case ID to be used for the new image filename.
-            image_directory (Path, optional): The path to the image directory. Defaults to IMAGE_DIRECTORY.
-
-        Raises:
-            ValueError: If the source path is not a valid image file or if the case ID is not a string.
-            FileNotFoundError: If the source image file is not found.
+            source_path (str | Path): The path to the source image file that needs to be stored.
+            case_id (Optional[str]): An optional case ID to rename the image file. If provided, the image will be renamed to match the case ID.
 
         Returns:
-            str: The filename of the stored image.
+            str: The filename of the stored image in the images directory.
         """
         # Load environment variables from .env file
         load_dotenv(Path(__file__).parent.parent / ".env")
@@ -113,8 +127,12 @@ class DataManagerService:
                 print(f"[!] Error copying file: {e}")
         return stored_filename
         
-    def get_active_reports(self):
-        # store only reports with active status
+    def get_active_reports(self) -> list[dict]:
+        """_summary_
+            return active reports from the database
+        Returns:
+            dict: list[dict]: A list of dictionaries, each representing an active report.
+        """
         active_reports = []
 
         for report in self.load_reports():
@@ -123,8 +141,15 @@ class DataManagerService:
 
         return active_reports
 
-    def get_reports_by_category(self, category):
-        # store reports matching the selected category
+    def get_reports_by_category(self, category: str) -> list[dict]:
+        """_summary_
+            return active reports matching the selected category
+        Args:
+            report_category (str): The category of the report to filter by.
+
+        Returns:
+            list[dict]: A list of dictionaries, each representing a report that matches the specified category.
+        """
         matching_reports = []
 
         for report in self.get_active_reports():
@@ -133,15 +158,30 @@ class DataManagerService:
 
         return matching_reports
     
-    def get_report_by_id(self, case_id):
-        # search for a report using its case ID
+    def get_report_by_id(self, case_id: str) -> dict | None:
+        """_summary_
+            Function to retrieve a report by its case ID from the database.
+        Args:
+            case_id (str): The unique identifier of the report to retrieve.
+
+        Returns:
+            dict | None: The report if found, otherwise None.
+        """
         for report in self.load_reports():
             if report.get("case_id") == case_id:
                 return report
-
         return None
 
-    def update_report_status(self, case_id, new_status):
+    def update_report_status(self, case_id: str, new_status: str) -> bool:
+        """_summary_
+            Updates the status of a report identified by its case ID.
+        Args:
+            case_id (str): The unique identifier of the report to update.
+            new_status (str): The new status to set for the report.
+
+        Returns:
+            bool: True if the update was successful, False otherwise.
+        """
         reports = self.load_reports()
 
         for index in range(len(reports)):
@@ -158,9 +198,18 @@ class DataManagerService:
 
         return False
     
-    def delete_expired_reports(self, retention_days=30):
+    def delete_expired_reports(self, retention_days=30) -> int:
+        """_summary_
+            Function to delete expired reports from the database based on a specified retention period. It also deletes associated image files if they exist.
+        Args:
+            retention_days (int, optional): The number of days to retain reports before deleting them. Defaults to 30.
+
+        Returns:
+            int: The number of reports deleted. Returns 0 if no reports were deleted or if an error occurred.
+        """
         if type(retention_days) is not int or retention_days < 0:
-            raise ValueError("Retention days must be a non-negative integer")
+            print("[!] Error: Retention days must be a non-negative integer, using default 30 days")
+            retention_days = 30
 
         reports = self.load_reports()
         remaining_reports = []
@@ -216,28 +265,36 @@ class DataManagerService:
 
         return len(expired_reports)
 
-    def clear_temp_directory(self, temp_directory):
-            temp_directory = Path(temp_directory)
-            deleted_count = 0
+    def clear_temp_directory(self, temp_directory: str | Path) -> int:
+        """_summary_
+            Clears the temporary directory used for storing extracted files.
+        Args:
+            temp_directory (str | Path): The path to the temporary directory to be cleared.
 
-            if not temp_directory.exists():
-                return 0
+        Returns:
+            int: The number of files that were deleted. Returns 0 if the directory does not exist or if an error occurred.
+        """
+        temp_directory = Path(temp_directory)
+        deleted_count = 0
 
-            if not temp_directory.is_dir():
-                print("Temporary path is not a directory")
-                return 0
+        if not temp_directory.exists():
+            return 0
 
-            try:
-                for item in temp_directory.iterdir():
-                    if item.is_file():
-                        try:
-                            item.unlink()
-                            deleted_count += 1
+        if not temp_directory.is_dir():
+            print("Temporary path is not a directory")
+            return 0
 
-                        except OSError as error:
-                            print("Error deleting temp file:", error)
+        try:
+            for item in temp_directory.iterdir():
+                if item.is_file():
+                    try:
+                        item.unlink()
+                        deleted_count += 1
 
-            except OSError as error:
-                print("Error accessing temporary directory:", error)
+                    except OSError as error:
+                        print("Error deleting temp file:", error)
 
-            return deleted_count
+        except OSError as error:
+            print("Error accessing temporary directory:", error)
+
+        return deleted_count
