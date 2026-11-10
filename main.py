@@ -6,17 +6,20 @@ import json
 
 def main():
 	io = io_manager.IOManager()
+	ai = ai_manager.AiManager()
+	logic = logic_manager.LogicManager()
+	data = data_manager.DataManager()
 
 	# Update database to remove closed reports that have been closed for more than 30 days
 	print("=" * 20)
 	print("Updating database")
 	print("=" * 20)
-	deleted = data_manager.delete_expired_reports()
+	deleted = data.delete_expired_reports(30)  # Delete reports closed for more than 30 days
 	print(f"[+] Database updated. {deleted} closed reports deleted from the database.")
 
 	while True:
 		# Clear items in the temporary directory to avoid clutter and potential conflicts
-		data_manager.clear_temp_directory()
+		data.clear_temp_directory()
 		# Run the CLI interface for the AI powered lost and found system
 		user_report = io.run_cli()
 		
@@ -28,10 +31,11 @@ def main():
 			print(f"\n[+] {user_report.get("report_type")} report received. Sending to AI layer for processing...")
 			# AI powered feature extraction
 			if user_report.get("image_path") is not None:
-				extract_image_path = data_manager.store_image(user_report.get("image_path"), None, data_manager.TEMP_DIRECTORY)
+				extract_image_path = data.store_image(user_report.get("image_path"))
+
 			else:
 				extract_image_path = None
-			user_input_extracted = ai_manager.extract_features(user_report, extract_image_path)
+			user_input_extracted = ai.extract_features(user_report, extract_image_path)
 
 			if user_input_extracted is None:
 				continue
@@ -42,7 +46,7 @@ def main():
 				# Store report into database
 				print("[+] Storing found report into database...")
 				try:
-					data_manager.save_new_reports(user_input_extracted)
+					data.save_new_reports(user_input_extracted)
 				except Exception as e:
 					print(f"[!] Error saving report: {e}")
 					continue
@@ -60,12 +64,12 @@ def main():
 				print("[+] Pulling found reports from database for AI semantic matching...")
 	
 				# Pull found records from same category as the lost report from database
-				report_category_list = data_manager.get_reports_by_category(user_input_extracted.get("category"))
+				report_category_list = data.get_reports_by_category(user_input_extracted.get("category"))
 				if not report_category_list:
 					print(f"[!] No found reports reported for category: {user_input_extracted.get('category')}.")
 					continue
 				print(f"[+] Found {len(report_category_list)} found reports for category: {user_input_extracted.get('category')}.")
-				matching_lost_reports = ai_manager.ai_semantic_matching(user_input_extracted, report_category_list) 
+				matching_lost_reports = ai.ai_semantic_matching(user_input_extracted, report_category_list) 
 
 				if not matching_lost_reports:
 					continue
@@ -75,28 +79,25 @@ def main():
 				print("Applying business logic to determine the best match for the lost report")
 				print("=" * 75)
 				matching_results = json.loads(matching_lost_reports)
-				best_match = logic_manager.get_best_match(matching_results, user_input_extracted.get("date"))
+				best_match = logic.get_best_match(matching_results, user_input_extracted.get("date"))
 
 				if best_match is None:
 					print("[!] No suitable match found for the lost report found in the database.")
 					continue
 
 				# Mark report as closed in the database if user confirms that the match is correct
-				resolve_report = io.resolve_best_match(
-					best_match,
-					alternative_matches=matching_results,
-				)
+				resolve_report = io.resolve_best_match(best_match, alternative_matches=matching_results)
 				if resolve_report:
 					print("\n" + "=" * 75)
 					print("Report marked as closed. Closing the matched found report in the databases")
 					print("=" * 75)
 					report = best_match.get("report")
-					id = report.get("case_id")
-					update_status = data_manager.update_report_status(id, "closed")
+					caseid = report.get("case_id")
+					update_status = data.update_report_status(caseid, "closed")
 					if update_status:
-						print(f"[+] Report with case ID: {id} has been successfully closed.")
+						print(f"[+] Report with case ID: {caseid} has been successfully closed.")
 					else:
-						print(f"[!] Failed to close report with case ID: {id}")
+						print(f"[!] Failed to close report with case ID: {caseid}")
 
 	return
 
