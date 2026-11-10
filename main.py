@@ -38,6 +38,9 @@ def main():
 
 				logic = active_logic
 				break
+
+			if user_report == "quit":
+				break
 		
 		if user_report == "quit":
 			break
