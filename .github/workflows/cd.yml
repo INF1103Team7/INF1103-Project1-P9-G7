@@ -1,4 +1,18 @@
+name: CD - Docker Publish
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
   packages: write
+
+jobs:
+
+packages: write
 jobs:
   test:
     runs-on: ubuntu-latest
