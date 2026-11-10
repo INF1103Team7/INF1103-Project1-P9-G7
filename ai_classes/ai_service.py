@@ -168,7 +168,7 @@ class AiService(AIServiceInterface):
         print("[+] Building Semantic AI Matching Prompt...")
     
         prompt = f"""
-        From this list of objects containing found reports "{datalist}", rank the top 3 most similar objects compared to this report:
+        From this list of objects containing found reports "{datalist}", rank the top 5 most similar objects compared to this report:
         "{input_lost_report}"
         
         Return a list conataining the top 3 most similar objects in order of similarity, with the most similar object first. 
