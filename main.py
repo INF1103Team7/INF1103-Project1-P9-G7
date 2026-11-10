@@ -31,7 +31,7 @@ def main():
 			print(f"\n[+] {user_report.get("report_type")} report received. Sending to AI layer for processing...")
 			# AI powered feature extraction
 			if user_report.get("image_path") is not None:
-				extract_image_path = data.store_image(user_report.get("image_path"))
+				extract_image_path = data.store_image(user_report.get("image_path"), None)
 
 			else:
 				extract_image_path = None
