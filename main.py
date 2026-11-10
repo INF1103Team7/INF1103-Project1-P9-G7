@@ -105,7 +105,7 @@ def main():
 					continue
 
 				# Mark report as closed in the database if user confirms that the match is correct
-				resolve_report = io.resolve_best_match(best_match, alternative_matches=matching_results)
+				resolve_report = io.resolve_best_match(best_match)
 				if resolve_report:
 					print("\n" + "=" * 75)
 					print("Report marked as closed. Closing the matched found report in the databases")
