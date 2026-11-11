@@ -5,6 +5,7 @@ from datetime import date, timedelta
 from pathlib import Path
 from data_classes.data_manager_service import DataManagerService
 from data_classes.data_json_report_storage import JsonReportStorage
+from data_classes.data_report_storage import ReportStorage
 from data_classes.data_report import Report
 import data_manager
 # --------------------------------------------------
@@ -823,3 +824,50 @@ def test_delete_expired_report_removes_image(manager, tmp_path, image_directory)
     assert deleted_count == 1
     assert manager.get_report_by_id(case_id) is None
     assert not image_path.exists()
+    
+def test_data_manager_with_custom_storage(tmp_path):
+    # Create a storage implementation for testing
+    class MemoryReportStorage(ReportStorage):
+        def __init__(self):
+            super().__init__("memory")
+            self.reports = []
+
+        def load_reports(self):
+            return [report.copy() for report in self.reports]
+
+        def save_reports(self, reports):
+            self.reports = [report.copy() for report in reports]
+            return True
+
+    # Create the custom storage object
+    storage = MemoryReportStorage()
+
+    # Create DataManagerService with custom storage
+    manager = DataManagerService(
+        reports_file=tmp_path / "reports.json",
+        image_directory=tmp_path / "images",
+        temp_directory=tmp_path / "temp",
+        image_extensions=[".jpg", ".jpeg", ".png"],
+        storage=storage
+    )
+
+    # Save a report
+    saved_report = manager.save_new_report({
+        "report_type": "lost",
+        "category": "electronics",
+        "description": "Lost laptop"
+    })
+
+    assert saved_report is not None
+
+    # Verify that the custom storage was used
+    assert len(storage.reports) == 1
+    assert storage.reports[0]["case_id"] == saved_report["case_id"]
+
+    # Verify DataManager can retrieve the report
+    reports = manager.load_reports()
+    assert len(reports) == 1
+    assert reports[0]["description"] == "Lost laptop"
+
+    # Verify JSON storage was not used
+    assert not (tmp_path / "reports.json").exists()
