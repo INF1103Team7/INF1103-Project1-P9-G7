@@ -381,10 +381,9 @@ def test_store_image_copy_error(manager, tmp_path, image_directory, monkeypatch,
 
     captured = capsys.readouterr()
 
-    assert result == "CASE-001.jpg"
-    assert not (image_directory / result).exists()
-    assert "Error copying file: Copy failed" in captured.out
-
+    assert result is None
+    assert not (image_directory / "CASE-001.jpg").exists()
+    assert "Error storing image: Copy failed" in captured.out
 
 def test_delete_expired_report_image(manager, image_directory):
     image_directory.mkdir(parents=True, exist_ok=True)
@@ -784,3 +783,43 @@ def test_data_manager_stages_image_and_clears_temp(public_manager, tmp_path, mon
     assert public_manager.clear_temp_directory() == 1
     assert list(staging.iterdir()) == []
     assert source.exists()
+
+def test_delete_expired_report_removes_image(manager, tmp_path, image_directory):
+    # Create a sample image
+    source_image = tmp_path / "sample.jpg"
+    source_image.write_bytes(b"test image")
+
+    # Save a report with the image
+    report = manager.save_new_report({
+        "report_type": "found",
+        "category": "electronics",
+        "description": "Found phone",
+        "image_path": str(source_image)
+    })
+
+    assert report is not None
+
+    image_path = image_directory / report["image_filename"]
+    assert image_path.exists()
+
+    # Close the report
+    case_id = report["case_id"]
+    assert manager.update_report_status(case_id, "closed") is True
+
+    # Set the closed date to 40 days ago
+    reports = manager.load_reports()
+    old_date = date.today() - timedelta(days=40)
+
+    for saved_report in reports:
+        if saved_report["case_id"] == case_id:
+            saved_report["closed_date"] = old_date.isoformat()
+
+    assert manager.save_report_list(reports) is True
+
+    # Delete reports older than 30 days
+    deleted_count = manager.delete_expired_reports(30)
+
+    # Verify both report and image are deleted
+    assert deleted_count == 1
+    assert manager.get_report_by_id(case_id) is None
+    assert not image_path.exists()
