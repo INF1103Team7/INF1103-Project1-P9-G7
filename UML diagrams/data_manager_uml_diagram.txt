@@ -1,0 +1,63 @@
+
+                         +--------------------------------------+
+                         |       <<abstract>>                   |
+                         |          ReportStorage               |
+                         +--------------------------------------+
+                         |                                      |
+                         +--------------------------------------+
+                         | + load_reports(): list               |
+                         | + save_reports(reports: list): None  |
+                         +--------------------------------------+
+                                           ^
+                                           |
+                                  Inheritance
+                                           |
+                         +--------------------------------------+
+                         |        JsonReportStorage             |
+                         +--------------------------------------+
+                         | - _reports_file: Path                |
+                         +--------------------------------------+
+                         | + __init__(reports_file)             |
+                         | + load_reports(): list               |
+                         | + save_reports(reports: list): None  |
+                         +--------------------------------------+
+                                           ^
+                                           |
+                                      Uses (1)
+                                           |
++------------------------------------------+---------------------------------------+
+|                              DataManagerService                                  |
++----------------------------------------------------------------------------------+
+| - _storage: ReportStorage                                                        |
+| - _image_directory: Path                                                         |
+| - _temp_directory: Path                                                          |
+| - _image_extensions: list                                                        |
++----------------------------------------------------------------------------------+
+| + __init__(reports_file, image_directory, temp_directory, image_extensions,       |
+|            storage=None)                                                         |
+| + load_reports(): list                                                           |
+| + save_report_list(reports: list): None                                           |
+| + save_new_report(report_data: dict): dict | None                                 |
+| + store_image(source_path, case_id): str | None                                   |
+| + get_active_reports(): list                                                     |
+| + get_reports_by_category(category: str): list                                   |
+| + get_report_by_id(case_id: str): dict | None                                      |
+| + update_report_status(case_id: str, new_status: str): bool                       |
+| + delete_expired_reports(retention_days: int): int                                |
+| + clear_temp_directory(): int                                                    |
++----------------------------------------------------------------------------------+
+                                           |
+                                           | Creates / Uses
+                                           v
+                         +--------------------------------------+
+                         |               Report                 |
+                         +--------------------------------------+
+                         | - _data: dict                        |
+                         +--------------------------------------+
+                         | + __init__(report_data: dict)        |
+                         | + update_status(new_status: str)     |
+                         | + get_case_id(): str                 |
+                         | + get_category(): str                |
+                         | + get_status(): str                  |
+                         | + to_dict(): dict                    |
+                         +--------------------------------------+
