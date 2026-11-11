@@ -7,15 +7,23 @@ from dotenv import load_dotenv
 
 from data_classes.data_report import Report
 from data_classes.data_json_report_storage import JsonReportStorage
+from data_classes.data_report_storage import ReportStorage
 
 class DataManagerService:
-    def __init__(self, reports_file: str, image_directory: Path, temp_directory: Path, image_extensions: list[str]):
-        # create the JSON storage object
-        self._storage = JsonReportStorage(reports_file)
-        # store the image directory path
-        self._image_directory = image_directory
-        self._image_extensions = image_extensions 
-        self._temp_directory = temp_directory
+    def __init__(
+        self,
+        reports_file: str,
+        image_directory: Path,
+        temp_directory: Path,
+        image_extensions: list[str],
+        storage: ReportStorage | None = None
+    ):
+        # Use the provided storage or default to JSON storage
+        self._storage = storage if storage is not None else JsonReportStorage(reports_file)
+
+        self._image_directory = Path(image_directory)
+        self._image_extensions = image_extensions
+        self._temp_directory = Path(temp_directory)
     
     def load_reports(self) -> list[dict]:
         """_summary_
@@ -57,13 +65,13 @@ class DataManagerService:
             if not isinstance(source_path, str):
                 raise ValueError("Image path must be a string")
 
-        image_filename = self.store_image(source_path, report.get_case_id())
+            image_filename = self.store_image(source_path, report.get_case_id())
 
-        if image_filename is None:
-            print("[!] Report not saved because the image could not be stored.")
-            return None
+            if image_filename is None:
+                print("[!] Report not saved because the image could not be stored.")
+                return None
 
-        stored_report["image_filename"] = image_filename
+            stored_report["image_filename"] = image_filename
 
         # remove the original image path
         stored_report.pop("image_path", None)
@@ -80,41 +88,40 @@ class DataManagerService:
 
         return None
     
-
     def store_image(self, source_path: str | Path, case_id: Optional[str]) -> str | None:
-    """Store an image in the images or temporary directory."""
+        """Store an image in the images or temporary directory."""
 
-    source = Path(source_path)
+        source = Path(source_path)
 
-    if source.suffix.lower() not in self._image_extensions:
-        print("[!] Only JPG, JPEG, and PNG images can be stored.")
-        return None
+        if source.suffix.lower() not in self._image_extensions:
+            print("[!] Only JPG, JPEG, and PNG images can be stored.")
+            return None
 
-    if not source.is_file():
-        print(f"[!] Image not found: {source}")
-        return None
+        if not source.is_file():
+            print(f"[!] Image not found: {source}")
+            return None
 
-    if case_id:
-        destination_directory = Path(self._image_directory)
-        stored_filename = f"{case_id}{source.suffix.lower()}"
-    else:
-        destination_directory = Path(self._temp_directory)
-        stored_filename = source.name
+        if case_id:
+            destination_directory = Path(self._image_directory)
+            stored_filename = f"{case_id}{source.suffix.lower()}"
+        else:
+            destination_directory = Path(self._temp_directory)
+            stored_filename = source.name
 
-    destination = destination_directory / stored_filename
+        destination = destination_directory / stored_filename
 
-    try:
-        destination_directory.mkdir(parents=True, exist_ok=True)
+        try:
+            destination_directory.mkdir(parents=True, exist_ok=True)
 
-        if source.resolve() != destination.resolve():
-            shutil.copy2(source, destination)
+            if source.resolve() != destination.resolve():
+                shutil.copy2(source, destination)
 
-        return stored_filename
+            return stored_filename
 
-    except OSError as error:
-        print(f"[!] Error storing image: {error}")
-        return None
-       
+        except OSError as error:
+            print(f"[!] Error storing image: {error}")
+            return None
+        
     def get_active_reports(self) -> list[dict]:
         """_summary_
             return active reports from the database
