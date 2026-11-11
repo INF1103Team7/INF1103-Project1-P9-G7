@@ -531,7 +531,8 @@ def test_load_reports_not_list(reports_file, capsys):
         encoding="utf-8"
     )
 
-    assert storage.load_reports() == []
+    with pytest.raises(ValueError, match="Reports must be stored as a list"):
+      storage.load_reports()
     assert "Reports must be stored as a list" in capsys.readouterr().out
 
 
@@ -546,7 +547,8 @@ def test_load_reports_invalid_item(reports_file, capsys):
         encoding="utf-8"
     )
 
-    assert storage.load_reports() == []
+    with pytest.raises(ValueError, match="Each report must be a dictionary"):
+      storage.load_reports()
     assert "Each report must be a dictionary" in capsys.readouterr().out
 
 
