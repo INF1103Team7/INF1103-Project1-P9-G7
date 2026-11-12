@@ -1,7 +1,9 @@
 # Print menu class
 
-from typing import Callable, Iterable, Mapping
+from collections.abc import Callable, Iterable, Mapping
+
 from .formatting import Format
+
 
 # Centralize terminal output for menus, reports, and status messages
 class PrintMenu:

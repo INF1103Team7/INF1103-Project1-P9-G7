@@ -1,4 +1,4 @@
-name: Logic Manager CI
+name: Logic Test Data CI
 
 on:
   push:
@@ -39,6 +39,6 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
 
-      - name: Run Logic JSON tests
+      - name: Run Logic Test JSON tests
         run: |
           python -m pytest tests/test_logic_data.py -s -q --cov=logic_classes --cov=logic_manager --cov-report=term-missing

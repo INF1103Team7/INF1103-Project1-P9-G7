@@ -34,7 +34,7 @@ jobs:
         env:
           APP_CONTAINER: "1"
         run: |
-          python -m pytest tests/test_data_manager.py tests/test_io_manager.py tests/test_logic_manager.py tests/test_logic_data.py -v
+          python -m pytest tests -v
 
   publish:
     needs: test

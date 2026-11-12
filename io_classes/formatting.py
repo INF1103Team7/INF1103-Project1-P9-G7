@@ -1,7 +1,8 @@
 # Format class
 
 # Imports
-from typing import Iterable, Mapping
+from collections.abc import Iterable, Mapping
+
 
 # Create human-readable strings for reports
 class Format:

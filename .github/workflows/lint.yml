@@ -22,4 +22,4 @@ jobs:
         run: >-
           python -m ruff check
           data_manager.py io_manager.py logic_manager.py
-          data_classes io_classes logic_classes tests
+          data_classes io_classes logic_classes tests --fix
