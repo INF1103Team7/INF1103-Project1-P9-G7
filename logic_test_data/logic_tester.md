@@ -15,7 +15,7 @@ weak_match.json
 Tests reports with poor physical similarity where the CORE_VISUAL_MISMATCH_VETO rule should trigger.
 1. match_failure: Color + material don't match and zero features
 2. match_failure: Same core visual mismatch condition
-3. match_failure: Same core visual mismatch condition
+3. match_failure: temporal paradox veto
 
 
 multi_rule.json

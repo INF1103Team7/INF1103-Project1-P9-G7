@@ -49,5 +49,5 @@ jobs:
 
       - name: Run Logic Test Data tests
         run: |
-          python -m pytest tests/test_logic_data.py::test_evaluate_analysis -s -q --cov=logic_classes --cov=logic_manager --cov-report=term-missing
+          python -m pytest tests/test_logic_data.py -s -q --cov=logic_classes --cov=logic_manager --cov-report=term-missing
 

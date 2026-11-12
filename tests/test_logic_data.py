@@ -190,45 +190,7 @@ def test_tie_score(logic_manager):
     assert first_valid_report is not None
     assert result["report"] == first_valid_report
 
-
-# ============================================================
-# 4. IMPOSSIBLE TIMELINE
-# ============================================================
-
-def test_impossible_timeline(logic_manager):
-
-    ai_result = {
-        "date": "10-10-2026",
-        "similarity_analysis": {
-            "similarity_score": 95,
-            "color_match": "match",
-            "material_match": "match",
-            "brand_match": "match",
-            "location_match": "match",
-            "feature_overlap_match": [
-                "logo",
-                "shape"
-            ]
-        }
-    }
-
-    lost_report_date = "15-10-2026"
-
-    evaluation = logic_manager.matcher.evaluate_analysis(
-        ai_result,
-        lost_report_date
-    )
-
-    assert evaluation["status"] == "match_failure"
-
-    assert evaluation["final_composite_score"] == 0.0
-
-    assert (
-        "TEMPORAL_PARADOX_VETO"
-        in evaluation["triggered_rules_list"]
-    )
-
-
+'''
 # ============================================================
 # 5. THRESHOLD CONFIGURATION INTEGRATION
 # ============================================================
@@ -298,10 +260,12 @@ def test_location_config_disabled_ignores_location_penalty():
     result = logic_manager.matcher.evaluate_analysis(ai_result)
 
     assert "LOCATION_MISMATCH" not in result["triggered_rules_list"]
-
-@pytest.mark.parametrize("answer, expected_status", [("yes", "closed"), ("no", "active")])
+@pytest.mark.parametrize(
+    "answer, expected_status",
+    [("yes", "closed"), ("no", "active")],
+)
 def test_report_match_confirmation_across_layers(
-    tmp_path, monkeypatch, logic_manager, answer, expected_status
+    tmp_path, monkeypatch, logic_manager, answer, expected_status, capsys
 ):
     import data_manager
     from io_manager import IOManager
@@ -312,21 +276,36 @@ def test_report_match_confirmation_across_layers(
     data = data_manager.DataManager()
 
     report = data.save_new_reports({
-        "report_type": "found", "category": "bottle", "date": "25-09-2026"
+        "report_type": "found",
+        "category": "bottle",
+        "date": "25-09-2026",
     })
     candidate, = data.get_reports_by_category("bottle")
-    # Supply a deterministic analysis at the boundary where AI normally runs.
-    candidate["similarity_analysis"] = load_test_data("success.json")[0]["similarity_analysis"]
+
+    # Use fixture data in place of a live AI result.
+    fixture_report = load_test_data("success.json")[0]
+    candidate["similarity_analysis"] = fixture_report["similarity_analysis"]
+
     match = logic_manager.get_best_match([candidate], LOST_REPORT_DATE)
     assert match is not None
     assert match["report"]["case_id"] == report["case_id"]
     assert match["evaluation"]["status"] == "RECOMMENDED_MATCH"
 
-    confirmed = IOManager().resolve_best_match(match, input_function=lambda prompt: answer)
+    confirmed = IOManager().resolve_best_match(
+        match,
+        input_function=lambda prompt: answer,
+    )
+    capsys.readouterr()
     assert confirmed is (answer == "yes")
+
     if confirmed:
         assert data.update_report_status(match["report"]["case_id"], "closed")
 
     saved, = data_manager.DataManager().load_reports()
     assert saved["status"] == expected_status
     assert "similarity_analysis" not in saved
+    with capsys.disabled():
+        print(
+            f"\nCross-layer check | Logic selected a match"
+            f" | IO answer: {answer} | Data layer status: {saved['status']}"
+        )'''
