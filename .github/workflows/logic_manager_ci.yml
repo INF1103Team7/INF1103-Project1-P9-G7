@@ -5,8 +5,13 @@ on:
     paths:
       - 'logic*/**'
       - 'logic_manager.py'
+      - "io*/**"
+      - "io_manager.py"
+      - 'data*/**'
+      - 'data_manager.py'
       - 'tests/test_logic_data.py'
-      - '.github/workflows/logic_test_data_ci.yml'
+      - 'tests/test_io_data_logic_integration.py'
+      - '.github/workflows/logic_manager_ci.yml'
       - 'requirements.txt'
 
   pull_request:
@@ -14,7 +19,7 @@ on:
       - 'logic*/**'
       - 'logic_manager.py'
       - 'tests/test_logic_data.py'
-      - '.github/workflows/logic_test_data_ci.yml'
+      - '.github/workflows/logic_manager_ci.yml'
       - 'requirements.txt'
 
 jobs:
@@ -39,6 +44,13 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
 
-      - name: Run Logic Test Data tests
+      - name: Run Logic Manager tests
         run: |
           python -m pytest tests/test_logic_manager.py -v --cov=logic_classes --cov=logic_manager --cov-report=term-missing
+
+      - name: Run Logic JSON tests
+        run: |
+          python -m pytest tests/test_logic_data.py -s -q --cov=logic_classes --cov=logic_manager --cov-report=term-missing
+
+      - name: Run Integration Test for Data, IO, and Logic
+        run: python -m pytest tests/test_io_data_logic_integration.py -q

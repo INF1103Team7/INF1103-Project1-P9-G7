@@ -1,0 +1,25 @@
+name: Python Lint
+
+on: [push, pull_request]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Install Ruff
+        run: python -m pip install ruff
+
+      - name: Lint Data, IO, Logic, and tests
+        run: >-
+          python -m ruff check
+          data_manager.py io_manager.py logic_manager.py
+          data_classes io_classes logic_classes tests
