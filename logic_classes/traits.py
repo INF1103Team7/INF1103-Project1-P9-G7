@@ -1,5 +1,6 @@
 from .analysis_validator import AnalysisValidator
 
+
 class Traits:
     """
     Responsible for extracting and classifying matching attributes from the AI analysis results.

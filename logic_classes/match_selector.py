@@ -1,11 +1,14 @@
 # match selector class
 
+from typing import ClassVar
+
+
 class MatchSelector:
     """
     Selects the best matching report from a list of evaluation results.
     """
 
-    STATUS_PRIORITY = {
+    STATUS_PRIORITY: ClassVar[dict[str, int]] = {
         "RECOMMENDED_MATCH": 3,
         "POTENTIAL_MATCH": 2,
         "LOW_CONFIDENCE_MATCH": 1

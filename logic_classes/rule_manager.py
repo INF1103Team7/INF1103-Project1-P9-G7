@@ -3,22 +3,23 @@
 # Imports
 from .rules import (
     BrandColorFeatureMatchRule,
-    BrandColorMaterialMatchRule,
     BrandColorMatchRule,
+    BrandColorMaterialMatchRule,
     BrandFeatureMatchRule,
     BrandMaterialMatchRule,
-    ColorFeatureMaterialMatchRule,
     ColorFeatureMatchRule,
+    ColorFeatureMaterialMatchRule,
     ColorMaterialMatchRule,
+    ColorMaterialMismatchRule,
     ColorOnlyMatchRule,
-    FullMatchRule,
     FourMatchRule,
+    FullMatchRule,
+    LocationMismatchRule,
     MaterialFeatureMatchRule,
     SecondaryColorMatchRule,
-    ColorMaterialMismatchRule,
-    LocationMismatchRule,
     VetoMismatchRule,
 )
+
 
 class RuleManager:
     """

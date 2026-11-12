@@ -73,16 +73,19 @@ class ThresholdConfig:
                 return False, f"Invalid: Input must not exceed {max_value}"
 
             # Ensure the higher boundary is greater than the lower boundary.
-            if lower_boundary is not None and higher_boundary is not None:
-                if higher_boundary <= lower_boundary:
-                    return (
-                        False,
-                        (
-                            f"Rejected: {higher_boundary_name} of"
-                            f" {higher_boundary} must be greater than"
-                            f" {lower_boundary_name} of {lower_boundary}"
-                        ),
-                    )
+            if (
+                lower_boundary is not None
+                and higher_boundary is not None
+                and higher_boundary <= lower_boundary
+            ):
+                return (
+                    False,
+                    (
+                        f"Rejected: {higher_boundary_name} of"
+                        f" {higher_boundary} must be greater than"
+                        f" {lower_boundary_name} of {lower_boundary}"
+                    ),
+                )
             # Return the validation result and converted value if all checks pass.
             return True, value
 

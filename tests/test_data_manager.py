@@ -1,13 +1,16 @@
 
 import json
-import pytest
 from datetime import date, timedelta
 from pathlib import Path
-from data_classes.data_manager_service import DataManagerService
-from data_classes.data_json_report_storage import JsonReportStorage
-from data_classes.data_report_storage import ReportStorage
-from data_classes.data_report import Report
+
+import pytest
+
 import data_manager
+from data_classes.data_json_report_storage import JsonReportStorage
+from data_classes.data_manager_service import DataManagerService
+from data_classes.data_report import Report
+from data_classes.data_report_storage import ReportStorage
+
 # --------------------------------------------------
 # Fixtures
 # --------------------------------------------------
@@ -392,7 +395,7 @@ def test_delete_expired_report_image(manager, image_directory):
     image_file = image_directory / "CASE-001.jpg"
     image_file.write_bytes(b"test image")
 
-    report = manager.save_new_report({
+    manager.save_new_report({
         "report_type": "lost",
         "category": "bottle",
         "description": "Blue water bottle"

@@ -1,13 +1,15 @@
 
-from io_classes.formatting import Format
-from io_classes.io_helper import IoHelper
+import tkinter as tk
 from datetime import date, timedelta
 from pathlib import Path
-from io_classes.print_menu import PrintMenu
+
 import pytest
-from io_manager import IOManager
-import tkinter as tk
+
 import io_classes.io_helper as io_helper_module
+from io_classes.formatting import Format
+from io_classes.io_helper import IoHelper
+from io_classes.print_menu import PrintMenu
+from io_manager import IOManager
 
 
 @pytest.fixture(autouse=True)

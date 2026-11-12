@@ -1,4 +1,6 @@
 from ..match_rule import MatchRule
+
+
 class SecondaryColorMatchRule(MatchRule):
 
     def is_satisfied(self, data):

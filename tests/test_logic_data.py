@@ -4,9 +4,8 @@ from pathlib import Path
 
 import pytest
 
-from logic_manager import LogicManager
 from logic_classes.threshold_config import ThresholdConfig
-
+from logic_manager import LogicManager
 
 TEST_FOLDER = Path(__file__).parent.parent / "logic_test_data"
 

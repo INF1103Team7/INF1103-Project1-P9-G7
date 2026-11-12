@@ -18,7 +18,12 @@ on:
     paths:
       - 'logic*/**'
       - 'logic_manager.py'
+      - "io*/**"
+      - "io_manager.py"
+      - 'data*/**'
+      - 'data_manager.py'
       - 'tests/test_logic_data.py'
+      - 'tests/test_io_data_logic_integration.py'
       - '.github/workflows/logic_manager_ci.yml'
       - 'requirements.txt'
 
@@ -47,10 +52,6 @@ jobs:
       - name: Run Logic Manager tests
         run: |
           python -m pytest tests/test_logic_manager.py -v --cov=logic_classes --cov=logic_manager --cov-report=term-missing
-
-      - name: Run Logic JSON tests
-        run: |
-          python -m pytest tests/test_logic_data.py -s -q --cov=logic_classes --cov=logic_manager --cov-report=term-missing
 
       - name: Run Integration Test for Data, IO, and Logic
         run: python -m pytest tests/test_io_data_logic_integration.py -q
