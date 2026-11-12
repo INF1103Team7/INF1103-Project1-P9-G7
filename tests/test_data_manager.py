@@ -5,6 +5,7 @@ from datetime import date, timedelta
 from pathlib import Path
 from data_classes.data_manager_service import DataManagerService
 from data_classes.data_json_report_storage import JsonReportStorage
+from data_classes.data_report_storage import ReportStorage
 from data_classes.data_report import Report
 import data_manager
 # --------------------------------------------------
@@ -381,10 +382,9 @@ def test_store_image_copy_error(manager, tmp_path, image_directory, monkeypatch,
 
     captured = capsys.readouterr()
 
-    assert result == "CASE-001.jpg"
-    assert not (image_directory / result).exists()
-    assert "Error copying file: Copy failed" in captured.out
-
+    assert result is None
+    assert not (image_directory / "CASE-001.jpg").exists()
+    assert "Error storing image: Copy failed" in captured.out
 
 def test_delete_expired_report_image(manager, image_directory):
     image_directory.mkdir(parents=True, exist_ok=True)
@@ -531,7 +531,8 @@ def test_load_reports_not_list(reports_file, capsys):
         encoding="utf-8"
     )
 
-    assert storage.load_reports() == []
+    with pytest.raises(ValueError, match="Reports must be stored as a list"):
+      storage.load_reports()
     assert "Reports must be stored as a list" in capsys.readouterr().out
 
 
@@ -546,7 +547,8 @@ def test_load_reports_invalid_item(reports_file, capsys):
         encoding="utf-8"
     )
 
-    assert storage.load_reports() == []
+    with pytest.raises(ValueError, match="Each report must be a dictionary"):
+      storage.load_reports()
     assert "Each report must be a dictionary" in capsys.readouterr().out
 
 
@@ -782,3 +784,90 @@ def test_data_manager_stages_image_and_clears_temp(public_manager, tmp_path, mon
     assert public_manager.clear_temp_directory() == 1
     assert list(staging.iterdir()) == []
     assert source.exists()
+
+def test_delete_expired_report_removes_image(manager, tmp_path, image_directory):
+    # Create a sample image
+    source_image = tmp_path / "sample.jpg"
+    source_image.write_bytes(b"test image")
+
+    # Save a report with the image
+    report = manager.save_new_report({
+        "report_type": "found",
+        "category": "electronics",
+        "description": "Found phone",
+        "image_path": str(source_image)
+    })
+
+    assert report is not None
+
+    image_path = image_directory / report["image_filename"]
+    assert image_path.exists()
+
+    # Close the report
+    case_id = report["case_id"]
+    assert manager.update_report_status(case_id, "closed") is True
+
+    # Set the closed date to 40 days ago
+    reports = manager.load_reports()
+    old_date = date.today() - timedelta(days=40)
+
+    for saved_report in reports:
+        if saved_report["case_id"] == case_id:
+            saved_report["closed_date"] = old_date.isoformat()
+
+    assert manager.save_report_list(reports) is True
+
+    # Delete reports older than 30 days
+    deleted_count = manager.delete_expired_reports(30)
+
+    # Verify both report and image are deleted
+    assert deleted_count == 1
+    assert manager.get_report_by_id(case_id) is None
+    assert not image_path.exists()
+    
+def test_data_manager_with_custom_storage(tmp_path):
+    # Create a storage implementation for testing
+    class MemoryReportStorage(ReportStorage):
+        def __init__(self):
+            super().__init__("memory")
+            self.reports = []
+
+        def load_reports(self):
+            return [report.copy() for report in self.reports]
+
+        def save_reports(self, reports):
+            self.reports = [report.copy() for report in reports]
+            return True
+
+    # Create the custom storage object
+    storage = MemoryReportStorage()
+
+    # Create DataManagerService with custom storage
+    manager = DataManagerService(
+        reports_file=tmp_path / "reports.json",
+        image_directory=tmp_path / "images",
+        temp_directory=tmp_path / "temp",
+        image_extensions=[".jpg", ".jpeg", ".png"],
+        storage=storage
+    )
+
+    # Save a report
+    saved_report = manager.save_new_report({
+        "report_type": "lost",
+        "category": "electronics",
+        "description": "Lost laptop"
+    })
+
+    assert saved_report is not None
+
+    # Verify that the custom storage was used
+    assert len(storage.reports) == 1
+    assert storage.reports[0]["case_id"] == saved_report["case_id"]
+
+    # Verify DataManager can retrieve the report
+    reports = manager.load_reports()
+    assert len(reports) == 1
+    assert reports[0]["description"] == "Lost laptop"
+
+    # Verify JSON storage was not used
+    assert not (tmp_path / "reports.json").exists()

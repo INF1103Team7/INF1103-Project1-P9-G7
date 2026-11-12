@@ -216,7 +216,8 @@
     "additional_notes": null,
     "case_id": "CASE-20261009-BBAC7A",
     "image_filename": "CASE-20261009-BBAC7A.jpg",
-    "status": "active"
+    "status": "closed",
+    "closed_date": "2026-11-11"
   },
   {
     "report_type": "found",
