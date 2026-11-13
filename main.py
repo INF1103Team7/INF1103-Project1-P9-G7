@@ -1,8 +1,10 @@
-import io_manager
+import json
+
 import ai_manager
 import data_manager
+import io_manager
 import logic_manager
-import json
+
 
 def main():
 	io = io_manager.IOManager()
@@ -66,7 +68,7 @@ def main():
 				print("[+] Storing found report into database...")
 				try:
 					data.save_new_reports(user_input_extracted)
-				except Exception as e:
+				except Exception as e: # noqa: BLE001
 					print(f"[!] Error saving report: {e}")
 					continue
 
@@ -118,7 +120,6 @@ def main():
 					else:
 						print(f"[!] Failed to close report with case ID: {caseid}")
 
-	return
 
 if __name__=="__main__":
 	main()

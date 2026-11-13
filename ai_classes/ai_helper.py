@@ -31,6 +31,7 @@ class AiHelper:
             bytes: Image bytes to be passed in AI API request
         """
         from pathlib import Path
+
         from google.genai import types
         try:
             if image_path.find("CASE-") != -1:
@@ -49,7 +50,7 @@ class AiHelper:
             print(f"[!] File {image_path} not found, continuing extraction without image")
 
         # Handle any other unexpected exceptions
-        except Exception as e:
+        except Exception as e: # noqa: BLE001
             print(f"[!] Exception occured: {e}")
 
 # Import control

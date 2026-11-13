@@ -1,11 +1,11 @@
 # Imports
 from abc import ABC, abstractmethod
-from typing import Optional
+
 
 # Base abstract class for core functions of AI service
 class AIServiceInterface(ABC):
     @abstractmethod
-    def extract_features(self, description: str, image_path: Optional[str] = None) -> dict:
+    def extract_features(self, description: str, image_path: str | None = None) -> dict:
         pass
 
     @abstractmethod

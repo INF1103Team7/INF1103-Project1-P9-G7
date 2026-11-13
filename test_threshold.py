@@ -1,8 +1,7 @@
 from pprint import pprint
 
-from logic_manager import LogicManager
 from logic_classes.threshold_config import ThresholdConfig
-
+from logic_manager import LogicManager
 
 # 1. Create a configuration
 try:

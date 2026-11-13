@@ -18,7 +18,7 @@ InputFunction = Callable[[str], str]
 class IoHelper:
     BACK = "BACK"
     MAIN = "MAIN"
-    IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png"}
+    IMAGE_EXTENSIONS = (".jpg", ".jpeg", ".png")
 
     @staticmethod
     def read_non_empty(prompt: str, input_function: InputFunction) -> str:

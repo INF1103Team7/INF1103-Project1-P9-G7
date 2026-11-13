@@ -1,7 +1,9 @@
 import os
-from google import genai
 from pathlib import Path
+
 from dotenv import load_dotenv
+from google import genai
+
 
 class AiAPI:
     def __init__(self):

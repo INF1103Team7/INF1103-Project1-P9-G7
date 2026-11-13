@@ -3,6 +3,7 @@
 # Import classes
 from ai_classes.ai_service import AiService
 
+
 # Class to manage AI services for feature extraction and semantic matching
 class AiManager:
     # Class initialization method to set up AI services for feature extraction and semantic matching
@@ -10,7 +11,7 @@ class AiManager:
         self._feature_extraction_service = AiService("Feature extraction")
         self._semantic_matching_service = AiService("Semantic AI matching")
 
-    def extract_features(self, description: str, image_path: str = None):
+    def extract_features(self, description: str, image_path: str | None = None):
         """_summary_
                 Passes user text and optional image bytes to Gemini API with retry handling for feature extraction
             Args:

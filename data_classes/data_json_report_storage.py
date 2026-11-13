@@ -30,15 +30,15 @@ class JsonReportStorage(ReportStorage):
                 reports = json.load(file)
                     # Ensure the JSON data contains a list
             if not isinstance(reports, list):
-             raise ValueError("Reports must be stored as a list")
+             raise TypeError("Reports must be stored as a list")
 
             # ensure every report is a dictionary
             for report in reports:
                 if not isinstance(report, dict):
-                    raise ValueError("Each report must be a dictionary")
+                    raise TypeError("Each report must be a dictionary")
 
             return reports
-        except (json.JSONDecodeError, ValueError, OSError) as error:
+        except (json.JSONDecodeError, TypeError, OSError) as error:
             print("Error loading reports:", error)
             raise
         

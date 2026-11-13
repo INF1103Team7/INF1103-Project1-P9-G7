@@ -1,14 +1,16 @@
 # Imports
-import time
 import logging
-from typing import Optional, Any
+import time
+from typing import Any
+
 from google.genai.errors import APIError
+
+from ai_classes.ai_api import AiAPI
+from ai_classes.ai_configuration import AiConfiguration
+from ai_classes.ai_helper import AiHelper
 
 # Classes
 from ai_classes.ai_service_interface import AIServiceInterface
-from ai_classes.ai_api import AiAPI
-from ai_classes.ai_helper import AiHelper
-from ai_classes.ai_configuration import AiConfiguration
 
 # Surpress non critical logging messages from the Google GenAI library
 logging.getLogger("google_genai.models").setLevel(logging.ERROR)
@@ -42,7 +44,7 @@ class AiService(AIServiceInterface):
             return False
     
     # Execute API call with retry logic
-    def _execute_with_retry(self, contents: Any) -> Optional[str]:
+    def _execute_with_retry(self, contents: Any) -> str | None:
         """_summary_
             Method to execute the AI API call with retry logic for handling rate limits and service unavailability.
         Args:
@@ -99,14 +101,14 @@ class AiService(AIServiceInterface):
                         break
     
                 # Handle any other unexpected exceptions
-                except Exception as e:
+                except Exception as e: # noqa: BLE001
                     print(f"[!] Exception occured: {e}")
                     return None
         print(f"[!] Error: {self._operation_type} failed")
         return None
 
     # Feature extraction service method
-    def extract_features(self, description: str, image_path: Optional[str] = None) -> Optional[dict]:
+    def extract_features(self, description: str, image_path: str | None = None) -> dict | None:
         """_summary_
                 Passes user text and optional image bytes to Gemini API with retry handling for feature extraction
             Args:
@@ -117,7 +119,7 @@ class AiService(AIServiceInterface):
         """
         print("[+] Initialising AI client object for feature extraction...")
         if not self._client:
-            print(f"[!] Error: Gemini API Key missing")
+            print("[!] Error: Gemini API Key missing")
             return None
         print("[+] AI client object initialised successfully!")
         print("[+] Building AI Prompt...")
@@ -151,7 +153,7 @@ class AiService(AIServiceInterface):
         return self._execute_with_retry(contents)
 
     # Semantic matching service method
-    def ai_semantic_matching(self, input_lost_report: str, datalist: list) -> Optional[list]:
+    def ai_semantic_matching(self, input_lost_report: str, datalist: list) -> list | None:
         """_summary_
                 Passes lost report and list of lost reports from database to Gemini API with retry handling for semantic matching
             Args:
@@ -162,7 +164,7 @@ class AiService(AIServiceInterface):
         """
         print("[+] Initialising AI client object for semantic matching...")
         if not self._client:
-            print(f"[!] Error: Gemini API Key missing")
+            print("[!] Error: Gemini API Key missing")
             return None
         print("[+] AI client object initialised successfully!")
         print("[+] Building Semantic AI Matching Prompt...")

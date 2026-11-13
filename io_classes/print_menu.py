@@ -156,7 +156,7 @@ class PrintMenu:
                     continue
                 else:
                     cls.write("Please enter 'yes' or 'no'.")
-            except Exception as e:
+            except Exception as e: # noqa: BLE001
                 cls.write(f"[!] Error in configuration: {e}")
                 continue
         cls.write("\n[+] Configuration complete.")

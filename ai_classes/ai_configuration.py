@@ -1,6 +1,7 @@
 # Imports
 from google.genai import types
 
+
 # Class to manage AI configuration settings, including models, temperature, and timeout.
 class AiConfiguration:
     # Initialise the AI configuration with default values for models, temperature, and timeout.
