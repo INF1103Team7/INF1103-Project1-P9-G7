@@ -2,6 +2,7 @@
 
 from abc import ABC, abstractmethod
 
+
 class MatchRule(ABC):
     # check whether conditions of business rule are satisfied #
     @abstractmethod

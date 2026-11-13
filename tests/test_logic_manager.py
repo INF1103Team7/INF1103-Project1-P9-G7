@@ -1,7 +1,5 @@
 import pytest
 
-from logic_manager import LogicManager
-
 from logic_classes.analysis_validator import AnalysisValidator
 from logic_classes.match_rule import MatchRule
 from logic_classes.match_selector import MatchSelector
@@ -10,7 +8,7 @@ from logic_classes.rule_manager import RuleManager
 from logic_classes.rules import ColorMaterialMismatchRule, ColorOnlyMatchRule
 from logic_classes.threshold_config import ThresholdConfig
 from logic_classes.traits import Traits
-
+from logic_manager import LogicManager
 
 # ============================================================
 # SHARED TEST DATA
@@ -113,13 +111,13 @@ def test_validator_rejects_invalid_scores(
 
 
 def test_validator_rejects_non_dictionary_input(validator):
-    status, message = validator.validate_analysis("invalid")
+    status, _message = validator.validate_analysis("invalid")
 
     assert status == "system_failure"
 
 
 def test_validator_rejects_missing_similarity_analysis(validator):
-    status, message = validator.validate_analysis({
+    status, _message = validator.validate_analysis({
         "date": "25-09-2026"
     })
 
@@ -131,7 +129,7 @@ def test_validator_rejects_invalid_color_match(
 ):
     valid_ai_result["similarity_analysis"]["color_match"] = "unknown"
 
-    status, message = validator.validate_analysis(valid_ai_result)
+    status, _message = validator.validate_analysis(valid_ai_result)
 
     assert status == "system_failure"
 
@@ -141,7 +139,7 @@ def test_validator_rejects_invalid_feature_list(
 ):
     valid_ai_result["similarity_analysis"]["feature_overlap_match"] = "logo"
 
-    status, message = validator.validate_analysis(valid_ai_result)
+    status, _message = validator.validate_analysis(valid_ai_result)
 
     assert status == "system_failure"
 

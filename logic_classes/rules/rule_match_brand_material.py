@@ -1,4 +1,6 @@
 from ..match_rule import MatchRule
+
+
 class BrandMaterialMatchRule(MatchRule):
     def is_satisfied(self, data):
         return (

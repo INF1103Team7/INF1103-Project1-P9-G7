@@ -1,4 +1,6 @@
 from ..match_rule import MatchRule
+
+
 class ColorFeatureMatchRule(MatchRule):
     def __init__(self, config):
         self.config = config

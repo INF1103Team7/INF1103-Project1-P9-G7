@@ -39,7 +39,6 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
 
-      - name: Run Logic Test Data tests
+      - name: Run Logic Test JSON tests
         run: |
-          python -m pytest tests/test_logic_data.py -v --cov=logic_classes --cov=logic_manager --cov-report=term-missing
-
+          python -m pytest tests/test_logic_data.py -s -q --cov=logic_classes --cov=logic_manager --cov-report=term-missing

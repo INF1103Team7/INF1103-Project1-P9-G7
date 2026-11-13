@@ -1,16 +1,17 @@
 # CLI and report-display manager for the lost-and-found application..
 
 # Imports
+from collections.abc import Callable, Iterable, Mapping
+
 import data_manager
-from typing import Callable, Iterable, Mapping
-from logic_manager import LogicManager
-from logic_classes.threshold_config import ThresholdConfig
 from io_classes import (
     Format,
     IoHelper,
     Items,
     PrintMenu,
 )
+from logic_classes.threshold_config import ThresholdConfig
+from logic_manager import LogicManager
 
 # Constants
 REPORT_TYPES = ("lost", "found")

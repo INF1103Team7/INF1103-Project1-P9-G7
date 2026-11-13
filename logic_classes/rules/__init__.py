@@ -1,10 +1,10 @@
+from .rule_match_brand_color import BrandColorMatchRule
 from .rule_match_brand_color_feature import BrandColorFeatureMatchRule
 from .rule_match_brand_color_material import BrandColorMaterialMatchRule
-from .rule_match_brand_color import BrandColorMatchRule
 from .rule_match_brand_feature import BrandFeatureMatchRule
 from .rule_match_brand_material import BrandMaterialMatchRule
-from .rule_match_color_feature_material import ColorFeatureMaterialMatchRule
 from .rule_match_color_feature import ColorFeatureMatchRule
+from .rule_match_color_feature_material import ColorFeatureMaterialMatchRule
 from .rule_match_color_material import ColorMaterialMatchRule
 from .rule_match_color_only import ColorOnlyMatchRule
 from .rule_match_five import FullMatchRule
@@ -14,3 +14,22 @@ from .rule_match_secondary_color import SecondaryColorMatchRule
 from .rule_mismatch_color_material import ColorMaterialMismatchRule
 from .rule_mismatch_location import LocationMismatchRule
 from .rule_mismatch_veto import VetoMismatchRule
+
+__all__ = [
+    "BrandColorFeatureMatchRule",
+    "BrandColorMatchRule",
+    "BrandColorMaterialMatchRule",
+    "BrandFeatureMatchRule",
+    "BrandMaterialMatchRule",
+    "ColorFeatureMatchRule",
+    "ColorFeatureMaterialMatchRule",
+    "ColorMaterialMatchRule",
+    "ColorMaterialMismatchRule",
+    "ColorOnlyMatchRule",
+    "FourMatchRule",
+    "FullMatchRule",
+    "LocationMismatchRule",
+    "MaterialFeatureMatchRule",
+    "SecondaryColorMatchRule",
+    "VetoMismatchRule",
+]

@@ -2,6 +2,7 @@
 
 from abc import ABC, abstractmethod
 
+
 class ReportStorage(ABC):
     def __init__(self, file_path):
         #store file path for report storage

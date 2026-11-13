@@ -2,6 +2,7 @@
 
 from datetime import datetime
 
+
 class AnalysisValidator:
     """
     Validates the structure and contents of AI-generated analysis results.

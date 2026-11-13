@@ -1,13 +1,15 @@
 # io helper class to handle user input and output for the lost-and-found application
 
 # Imports
-from datetime import date, datetime
 import os
-from pathlib import Path
 import tkinter as tk
+from collections.abc import Callable
+from datetime import date, datetime
+from pathlib import Path
 from tkinter import filedialog
-from typing import Callable
+
 from dotenv import load_dotenv
+
 from .print_menu import PrintMenu
 
 InputFunction = Callable[[str], str]

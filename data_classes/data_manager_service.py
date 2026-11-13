@@ -1,13 +1,11 @@
 import shutil
-import os
-from typing import Optional
-from pathlib import Path
 from datetime import date, datetime, timedelta
-from dotenv import load_dotenv
+from pathlib import Path
 
-from data_classes.data_report import Report
 from data_classes.data_json_report_storage import JsonReportStorage
+from data_classes.data_report import Report
 from data_classes.data_report_storage import ReportStorage
+
 
 class DataManagerService:
     def __init__(
@@ -88,7 +86,7 @@ class DataManagerService:
 
         return None
     
-    def store_image(self, source_path: str | Path, case_id: Optional[str]) -> str | None:
+    def store_image(self, source_path: str | Path, case_id: str | None) -> str | None:
         """Store an image in the images or temporary directory."""
 
         source = Path(source_path)

@@ -1,9 +1,10 @@
 # Matcher class
 
 from .analysis_validator import AnalysisValidator
-from .traits import Traits
-from .threshold_config import ThresholdConfig
 from .rule_manager import RuleManager
+from .threshold_config import ThresholdConfig
+from .traits import Traits
+
 
 class Matcher:
     """
