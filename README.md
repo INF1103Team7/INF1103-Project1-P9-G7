@@ -1,6 +1,6 @@
 # INF1103 Team Project 1 P9-G7
 
-INF1103 Procedural program team project on AI Powered Campus Lost & Found System
+INF1103 team project on AI Powered Campus Lost & Found System
 
 
 # Project Initial Details Submission
@@ -23,7 +23,7 @@ Currently in schools losing your personal items is common and there isn’t a ce
 
 Our goal: 
 
-Hence with that in mind our AI driven lost and found application is designed to allow lost item owners to provide a loose freeform text description and optional image if they have on their lost item where our AI will conduct feature extraction and real time matching to reported lost items within our database to quickly provide top matches on the lost item. Increasing the efficiency of reuniting the owner with their item. 
+Hence with that in mind our AI driven lost and found application is designed to allow lost item owners to provide a loose freeform text description and optional image if they have on their lost item where our AI will conduct feature extraction and real time matching to reported lost items within our database to quickly provide top matches on the lost item. Increasing the efficiency of reuniting the owner with their item. Users are also able to configure the threshold used for the business logic to either broaden or narrow their results based on their needs. 
 
  
 
